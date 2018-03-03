@@ -2,18 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using eshopAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace eshop_webAPI.Controllers
+namespace eshopAPI.Controllers
 {
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
+        private readonly ShopContext _shopContext;
+
+        public ValuesController(ShopContext shopContext)
+        {
+            _shopContext = shopContext;
+            _shopContext.Database.EnsureCreated();
+
+            if (_shopContext.Users.Count() == 0)
+            {
+                _shopContext.Users.Add(new User { ID = 0, Email = "test@test", Approved = true, Password = "Test", Role = 1});
+                _shopContext.SaveChanges();
+            }
+        }
+
         // GET api/values
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IEnumerable<User> Get()
         {
-            return new string[] { "value1", "value2" };
+            return _shopContext.Users;
         }
 
         // GET api/values/5
