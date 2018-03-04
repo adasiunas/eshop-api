@@ -15,13 +15,6 @@ namespace eshopAPI.Controllers
         public ValuesController(ShopContext shopContext)
         {
             _shopContext = shopContext;
-            _shopContext.Database.EnsureCreated();
-
-            if (_shopContext.Users.Count() == 0)
-            {
-                _shopContext.Users.Add(new User { ID = 0, Email = "test@test", Approved = true, Password = "Test", Role = 1});
-                _shopContext.SaveChanges();
-            }
         }
 
         // GET api/values
