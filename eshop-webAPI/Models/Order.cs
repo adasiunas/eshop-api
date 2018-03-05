@@ -10,10 +10,11 @@ namespace eshopAPI.Models
     {
         [Key]
         public long ID { get; set; }
+        public long UserID { get; set; }
         public User User { get; set; }
         public DateTime CreateDate { get; set; }
         public OrderStatus Status { get; set; }
-        public List<OrderItem> Items { get; set; }
+        public virtual ICollection<OrderItem> Items { get; set; }
     }
 
     public enum OrderStatus

@@ -10,6 +10,7 @@ namespace eshopAPI.Models
     {
         [Key]
         public long ID { get; set; }
+        public long ItemID { get; set; }
         public Item Item { get; set; }
         public int Count { get; set; }
     }
