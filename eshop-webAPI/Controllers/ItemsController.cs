@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace eshopAPI.Controllers
 {
     [Produces("application/json")]
-    [Route("api/items")]
+    [Route("api/Items")]
     public class ItemsController : Controller
     {
         // GET: api/Items

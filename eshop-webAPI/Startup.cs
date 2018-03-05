@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,12 +32,6 @@ namespace eshopAPI
             {
                 c.SwaggerDoc("v1", new Info { Title = "eshop-api", Version = "v1" });
             });
-
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
-            {
-                options.LoginPath = new PathString("/api/account/login");
-            });
-            
             services.AddMvc();
         }
 
@@ -59,7 +51,6 @@ namespace eshopAPI
                 });
             }
 
-            app.UseAuthentication();
             app.UseMvc();
         }
     }

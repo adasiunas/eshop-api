@@ -1,24 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using eshopAPI.Models;
-using eshopAPI.Requests;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace eshop_webAPI.Controllers
-{    
-
+{
     [Route("api/account")]
     public class AccountController : Controller
     {
-        [Authorize]
+        
         [HttpGet("profile")]
         public IActionResult Profile()
         {
-            return Ok(new User { ID = 0, Email = "test@test", Approved = true, Password = "Test", Role = 1});
+            return Ok();
         }
         [HttpPost("register")]
         public IActionResult Register()
@@ -27,18 +18,8 @@ namespace eshop_webAPI.Controllers
         }
         
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
+        public IActionResult Login()
         {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email, loginRequest.Username)
-            };
-            
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal: claimsPrincipal);
-            
             return Ok();
         }
         
