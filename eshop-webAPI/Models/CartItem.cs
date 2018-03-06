@@ -9,9 +9,12 @@ namespace eshopAPI.Models
     public class CartItem
     {
         [Key]
-        public long ID { get; set; }
+        public long ID { get; set; } // Primary key
+        [Required]
         public long ItemID { get; set; }
+        [Required]
         public Item Item { get; set; }
+        [Required]
         public int Count { get; set; }
     }
 }

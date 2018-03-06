@@ -9,9 +9,12 @@ namespace eshopAPI.Models
     public class User
     {
         [Key]
-        public long ID { get; set; }
-        public string Email { get; set; }
+        public long ID { get; set; } // Primary key
+        [Required]
+        public string Email { get; set; } // Bussiness key
+        [Required]
         public string Password { get; set; }
+        [Required]
         public UserRole Role { get; set; }
         public bool Approved { get; set; }
     }

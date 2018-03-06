@@ -9,7 +9,8 @@ namespace eshopAPI.Models
     public class Cart
     {
         [Key]
-        public long ID { get; set; }
+        public long ID { get; set; } // Primary key
+        [Required]
         public User User { get; set; }
         public virtual ICollection<CartItem> Items { get; set; }
     }

@@ -9,9 +9,14 @@ namespace eshopAPI.Models
     public class Item
     {
         [Key]
-        public long ID { get; set; }
+        public long ID { get; set; } // Primary key
+        [Required]
+        public string SKU { get; set; } // Bussiness key
+        [Required]
         public string Name { get; set; }
+        [Required]
         public string Description { get; set; }
+        [Required]
         public decimal Price { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime ModifiedDate { get; set; }
