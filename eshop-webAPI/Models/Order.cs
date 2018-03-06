@@ -9,11 +9,17 @@ namespace eshopAPI.Models
     public class Order
     {
         [Key]
-        public long ID { get; set; }
+        public long ID { get; set; } // Primary key
+        [Required]
+        public string OrderNumber { get; set; } // Bussiness key
+        [Required]
         public long UserID { get; set; }
+        [Required]
         public User User { get; set; }
         public DateTime CreateDate { get; set; }
+        [Required]
         public OrderStatus Status { get; set; }
+        [Required]
         public virtual ICollection<OrderItem> Items { get; set; }
     }
 
