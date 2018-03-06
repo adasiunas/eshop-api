@@ -18,22 +18,26 @@ namespace eshopAPI.Controllers
             return new JsonResult(new []{
                 new
                 {
-                    name = "test",
+                    SKU = "1234",
+                    name = "Testas",
                     img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
                 },
                 new
                 {
-                    name = "test",
+                    SKU = "5678",
+                    name = "Ilgas testinis tekstas kuris turetu netilpti vienoje korteles eiluteje",
                     img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
                 },
                 new
                 {
-                    name = "test",
+                    SKU = "1357",
+                    name = "Vidutinio ilgio testinis tekstas",
                     img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
                 },
                 new
                 {
-                    name = "test",
+                    SKU = "2468",
+                    name = "Labai labai labai ilgas testinis tekstas kuris tikrai turi netilpti vienoje korteles eiluteje, nes tokia ir yra sio teksto prasme, kad jis netilptu",
                     img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
                 }
                 });
