@@ -14,7 +14,6 @@ namespace eshopAPI.Models
         public string Email { get; set; } // Bussiness key
         [Required]
         public string Password { get; set; }
-        [Required]
         public UserRole Role { get; set; }
         public bool Approved { get; set; }
     }

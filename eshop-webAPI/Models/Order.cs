@@ -11,7 +11,7 @@ namespace eshopAPI.Models
         [Key]
         public long ID { get; set; } // Primary key
         [Required]
-        public string OrderNumber { get; set; } // Bussiness key
+        public Guid OrderNumber { get; set; } // Bussiness key
         [Required]
         public long UserID { get; set; }
         [Required]
