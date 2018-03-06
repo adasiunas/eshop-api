@@ -39,6 +39,10 @@ namespace eshopAPI
             {
                 options.LoginPath = new PathString("/api/account/login");
             });
+
+            services.AddAuthorization(options =>
+                options.AddPolicy("AdminRole", policy => policy.RequireRole("Admin"))
+            );
             
             services.AddMvc();
         }

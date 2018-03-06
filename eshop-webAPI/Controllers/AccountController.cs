@@ -18,8 +18,16 @@ namespace eshop_webAPI.Controllers
         [HttpGet("profile")]
         public IActionResult Profile()
         {
-            return Ok(new User { ID = 0, Email = "test@test", Approved = true, Password = "Test", Role = 1});
+            return Ok(new User { ID = 0, Email = "test@test", Approved = true, Password = "Test", Role = UserRole.User});
         }
+
+        [Authorize(Policy = "AdminRole")]
+        [HttpGet("admin")]
+        public IActionResult Admin()
+        {
+            return Ok(new User { ID = 0, Email = "test@test", Approved = true, Password = "Test", Role = UserRole.User });
+        }
+
         [HttpPost("register")]
         public IActionResult Register()
         {
@@ -31,9 +39,9 @@ namespace eshop_webAPI.Controllers
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, loginRequest.Username)
+                new Claim(ClaimTypes.Email, loginRequest.Username),
+                new Claim(ClaimTypes.Role, "User")
             };
-            
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
