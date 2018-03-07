@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using eshopAPI.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -27,6 +28,7 @@ namespace eshopAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<IUserService, UserService>();
             services.AddCors();
             services.AddDbContext<Models.ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
@@ -38,11 +40,15 @@ namespace eshopAPI
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
             {
                 options.LoginPath = new PathString("/api/account/login");
+                options.LogoutPath = new PathString("/api/account/logout");
+                options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                options.SlidingExpiration = true;
             });
 
-            services.AddAuthorization(options =>
-                options.AddPolicy("AdminRole", policy => policy.RequireRole("Admin"))
-            );
+            services.AddAuthorization(options => {
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("User", policy => policy.RequireRole(new string[]{"Admin", "User"}));
+            });
             
             services.AddMvc();
         }
