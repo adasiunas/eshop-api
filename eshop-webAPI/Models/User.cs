@@ -11,8 +11,10 @@ namespace eshopAPI.Models
         [Key]
         public long ID { get; set; } // Primary key
         [Required]
+        [MaxLength(50)]
         public string Email { get; set; } // Bussiness key
         [Required]
+        [MaxLength(30)]
         public string Password { get; set; }
         public UserRole Role { get; set; }
         public bool Approved { get; set; }
