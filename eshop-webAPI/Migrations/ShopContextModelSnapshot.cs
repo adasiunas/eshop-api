@@ -20,6 +20,42 @@ namespace eshopAPI.Migrations
                 .HasAnnotation("ProductVersion", "2.0.1-rtm-125")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("eshopAPI.Models.Attribute", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Attributes");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.AttributeValue", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<long>("AttributeID");
+
+                    b.Property<long?>("ItemID");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(100);
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AttributeID");
+
+                    b.HasIndex("ItemID");
+
+                    b.ToTable("AttributeValue");
+                });
+
             modelBuilder.Entity("eshopAPI.Models.Cart", b =>
                 {
                     b.Property<long>("ID")
@@ -51,7 +87,25 @@ namespace eshopAPI.Migrations
 
                     b.HasIndex("ItemID");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItem");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.Category", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    b.Property<long>("SubCategoryID");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("SubCategoryID");
+
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Item", b =>
@@ -59,19 +113,23 @@ namespace eshopAPI.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<long?>("CategoryID");
+
                     b.Property<DateTime>("CreateDate");
 
                     b.Property<DateTime>("DeleteDate");
 
                     b.Property<string>("Description")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(5000);
 
                     b.Property<bool>("IsDeleted");
 
                     b.Property<DateTime>("ModifiedDate");
 
                     b.Property<string>("Name")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(150);
 
                     b.Property<decimal>("Price");
 
@@ -79,6 +137,8 @@ namespace eshopAPI.Migrations
                         .IsRequired();
 
                     b.HasKey("ID");
+
+                    b.HasIndex("CategoryID");
 
                     b.ToTable("Items");
                 });
@@ -122,7 +182,7 @@ namespace eshopAPI.Migrations
 
                     b.HasIndex("OrderID");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItem");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Profile", b =>
@@ -131,13 +191,16 @@ namespace eshopAPI.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("Name")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(30);
 
                     b.Property<string>("Phone")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(20);
 
                     b.Property<string>("Surname")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(30);
 
                     b.Property<long>("UserID");
 
@@ -159,13 +222,26 @@ namespace eshopAPI.Migrations
                         .IsRequired();
 
                     b.Property<string>("Password")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(30);
 
                     b.Property<int>("Role");
 
                     b.HasKey("ID");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.AttributeValue", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Attribute", "Attribute")
+                        .WithMany()
+                        .HasForeignKey("AttributeID")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("eshopAPI.Models.Item")
+                        .WithMany("Attrbutes")
+                        .HasForeignKey("ItemID");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Cart", b =>
@@ -186,6 +262,21 @@ namespace eshopAPI.Migrations
                         .WithMany()
                         .HasForeignKey("ItemID")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.Category", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Category", "SubCategory")
+                        .WithMany()
+                        .HasForeignKey("SubCategoryID")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.Item", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Category")
+                        .WithMany("Items")
+                        .HasForeignKey("CategoryID");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Order", b =>
