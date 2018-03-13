@@ -25,12 +25,6 @@ namespace eshop_webAPI.Controllers
             _context = context;
         }
 
-        [HttpGet("guest")]
-        public IActionResult Guest()
-        {
-            return Ok();
-        }
-
         [Authorize(Policy = "User")]
         [HttpGet("profile")]
         public IActionResult Profile()
@@ -42,13 +36,6 @@ namespace eshop_webAPI.Controllers
             long id = long.Parse(userId);
             User user = _context.Users.First(u => u.ID == id);
             return Ok(user);
-        }
-
-        [Authorize(Policy = "AdminOnly")]
-        [HttpGet("admin")]
-        public IActionResult Admin()
-        {
-            return Ok(new User { ID = 0, Email = "test@test", Approved = true, Password = "Test", Role = UserRole.User });
         }
 
         [HttpPost("register")]
