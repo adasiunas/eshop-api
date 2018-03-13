@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests;
 using eshopAPI.Services;
