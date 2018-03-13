@@ -315,7 +315,7 @@ namespace eshopAPI.Migrations
             migrationBuilder.CreateIndex(
                 name: "UX_OrderItem_Item",
                 table: "OrderItem",
-                columns: new string[] { "OderID", "ItemID" },
+                columns: new string[] { "OrderID", "ItemID" },
                 unique: true
                 );
 
