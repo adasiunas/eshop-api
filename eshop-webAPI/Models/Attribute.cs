@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Models
 {
-    public class Cart
+    public class Attribute
     {
         [Key]
-        public long ID { get; set; } // Primary key
+        public long ID { get; set; }
         [Required]
-        public User User { get; set; }
-        public virtual ICollection<CartItem> Items { get; set; }
+        [MaxLength(50)]
+        public string Name { get; set; } // Bussiness key (should be unique?)
     }
 }
