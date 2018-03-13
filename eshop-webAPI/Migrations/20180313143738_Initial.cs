@@ -51,7 +51,7 @@ namespace eshopAPI.Migrations
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Approved = table.Column<bool>(nullable: false, defaultValue: false),
                     Email = table.Column<string>(maxLength: 50, nullable: false),
-                    Password = table.Column<string>(maxLength: 30, nullable: false),
+                    Password = table.Column<string>(maxLength: 50, nullable: false),
                     Role = table.Column<int>(nullable: false, defaultValue: UserRole.User)
                 },
                 constraints: table =>

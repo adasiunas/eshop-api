@@ -13,6 +13,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Swagger;
+using log4net.Core;
+using log4net;
+using System.Reflection;
+using log4net.Config;
+using System.IO;
 
 namespace eshopAPI
 {
@@ -58,12 +63,16 @@ namespace eshopAPI
                 c.SwaggerDoc("v1", new Info { Title = "eshop-api", Version = "v1" });
             });
 
+            // register services for DI
+            // AddTransient - creates new services for every injection
+            // AddScoped - creates and uses same service during request
+            // AddSingleton - creates when first time requested and uses same instance all time
             services.AddScoped<IUserService, UserService>();
             services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -77,7 +86,7 @@ namespace eshopAPI
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "eshop-api V1");
                 });
             }
-
+            loggerFactory.AddLog4Net();
             app.UseAuthentication();
             app.UseMvc();
         }
