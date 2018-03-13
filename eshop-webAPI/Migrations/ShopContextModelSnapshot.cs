@@ -134,7 +134,8 @@ namespace eshopAPI.Migrations
                     b.Property<decimal>("Price");
 
                     b.Property<string>("SKU")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(10);
 
                     b.HasKey("ID");
 
@@ -219,7 +220,8 @@ namespace eshopAPI.Migrations
                     b.Property<bool>("Approved");
 
                     b.Property<string>("Email")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(50);
 
                     b.Property<string>("Password")
                         .IsRequired()

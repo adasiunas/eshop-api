@@ -146,7 +146,7 @@ namespace eshopAPI.Migrations
                         column: x => x.UserID,
                         principalTable: "Users",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -315,14 +315,7 @@ namespace eshopAPI.Migrations
             migrationBuilder.CreateIndex(
                 name: "UX_OrderItem_Item",
                 table: "OrderItem",
-                columns: new string[] { "OrderID", "ItemID" },
-                unique: true
-                );
-
-            migrationBuilder.CreateIndex(
-                name: "UX_Attributes_Name",
-                table: "Attributes",
-                column: "Name",
+                columns: new string[] { "OderID", "ItemID" },
                 unique: true
                 );
 
@@ -330,8 +323,19 @@ namespace eshopAPI.Migrations
                 name: "UX_Categories_Name",
                 table: "Categories",
                 column: "Name",
-                unique: true
-                );
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "UX_Attributes_Name",
+                table: "Attributes",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "UX_AttributeValue_Attribute",
+                table: "AttributeValue",
+                columns: new string[] { "AttributeID", "ItemID" },
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

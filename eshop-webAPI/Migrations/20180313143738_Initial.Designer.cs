@@ -11,7 +11,7 @@ using System;
 namespace eshopAPI.Migrations
 {
     [DbContext(typeof(ShopContext))]
-    [Migration("20180311180115_Initial")]
+    [Migration("20180313143738_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -135,7 +135,8 @@ namespace eshopAPI.Migrations
                     b.Property<decimal>("Price");
 
                     b.Property<string>("SKU")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(10);
 
                     b.HasKey("ID");
 
@@ -220,7 +221,8 @@ namespace eshopAPI.Migrations
                     b.Property<bool>("Approved");
 
                     b.Property<string>("Email")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(50);
 
                     b.Property<string>("Password")
                         .IsRequired()
