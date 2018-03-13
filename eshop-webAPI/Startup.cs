@@ -18,6 +18,8 @@ using log4net;
 using System.Reflection;
 using log4net.Config;
 using System.IO;
+using eshopAPI.Validators;
+using FluentValidation.AspNetCore;
 
 namespace eshopAPI
 {
@@ -68,7 +70,9 @@ namespace eshopAPI
             // AddScoped - creates and uses same service during request
             // AddSingleton - creates when first time requested and uses same instance all time
             services.AddScoped<IUserService, UserService>();
-            services.AddMvc();
+            
+            services.AddMvc(opt => { opt.Filters.Add(typeof(ValidatorActionFilter)); })
+                .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
