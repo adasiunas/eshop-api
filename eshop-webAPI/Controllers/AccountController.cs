@@ -43,9 +43,9 @@ namespace eshop_webAPI.Controllers
         }
 
         [HttpPost("register")]
-        public IActionResult Register()
+        public IActionResult Register([FromBody]RegisterRequest request)
         {
-            return Ok();
+            return Ok(request);
         }
         
         [HttpPost("login")]
