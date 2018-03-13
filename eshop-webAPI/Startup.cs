@@ -28,14 +28,9 @@ namespace eshopAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<IUserService, UserService>();
             services.AddCors();
             services.AddDbContext<Models.ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Info { Title = "eshop-api", Version = "v1" });
-            });
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
             {
@@ -43,13 +38,29 @@ namespace eshopAPI
                 options.LogoutPath = new PathString("/api/account/logout");
                 options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                 options.SlidingExpiration = true;
+                options.Events.OnRedirectToLogin = (context) =>
+                {
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                };
+                options.Events.OnRedirectToAccessDenied = (context) =>
+                {
+                    context.Response.StatusCode = 403;
+                    return Task.CompletedTask;
+                };
             });
 
             services.AddAuthorization(options => {
                 options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
                 options.AddPolicy("User", policy => policy.RequireRole(new string[]{"Admin", "User"}));
             });
-            
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = "eshop-api", Version = "v1" });
+            });
+
+            services.AddScoped<IUserService, UserService>();
             services.AddMvc();
         }
 
