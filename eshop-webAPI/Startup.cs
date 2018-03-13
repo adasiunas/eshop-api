@@ -18,6 +18,7 @@ using log4net;
 using System.Reflection;
 using log4net.Config;
 using System.IO;
+using eshopAPI.DataAccess;
 
 namespace eshopAPI
 {
@@ -34,7 +35,7 @@ namespace eshopAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            services.AddDbContext<Models.ShopContext>(options =>
+            services.AddDbContext<ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
@@ -68,6 +69,15 @@ namespace eshopAPI
             // AddScoped - creates and uses same service during request
             // AddSingleton - creates when first time requested and uses same instance all time
             services.AddScoped<IUserService, UserService>();
+
+            // register data access layer
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IProfileRepository, ProfileRepository>();
+            services.AddScoped<IItemRepository, ItemRepository>();
+            services.AddScoped<ICartRepository, CartRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddMvc();
         }
 
