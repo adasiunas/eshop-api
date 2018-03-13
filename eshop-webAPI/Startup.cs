@@ -34,8 +34,6 @@ namespace eshopAPI
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
             {
-                options.LoginPath = new PathString("/api/account/login");
-                options.LogoutPath = new PathString("/api/account/logout");
                 options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                 options.SlidingExpiration = true;
                 options.Events.OnRedirectToLogin = (context) =>
