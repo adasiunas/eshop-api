@@ -19,6 +19,8 @@ using System.Reflection;
 using log4net.Config;
 using System.IO;
 using eshopAPI.DataAccess;
+using eshopAPI.Validators;
+using FluentValidation.AspNetCore;
 
 namespace eshopAPI
 {
@@ -78,7 +80,9 @@ namespace eshopAPI
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
-            services.AddMvc();
+            
+            services.AddMvc(opt => { opt.Filters.Add(typeof(ValidatorActionFilter)); })
+                .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
