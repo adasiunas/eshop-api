@@ -6,15 +6,16 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Models
 {
-    public class CartItem
+    public class AttributeValue
     {
         [Key]
-        public long ID { get; set; } // Primary key
+        public long ID { get; set; }
         [Required]
-        public long ItemID { get; set; }
+        public long AttributeID { get; set; }
         [Required]
-        public Item Item { get; set; }
+        public Attribute Attribute { get; set; }
         [Required]
-        public int Count { get; set; }
+        [MaxLength(100)]
+        public string Value { get; set; }
     }
 }
