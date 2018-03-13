@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using eshopAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace eshopAPI.Models
+namespace eshopAPI.DataAccess
+
 {
     public class ShopContext : DbContext
     {
