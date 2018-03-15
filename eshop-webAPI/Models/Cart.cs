@@ -11,7 +11,7 @@ namespace eshopAPI.Models
         [Key]
         public long ID { get; set; } // Primary key
         [Required]
-        public User User { get; set; }
+        public ShopUser User { get; set; }
         public virtual ICollection<CartItem> Items { get; set; }
     }
 }

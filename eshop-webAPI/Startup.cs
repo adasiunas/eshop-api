@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using eshopAPI.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,6 +20,9 @@ using System.IO;
 using eshopAPI.DataAccess;
 using eshopAPI.Validators;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Identity;
+using eshopAPI.Models;
+using eshopAPI.Services;
 
 namespace eshopAPI
 {
@@ -40,26 +42,9 @@ namespace eshopAPI
             services.AddDbContext<ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
-            {
-                options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                options.SlidingExpiration = true;
-                options.Events.OnRedirectToLogin = (context) =>
-                {
-                    context.Response.StatusCode = 401;
-                    return Task.CompletedTask;
-                };
-                options.Events.OnRedirectToAccessDenied = (context) =>
-                {
-                    context.Response.StatusCode = 403;
-                    return Task.CompletedTask;
-                };
-            });
-
-            services.AddAuthorization(options => {
-                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-                options.AddPolicy("User", policy => policy.RequireRole(new string[]{"Admin", "User"}));
-            });
+            services.AddIdentity<ShopUser, IdentityRole>()
+                .AddEntityFrameworkStores<ShopContext>()
+                .AddDefaultTokenProviders();
 
             services.AddSwaggerGen(c =>
             {
@@ -70,23 +55,21 @@ namespace eshopAPI
             // AddTransient - creates new services for every injection
             // AddScoped - creates and uses same service during request
             // AddSingleton - creates when first time requested and uses same instance all time
-            services.AddScoped<IUserService, UserService>();
 
             // register data access layer
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IProfileRepository, ProfileRepository>();
             services.AddScoped<IItemRepository, ItemRepository>();
             services.AddScoped<ICartRepository, CartRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
-            
+            services.AddTransient<IEmailSender, EmailSender>();
+
             services.AddMvc(opt => { opt.Filters.Add(typeof(ValidatorActionFilter)); })
                 .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -102,7 +85,48 @@ namespace eshopAPI
             }
             loggerFactory.AddLog4Net();
             app.UseAuthentication();
+            //CreateRoles(serviceProvider).Wait();
             app.UseMvc();
+        }
+
+        private async Task CreateRoles(IServiceProvider serviceProvider)
+        {
+            //initializing custom roles 
+            var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var UserManager = serviceProvider.GetRequiredService<UserManager<ShopUser>>();
+            string[] roleNames = { UserRole.Admin.ToString(), UserRole.User.ToString(), UserRole.Blocked.ToString() };
+            IdentityResult roleResult;
+
+            foreach (var roleName in roleNames)
+            {
+                var roleExist = await RoleManager.RoleExistsAsync(roleName);
+                if (!roleExist)
+                {
+                    //create the roles and seed them to the database: Question 1
+                    roleResult = await RoleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
+
+            //Here you could create a super user who will maintain the web app
+            var poweruser = new ShopUser
+            {
+                UserName = Configuration["AdminUsername"],
+                Email = Configuration["AdminUserPass"],
+            };
+            //Ensure you have these values in your appsettings.json file
+            string userPWD = Configuration["AdminUserPass"];
+            var _user = await UserManager.FindByNameAsync(Configuration["AdminUsername"]);
+
+            if (_user == null)
+            {
+                var createPowerUser = await UserManager.CreateAsync(poweruser, userPWD);
+                if (createPowerUser.Succeeded)
+                {
+                    //here we tie the new user to the role
+                    await UserManager.AddToRoleAsync(poweruser, UserRole.Admin.ToString());
+
+                }
+            }
         }
     }
 }
