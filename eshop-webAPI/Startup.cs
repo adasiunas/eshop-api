@@ -22,6 +22,7 @@ using eshopAPI.Validators;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using eshopAPI.Models;
+using eshopAPI.Services;
 
 namespace eshopAPI
 {
@@ -61,6 +62,7 @@ namespace eshopAPI
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
+            services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddMvc(opt => { opt.Filters.Add(typeof(ValidatorActionFilter)); })
                 .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
@@ -83,7 +85,7 @@ namespace eshopAPI
             }
             loggerFactory.AddLog4Net();
             app.UseAuthentication();
-            CreateRoles(serviceProvider).Wait();
+            //CreateRoles(serviceProvider).Wait();
             app.UseMvc();
         }
 

@@ -12,8 +12,8 @@ using System;
 namespace eshopAPI.Migrations
 {
     [DbContext(typeof(ShopContext))]
-    [Migration("20180315174550_init")]
-    partial class init
+    [Migration("20180315190407_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -209,6 +209,9 @@ namespace eshopAPI.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd");
 
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256);
 
@@ -217,11 +220,17 @@ namespace eshopAPI.Migrations
 
                     b.Property<string>("PasswordHash");
 
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20);
+
                     b.Property<string>("PhoneNumber");
 
                     b.Property<bool>("PhoneNumberConfirmed");
 
                     b.Property<string>("SecurityStamp");
+
+                    b.Property<string>("Surname")
+                        .HasMaxLength(30);
 
                     b.Property<bool>("TwoFactorEnabled");
 
