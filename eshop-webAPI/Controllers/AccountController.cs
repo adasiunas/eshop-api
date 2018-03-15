@@ -6,6 +6,7 @@ using eshopAPI.DataAccess;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
 using eshopAPI.Requests;
+using eshopAPI.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -22,15 +23,18 @@ namespace eshop_webAPI.Controllers
         private readonly UserManager<ShopUser> _userManager;
         private readonly SignInManager<ShopUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
+        private readonly IEmailSender _emailSender;
 
         // Add required services and they will be injected
         public AccountController(
             UserManager<ShopUser> userManager,
             SignInManager<ShopUser> signInManager,
+            IEmailSender emailSender,
             ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailSender = emailSender;
             _logger = logger;
         }
 
@@ -56,7 +60,7 @@ namespace eshop_webAPI.Controllers
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
                 // need to send email with confirmation link
-                //await _emailSender.SendEmailConfirmationAsync(request.Username, callbackUrl);
+                await _emailSender.SendEmailConfirmationAsync(request.Username, callbackUrl);
 
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 _logger.LogInformation("User created a new account with password.");
