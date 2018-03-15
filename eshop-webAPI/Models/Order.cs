@@ -13,9 +13,7 @@ namespace eshopAPI.Models
         [Required]
         public Guid OrderNumber { get; set; } // Bussiness key
         [Required]
-        public long UserID { get; set; }
-        [Required]
-        public User User { get; set; }
+        public ShopUser User { get; set; }
         public DateTime CreateDate { get; set; }
         [Required]
         public OrderStatus Status { get; set; }
