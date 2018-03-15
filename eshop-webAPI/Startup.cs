@@ -85,7 +85,7 @@ namespace eshopAPI
             }
             loggerFactory.AddLog4Net();
             app.UseAuthentication();
-            //CreateRoles(serviceProvider).Wait();
+            CreateRoles(serviceProvider).Wait();
             app.UseMvc();
         }
 
