@@ -1,4 +1,4 @@
-﻿using eshopAPI.Requests;
+﻿using eshopAPI.Requests.Account;
 using FluentValidation;
 
 namespace eshopAPI.Validators.Request
