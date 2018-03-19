@@ -62,9 +62,9 @@ namespace eshop_webAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
-            _logger.LogInformation("Call to login from " + loginRequest.Username);
+            _logger.LogInformation("Call to login from " + loginRequest.Email);
 
-            var result = await _signInManager.PasswordSignInAsync(loginRequest.Username, loginRequest.Password,
+            var result = await _signInManager.PasswordSignInAsync(loginRequest.Email, loginRequest.Password,
                 loginRequest.RememberMe, lockoutOnFailure: false);
 
             if (result.Succeeded)
@@ -73,11 +73,11 @@ namespace eshop_webAPI.Controllers
                 return Ok();
             }
 
-            return BadRequest("Cannot login");
+            return BadRequest("Can not log in");
         }
         
         [HttpPost("logout")]
-        [ValidateAntiForgeryToken]
+//        [ValidateAntiForgeryToken] TODO: Check why this does not work with vue axios?
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
