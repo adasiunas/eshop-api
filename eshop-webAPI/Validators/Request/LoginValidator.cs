@@ -8,7 +8,7 @@ namespace eshopAPI.Validators.Request
         public LoginValidator()
         {
             RuleFor(r => r.Password).NotEmpty();
-            RuleFor(r => r.Username).NotEmpty().EmailAddress();
+            RuleFor(r => r.Email).NotEmpty().EmailAddress();
         }
     }
 }
