@@ -1,14 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using eshopAPI.DataAccess;
+﻿using System.Threading.Tasks;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
-using eshopAPI.Requests;
+using eshopAPI.Requests.Account;
 using eshopAPI.Services;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -55,15 +49,10 @@ namespace eshop_webAPI.Controllers
             var result = await _userManager.CreateAsync(user, request.Password);
             if (result.Succeeded)
             {
-                _logger.LogInformation("User created a new account with password.");
-
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
-                // need to send email with confirmation link
-                await _emailSender.SendEmailConfirmationAsync(request.Username, callbackUrl);
-
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                _logger.LogInformation("User created a new account with password.");
+                var confirmationLink = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
+                await _emailSender.SendConfirmationEmailAsync(request.Username, confirmationLink);
+                _logger.LogInformation($"Confirmation email was sent to user: {user.Name}");
                 return Ok();
             }
             return BadRequest();
@@ -98,20 +87,17 @@ namespace eshop_webAPI.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        public async Task<IActionResult> ConfirmEmail(ConfirmUserRequest request)
         {
-            if (userId == null || code == null)
-            {
-                return BadRequest();
-            }
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(request.UserId);
             if (user == null)
             {
-                return BadRequest();
+                _logger.LogInformation($"User with id: {request.UserId} was not found.");
+                return NotFound("User was not found");
             }
-            var result = await _userManager.ConfirmEmailAsync(user, code);
+            var result = await _userManager.ConfirmEmailAsync(user, request.Code);
             if (result.Succeeded)
-                return Ok();
+                return Ok("User is confirmed");
 
             return BadRequest();
         }
