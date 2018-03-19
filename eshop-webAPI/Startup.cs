@@ -42,7 +42,7 @@ namespace eshopAPI
             services.AddDbContext<ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
-            services.AddIdentity<ShopUser, IdentityRole>()
+            services.AddIdentity<ShopUser, IdentityRole>(opt => { opt.SignIn.RequireConfirmedEmail = true; })
                 .AddEntityFrameworkStores<ShopContext>()
                 .AddDefaultTokenProviders();
 
@@ -63,6 +63,7 @@ namespace eshopAPI
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddTransient<IEmailSender, EmailSender>();
+            services.AddSingleton(Configuration);
 
             services.AddMvc(opt => { opt.Filters.Add(typeof(ValidatorActionFilter)); })
                 .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
