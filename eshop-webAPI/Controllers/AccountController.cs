@@ -1,16 +1,24 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
 using eshopAPI.Requests.Account;
 using eshopAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace eshop_webAPI.Controllers
-{    
-    [Authorize]
+{
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/account")]
     public class AccountController : Controller
     {
@@ -18,28 +26,36 @@ namespace eshop_webAPI.Controllers
         private readonly SignInManager<ShopUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _configuration;
+        private readonly IUserClaimsService _userClaimsService;
 
         // Add required services and they will be injected
         public AccountController(
             UserManager<ShopUser> userManager,
             SignInManager<ShopUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            IConfiguration configuration,
+            IUserClaimsService userClaimsService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
+            _configuration = configuration;
+            _userClaimsService = userClaimsService;
         }
 
         [HttpGet("profile")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Profile()
         {
-            ShopUser user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var email = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (email == null)
+                return BadRequest("Something wrong happened");
+            ShopUser user = await _userManager.FindByNameAsync(email);
             return Ok(user.GetUserProfile());
         }
-
 
         [HttpPost("register")]
         [AllowAnonymous]
@@ -64,13 +80,25 @@ namespace eshop_webAPI.Controllers
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
 
-            var result = await _signInManager.PasswordSignInAsync(loginRequest.Email, loginRequest.Password,
-                loginRequest.RememberMe, lockoutOnFailure: false);
+            ShopUser user = await _userManager.FindByEmailAsync(loginRequest.Email);
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginRequest.Password, false);
 
             if (result.Succeeded)
             {
+                IEnumerable<Claim> claims = await _userClaimsService.GetUserClaims(user);
+
+                var token = new JwtSecurityToken
+                (
+                    issuer: _configuration["Token:Issuer"],
+                    audience: _configuration["Token:Audience"],
+                    claims: claims,
+                    expires: DateTime.UtcNow.AddDays(60),
+                    notBefore: DateTime.UtcNow,
+                    signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Token:Key"])), SecurityAlgorithms.HmacSha256)
+                );
+
                 _logger.LogInformation("User logged in.");
-                return Ok();
+                return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
             }
 
             return BadRequest("Can not log in");
