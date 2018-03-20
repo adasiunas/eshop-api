@@ -1,40 +1,107 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using eshopAPI.Helpers;
+using eshopAPI.Models;
+using eshopAPI.Requests.Account;
+using eshopAPI.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace eshop_webAPI.Controllers
-{
+{    
+    [Authorize]
     [Route("api/account")]
     public class AccountController : Controller
     {
-        
-        [HttpGet("profile")]
-        public IActionResult Profile()
+        private readonly UserManager<ShopUser> _userManager;
+        private readonly SignInManager<ShopUser> _signInManager;
+        private readonly ILogger<AccountController> _logger;
+        private readonly IEmailSender _emailSender;
+
+        // Add required services and they will be injected
+        public AccountController(
+            UserManager<ShopUser> userManager,
+            SignInManager<ShopUser> signInManager,
+            IEmailSender emailSender,
+            ILogger<AccountController> logger)
         {
-            return Ok();
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _emailSender = emailSender;
+            _logger = logger;
         }
-        [HttpPost("register")]
-        public IActionResult Register()
+
+        [HttpGet("profile")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Profile()
         {
-            return Ok();
+            ShopUser user = await _userManager.FindByNameAsync(User.Identity.Name);
+            return Ok(user.GetUserProfile());
+        }
+
+
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody]RegisterRequest request)
+        {
+            var user = new ShopUser { UserName = request.Username, Email = request.Username };
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (result.Succeeded)
+            {
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
+                await _emailSender.SendConfirmationEmailAsync(request.Username, confirmationLink);
+                _logger.LogInformation($"Confirmation email was sent to user: {user.Name}");
+                return Ok();
+            }
+            return BadRequest();
         }
         
         [HttpPost("login")]
-        public IActionResult Login()
+        [AllowAnonymous]
+        public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
-            return Ok();
+            _logger.LogInformation("Call to login from " + loginRequest.Email);
+
+            var result = await _signInManager.PasswordSignInAsync(loginRequest.Email, loginRequest.Password,
+                loginRequest.RememberMe, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User logged in.");
+                return Ok();
+            }
+
+            return BadRequest("Can not log in");
         }
         
         [HttpPost("logout")]
-        public IActionResult Logout()
+//        [ValidateAntiForgeryToken] TODO: Check why this does not work with vue axios?
+        public async Task<IActionResult> Logout()
         {
+            await _signInManager.SignOutAsync();
+            _logger.LogInformation("User logged out.");
             return Ok();
         }
-        
-        [HttpPost("varify/email")]
-        public IActionResult VarifyEmail()
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail(ConfirmUserRequest request)
         {
-            return Ok();
+            var user = await _userManager.FindByIdAsync(request.UserId);
+            if (user == null)
+            {
+                _logger.LogInformation($"User with id: {request.UserId} was not found.");
+                return NotFound("User was not found");
+            }
+            var result = await _userManager.ConfirmEmailAsync(user, request.Code);
+            if (result.Succeeded)
+                return Ok("User is confirmed");
+
+            return BadRequest();
         }
-        
+
         [HttpPost("reset/password")]
         public IActionResult ResetPassword()
         {
