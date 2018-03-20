@@ -1,24 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
 using eshopAPI.Requests.Account;
 using eshopAPI.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 
 namespace eshop_webAPI.Controllers
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize]
     [Route("api/account")]
     public class AccountController : Controller
     {
@@ -26,8 +21,8 @@ namespace eshop_webAPI.Controllers
         private readonly SignInManager<ShopUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
-        private readonly IConfiguration _configuration;
         private readonly IUserClaimsService _userClaimsService;
+        private readonly ITokenGenerator _tokenGenerator;
 
         // Add required services and they will be injected
         public AccountController(
@@ -35,14 +30,14 @@ namespace eshop_webAPI.Controllers
             SignInManager<ShopUser> signInManager,
             IEmailSender emailSender,
             ILogger<AccountController> logger,
-            IConfiguration configuration,
+            ITokenGenerator tokenGenerator,
             IUserClaimsService userClaimsService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
-            _configuration = configuration;
+            _tokenGenerator = tokenGenerator;
             _userClaimsService = userClaimsService;
         }
 
@@ -50,10 +45,7 @@ namespace eshop_webAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Profile()
         {
-            var email = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            if (email == null)
-                return BadRequest("Something wrong happened");
-            ShopUser user = await _userManager.FindByNameAsync(email);
+            ShopUser user = await _userManager.FindByNameAsync(User.Identity.Name);
             return Ok(user.GetUserProfile());
         }
 
@@ -86,16 +78,7 @@ namespace eshop_webAPI.Controllers
             if (result.Succeeded)
             {
                 IEnumerable<Claim> claims = await _userClaimsService.GetUserClaims(user);
-
-                var token = new JwtSecurityToken
-                (
-                    issuer: _configuration["Token:Issuer"],
-                    audience: _configuration["Token:Audience"],
-                    claims: claims,
-                    expires: DateTime.UtcNow.AddDays(60),
-                    notBefore: DateTime.UtcNow,
-                    signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Token:Key"])), SecurityAlgorithms.HmacSha256)
-                );
+                JwtSecurityToken token = _tokenGenerator.GenerateToken(claims);
 
                 _logger.LogInformation("User logged in.");
                 return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
@@ -105,10 +88,9 @@ namespace eshop_webAPI.Controllers
         }
         
         [HttpPost("logout")]
-//        [ValidateAntiForgeryToken] TODO: Check why this does not work with vue axios?
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout()
         {
-            await _signInManager.SignOutAsync();
+            // thinks something how to handle logout
             _logger.LogInformation("User logged out.");
             return Ok();
         }
