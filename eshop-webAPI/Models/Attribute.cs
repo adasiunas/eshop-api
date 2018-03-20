@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Models
 {
-    public class Profile
+    public class Attribute
     {
         [Key]
         public long ID { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Phone { get; set; }
-        public User User { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string Name { get; set; } // Bussiness key (should be unique?)
     }
 }
