@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
 using eshopAPI.Requests.Account;
@@ -9,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace eshop_webAPI.Controllers
-{    
+{
     [Authorize]
     [Route("api/account")]
     public class AccountController : Controller
@@ -18,18 +21,24 @@ namespace eshop_webAPI.Controllers
         private readonly SignInManager<ShopUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly IUserClaimsService _userClaimsService;
+        private readonly ITokenGenerator _tokenGenerator;
 
         // Add required services and they will be injected
         public AccountController(
             UserManager<ShopUser> userManager,
             SignInManager<ShopUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            ITokenGenerator tokenGenerator,
+            IUserClaimsService userClaimsService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
+            _tokenGenerator = tokenGenerator;
+            _userClaimsService = userClaimsService;
         }
 
         [HttpGet("profile")]
@@ -39,7 +48,6 @@ namespace eshop_webAPI.Controllers
             ShopUser user = await _userManager.FindByNameAsync(User.Identity.Name);
             return Ok(user.GetUserProfile());
         }
-
 
         [HttpPost("register")]
         [AllowAnonymous]
@@ -64,23 +72,25 @@ namespace eshop_webAPI.Controllers
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
 
-            var result = await _signInManager.PasswordSignInAsync(loginRequest.Email, loginRequest.Password,
-                loginRequest.RememberMe, lockoutOnFailure: false);
+            ShopUser user = await _userManager.FindByEmailAsync(loginRequest.Email);
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginRequest.Password, false);
 
             if (result.Succeeded)
             {
+                IEnumerable<Claim> claims = await _userClaimsService.GetUserClaims(user);
+                JwtSecurityToken token = _tokenGenerator.GenerateToken(claims);
+
                 _logger.LogInformation("User logged in.");
-                return Ok();
+                return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
             }
 
             return BadRequest("Can not log in");
         }
         
         [HttpPost("logout")]
-//        [ValidateAntiForgeryToken] TODO: Check why this does not work with vue axios?
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout()
         {
-            await _signInManager.SignOutAsync();
+            // thinks something how to handle logout
             _logger.LogInformation("User logged out.");
             return Ok();
         }
