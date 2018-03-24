@@ -42,7 +42,6 @@ namespace eshop_webAPI.Controllers
         }
 
         [HttpGet("profile")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Profile()
         {
             ShopUser user = await _userManager.FindByNameAsync(User.Identity.Name);
@@ -112,16 +111,41 @@ namespace eshop_webAPI.Controllers
             return BadRequest();
         }
 
-        [HttpPost("reset/password")]
-        public IActionResult ResetPassword()
+        [HttpPost("forgotPassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
-            return Ok();
+            var shopUser = await _userManager.FindByEmailAsync(request.Email);
+            
+            if (shopUser != null)
+            {
+                var resetPasswordToken =  await _userManager.GeneratePasswordResetTokenAsync(shopUser);
+                var resetLink =
+                    $"http://localhost:5000/api/account/resetpassword?UserId={shopUser.Id}&token={resetPasswordToken}"; // TODO : make this configurable and redirectible to wep app
+                await _emailSender.SendResetPasswordEmailAsync(request.Email, resetLink);
+                return Ok("Password recovery confirmation link was sent to your e-mail.");
+            }
+            return NotFound("User with this email was not found");
         }
         
-        [HttpPost("remember")]
-        public IActionResult RememberPassword()
+        // TODO : test this when UI is ready for reset password
+        [HttpPost("resetpassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordRequest request)
         {
-            return Ok();
+            var shopUser = await _userManager.FindByIdAsync(request.UserId);
+            if (shopUser != null)
+            {
+                var resetPasswordResult = _userManager.ResetPasswordAsync(shopUser, request.Token, request.Password);
+                if (resetPasswordResult.IsCompletedSuccessfully)
+                {
+                    return Ok("Password was reset");
+                }
+
+                return BadRequest("Failed to reset password");
+            }
+
+            return NotFound("User was not found");
         }
     }
 }
