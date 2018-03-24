@@ -10,8 +10,9 @@ namespace eshopAPI.Services
 {
     public interface IEmailSender
     {
-        Task SendEmailAsync(string to, string subject, string message);
-        Task SendConfirmationEmailAsync(string to, string confirmationLink);
+      Task SendEmailAsync(string to, string subject, string message);
+      Task SendConfirmationEmailAsync(string to, string confirmationLink);
+      Task SendResetPasswordEmailAsync(string to, string resetPasswordLink);
     }
 
     public class EmailSender : IEmailSender
@@ -44,18 +45,28 @@ namespace eshopAPI.Services
 
             await SendMailMessageAsync(mailMessage);
         }
-
+ 
         public async Task SendConfirmationEmailAsync(string to, string confirmationLink)
         {
           var mailMessage = new MailMessage();
           mailMessage.To.Add(to);
           mailMessage.Subject = "Eshop account activation";
           mailMessage.IsBodyHtml = true;
-          mailMessage.Body = FormatBody(to, confirmationLink);
+          mailMessage.Body = FormatEmailBody($"Please click the following link to confirm that <strong> { to }</strong> is your email address which you will use in Goal diggers shop", confirmationLink);
           await SendMailMessageAsync(mailMessage);
         }
 
-        private async Task SendMailMessageAsync(MailMessage message)
+      public async Task SendResetPasswordEmailAsync(string to, string resetPasswordLink)
+      {
+        var mailMessage = new MailMessage();
+        mailMessage.To.Add(to);
+        mailMessage.Subject = "Goals diggers reset password confirmation";
+        mailMessage.IsBodyHtml = true;
+        mailMessage.Body = FormatEmailBody($"Please click the following link to confirm that <strong> { to }</strong> wants to reset Goal diggers shop password.", resetPasswordLink);
+        await SendMailMessageAsync(mailMessage);
+      }
+
+      private async Task SendMailMessageAsync(MailMessage message)
         {
             message.From = new MailAddress(From);
 
@@ -70,7 +81,7 @@ namespace eshopAPI.Services
             }
         }
 
-        private string FormatBody(string to, string confirmationLink)
+        private string FormatEmailBody(string message, string link)
         {
             return @"
 <!DOCTYPE html PUBLIC ""-//W3C//DTD XHTML 1.0 Strict//EN"" ""http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"">
@@ -219,9 +230,10 @@ namespace eshopAPI.Services
                         </tr>
                         <tr>
                           <td align='left' style='padding: 0 56px 28px 56px;' valign='top'>
-                            <div style='font-family: ""lato"", ""Helvetica Neue"", Helvetica, Arial, sans-serif; line-height: 28px;font-size: 18px; color: #333;'>Please click the following link to confirm that <strong>
-" + to + @"</strong> is
-                              your email address which you will use in Goal diggers shop:</div>
+                            <div style='font-family: ""lato"", ""Helvetica Neue"", Helvetica, Arial, sans-serif; line-height: 28px;font-size: 18px; color: #333;'>
+
+                          "+ message + @"
+                          </div>
                           </td>
                         </tr>
                         <tr>
@@ -236,7 +248,7 @@ namespace eshopAPI.Services
                                 <![endif]-->
                                 <a style=""background-color:#E15718;border-radius:50px;color:#ffffff;display:inline-block;font-family: &#39;lato&#39;, &#39;Helvetica Neue&#39;, Helvetica, Arial, sans-serif;font-size:18px;line-height:44px;text-align:center;text-decoration:none;width:250px;-webkit-text-size-adjust:none;""
                                 href="
-          + confirmationLink +
+          + link +
           @">Confirm address</a>
                                 <!--[if mso]>
                                 </v:roundrect>
