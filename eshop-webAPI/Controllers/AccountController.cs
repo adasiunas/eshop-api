@@ -6,6 +6,7 @@ using eshopAPI.Helpers;
 using eshopAPI.Models;
 using eshopAPI.Requests.Account;
 using eshopAPI.Services;
+using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +43,6 @@ namespace eshop_webAPI.Controllers
         }
 
         [HttpGet("profile")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Profile()
         {
             ShopUser user = await _userManager.FindByNameAsync(User.Identity.Name);
@@ -74,7 +74,6 @@ namespace eshop_webAPI.Controllers
 
             ShopUser user = await _userManager.FindByEmailAsync(loginRequest.Email);
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginRequest.Password, false);
-
             if (result.Succeeded)
             {
                 IEnumerable<Claim> claims = await _userClaimsService.GetUserClaims(user);
@@ -112,16 +111,42 @@ namespace eshop_webAPI.Controllers
             return BadRequest();
         }
 
-        [HttpPost("reset/password")]
-        public IActionResult ResetPassword()
+        [HttpPost("forgotPassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
-            return Ok();
+            var shopUser = await _userManager.FindByEmailAsync(request.Email);
+            
+            if (shopUser != null)
+            {
+                var resetPasswordToken =  EncodeHelper.Base64Encode(await _userManager.GeneratePasswordResetTokenAsync(shopUser));
+                var resetLink =
+                    $"http://localhost:3000/resetpassword?Id={shopUser.Id}&token={resetPasswordToken}"; // TODO : make this configurable and redirectible to wep app
+                await _emailSender.SendResetPasswordEmailAsync(request.Email, resetLink);
+                return Ok("Password recovery confirmation link was sent to your e-mail.");
+            }
+            return NotFound("User with this email was not found");
         }
         
-        [HttpPost("remember")]
-        public IActionResult RememberPassword()
+        // TODO : test this when UI is ready for reset password
+        [HttpPost("resetpassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordRequest request)
         {
-            return Ok();
+            var shopUser = await _userManager.FindByIdAsync(request.UserId);
+            if (shopUser != null)
+            {
+                var decodedToken = EncodeHelper.Base64Decode(request.Token);
+                var resetPasswordResult = await _userManager.ResetPasswordAsync(shopUser, decodedToken, request.Password);
+                if (resetPasswordResult.Succeeded)
+                {
+                    return Ok("Password was reset");
+                }
+
+                return BadRequest("Failed to reset password");
+            }
+
+            return NotFound("User was not found");
         }
     }
 }
