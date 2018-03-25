@@ -101,16 +101,19 @@ namespace eshopAPI
         {
             if (env.IsDevelopment())
             {
-                app.UseCors(
-                    options => options.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader().AllowCredentials()
-                    );
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "eshop-api V1");
-                });
+                
             }
+            // TODO: remove this afterwards
+            app.UseCors(
+                options => options.AllowAnyMethod().AllowAnyHeader().AllowCredentials().AllowAnyOrigin()
+            );
+            app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "eshop-api V1");
+            });
+            
             loggerFactory.AddLog4Net();
 
             app.UseAuthentication();
