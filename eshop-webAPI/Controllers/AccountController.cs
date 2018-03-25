@@ -6,6 +6,7 @@ using eshopAPI.Helpers;
 using eshopAPI.Models;
 using eshopAPI.Requests.Account;
 using eshopAPI.Services;
+using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -73,7 +74,6 @@ namespace eshop_webAPI.Controllers
 
             ShopUser user = await _userManager.FindByEmailAsync(loginRequest.Email);
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginRequest.Password, false);
-
             if (result.Succeeded)
             {
                 IEnumerable<Claim> claims = await _userClaimsService.GetUserClaims(user);
@@ -119,9 +119,9 @@ namespace eshop_webAPI.Controllers
             
             if (shopUser != null)
             {
-                var resetPasswordToken =  await _userManager.GeneratePasswordResetTokenAsync(shopUser);
+                var resetPasswordToken =  EncodeHelper.Base64Encode(await _userManager.GeneratePasswordResetTokenAsync(shopUser));
                 var resetLink =
-                    $"http://localhost:5000/api/account/resetpassword?UserId={shopUser.Id}&token={resetPasswordToken}"; // TODO : make this configurable and redirectible to wep app
+                    $"http://localhost:3000/resetpassword?Id={shopUser.Id}&token={resetPasswordToken}"; // TODO : make this configurable and redirectible to wep app
                 await _emailSender.SendResetPasswordEmailAsync(request.Email, resetLink);
                 return Ok("Password recovery confirmation link was sent to your e-mail.");
             }
@@ -136,8 +136,9 @@ namespace eshop_webAPI.Controllers
             var shopUser = await _userManager.FindByIdAsync(request.UserId);
             if (shopUser != null)
             {
-                var resetPasswordResult = _userManager.ResetPasswordAsync(shopUser, request.Token, request.Password);
-                if (resetPasswordResult.IsCompletedSuccessfully)
+                var decodedToken = EncodeHelper.Base64Decode(request.Token);
+                var resetPasswordResult = await _userManager.ResetPasswordAsync(shopUser, decodedToken, request.Password);
+                if (resetPasswordResult.Succeeded)
                 {
                     return Ok("Password was reset");
                 }
