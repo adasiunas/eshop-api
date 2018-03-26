@@ -23,7 +23,11 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using eshopAPI.Models;
 using eshopAPI.Services;
-
+using Microsoft.AspNet.OData.Extensions;
+using Microsoft.AspNet.OData.Builder;
+using Microsoft.AspNet.OData.Formatter;
+using Microsoft.Net.Http.Headers;
+using static eshopAPI.Controllers.UsersController;
 namespace eshopAPI
 {
     public class Startup
@@ -62,7 +66,23 @@ namespace eshopAPI
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddTransient<IEmailSender, EmailSender>();
+
+            services.AddOData();
+            
+            // this is needed so that swagger would work with odata-created links
+            services.AddMvcCore(options =>
+            {
+                foreach (var outputFormatter in options.OutputFormatters.OfType<ODataOutputFormatter>().Where(_ => _.SupportedMediaTypes.Count == 0))
+                {
+                    outputFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/prs.odatatestxx-odata"));
+                }
+                foreach (var inputFormatter in options.InputFormatters.OfType<ODataInputFormatter>().Where(_ => _.SupportedMediaTypes.Count == 0))
+                {
+                    inputFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/prs.odatatestxx-odata"));
+                }
+            });
 
             services.AddMvc(opt => { opt.Filters.Add(typeof(ValidatorActionFilter)); })
                 .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
@@ -74,7 +94,7 @@ namespace eshopAPI
             if (env.IsDevelopment())
             {
                 app.UseCors(
-                    options => options.WithOrigins("http://localhost:3000").AllowAnyMethod()
+                    options => options.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader().AllowCredentials()
                     );
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
@@ -86,7 +106,17 @@ namespace eshopAPI
             loggerFactory.AddLog4Net();
             app.UseAuthentication();
             CreateRoles(serviceProvider).Wait();
-            app.UseMvc();
+
+            ODataModelBuilder builder = new ODataConventionModelBuilder();
+            var entitySet = builder.EntitySet<UserVM>("Users");
+            entitySet.EntityType.HasKey(e => e.Id);
+            app.UseMvc(routeBuilder =>
+            {
+                routeBuilder.MapODataServiceRoute("odata", "odata", builder.GetEdmModel());
+                routeBuilder.Select().Expand().Filter().OrderBy().MaxTop(1000).Count();
+                // Work-around for #1175
+                routeBuilder.EnableDependencyInjection();
+            });
         }
 
         private async Task CreateRoles(IServiceProvider serviceProvider)
