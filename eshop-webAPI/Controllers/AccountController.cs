@@ -57,6 +57,7 @@ namespace eshop_webAPI.Controllers
             {
                 _logger.LogInformation("User created a new account with password.");
 
+                await _userManager.AddToRoleAsync(user, UserRole.User.ToString());
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
                 // need to send email with confirmation link
