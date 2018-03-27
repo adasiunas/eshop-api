@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
 using eshopAPI.Requests.Account;
@@ -22,27 +19,29 @@ namespace eshop_webAPI.Controllers
         private readonly SignInManager<ShopUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
-        private readonly IUserClaimsService _userClaimsService;
-        private readonly ITokenGenerator _tokenGenerator;
 
         // Add required services and they will be injected
         public AccountController(
             UserManager<ShopUser> userManager,
             SignInManager<ShopUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger,
-            ITokenGenerator tokenGenerator,
-            IUserClaimsService userClaimsService)
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
-            _tokenGenerator = tokenGenerator;
-            _userClaimsService = userClaimsService;
+        }
+
+        [HttpGet("testconnection")]
+        [AllowAnonymous]
+        public IActionResult TestConnection()
+        {
+            return Ok();
         }
 
         [HttpGet("profile")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile()
         {
             ShopUser user = await _userManager.FindByNameAsync(User.Identity.Name);
@@ -51,6 +50,7 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register([FromBody]RegisterRequest request)
         {
             var user = new ShopUser { UserName = request.Username, Email = request.Username };
@@ -68,28 +68,27 @@ namespace eshop_webAPI.Controllers
         
         [HttpPost("login")]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
-
-            ShopUser user = await _userManager.FindByEmailAsync(loginRequest.Email);
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginRequest.Password, false);
+            
+            var result = await _signInManager.PasswordSignInAsync(loginRequest.Email, loginRequest.Password,
+                loginRequest.RememberMe, lockoutOnFailure: false);
             if (result.Succeeded)
             {
-                IEnumerable<Claim> claims = await _userClaimsService.GetUserClaims(user);
-                JwtSecurityToken token = _tokenGenerator.GenerateToken(claims);
-
                 _logger.LogInformation("User logged in.");
-                return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+                return Ok();
             }
 
             return BadRequest("Can not log in");
         }
         
         [HttpPost("logout")]
-        public IActionResult Logout()
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
         {
-            // thinks something how to handle logout
+            await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
             return Ok();
         }
@@ -113,6 +112,7 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("forgotPassword")]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             var shopUser = await _userManager.FindByEmailAsync(request.Email);
@@ -131,6 +131,7 @@ namespace eshop_webAPI.Controllers
         // TODO : test this when UI is ready for reset password
         [HttpPost("resetpassword")]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken] //if request is made from email remove this
         public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordRequest request)
         {
             var shopUser = await _userManager.FindByIdAsync(request.UserId);
