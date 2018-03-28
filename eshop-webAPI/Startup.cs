@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using eshopAPI.Models;
 using eshopAPI.Services;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Http;
 
 namespace eshopAPI
 {
@@ -41,6 +42,7 @@ namespace eshopAPI
             {
                 options.Cookie.Name = "SecCookie";
                 options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.None;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
                 options.SlidingExpiration = true;
                 options.Events.OnRedirectToLogin = context =>
@@ -105,7 +107,7 @@ namespace eshopAPI
                 if (path != null && path.StartsWith("/api"))
                 {
                     var token = antiforgery.GetAndStoreTokens(context);
-                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken);
+                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken, new CookieOptions { HttpOnly = false, SameSite = SameSiteMode.None });
                 }
                 return next(context);
             });
