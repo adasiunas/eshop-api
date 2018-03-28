@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
@@ -70,7 +71,8 @@ namespace eshop_webAPI.Controllers
                 _logger.LogInformation($"Confirmation email was sent to user: {user.Name}");
                 return Ok();
             }
-            return BadRequest();
+
+            return BadRequest(result.Errors.Select(e => e.Description));
         }
         
         [HttpPost("login")]
