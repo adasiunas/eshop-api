@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using eshopAPI.DataAccess;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
 using eshopAPI.Requests.Account;
 using eshopAPI.Services;
+using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,40 +16,45 @@ namespace eshop_webAPI.Controllers
     [Route("api/account")]
     public class AccountController : Controller
     {
+        private readonly IShopUserRepository _shopUserRepository;
         private readonly UserManager<ShopUser> _userManager;
         private readonly SignInManager<ShopUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
-        private readonly IUserClaimsService _userClaimsService;
-        private readonly ITokenGenerator _tokenGenerator;
 
         // Add required services and they will be injected
         public AccountController(
+            IShopUserRepository shopUserRepository,
             UserManager<ShopUser> userManager,
             SignInManager<ShopUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger,
-            ITokenGenerator tokenGenerator,
-            IUserClaimsService userClaimsService)
+            ILogger<AccountController> logger)
         {
+            _shopUserRepository = shopUserRepository;
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
-            _tokenGenerator = tokenGenerator;
-            _userClaimsService = userClaimsService;
+        }
+
+        [HttpGet("testconnection")]
+        [AllowAnonymous]
+        public IActionResult TestConnection()
+        {
+            return Ok();
         }
 
         [HttpGet("profile")]
-        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile()
         {
-            ShopUser user = await _userManager.FindByNameAsync(User.Identity.Name);
-            return Ok(user.GetUserProfile());
+            ShopUserProfile profile = await _shopUserRepository.GetUserProfile(User.Identity.Name);
+            return Ok(profile);
         }
 
         [HttpPost("register")]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register([FromBody]RegisterRequest request)
         {
             var user = new ShopUser { UserName = request.Username, Email = request.Username };
@@ -68,29 +72,27 @@ namespace eshop_webAPI.Controllers
         
         [HttpPost("login")]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
-
-            ShopUser user = await _userManager.FindByEmailAsync(loginRequest.Email);
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginRequest.Password, false);
-
+            
+            var result = await _signInManager.PasswordSignInAsync(loginRequest.Email, loginRequest.Password,
+                loginRequest.RememberMe, lockoutOnFailure: false);
             if (result.Succeeded)
             {
-                IEnumerable<Claim> claims = await _userClaimsService.GetUserClaims(user);
-                JwtSecurityToken token = _tokenGenerator.GenerateToken(claims);
-
                 _logger.LogInformation("User logged in.");
-                return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+                return Ok();
             }
 
             return BadRequest("Can not log in");
         }
         
         [HttpPost("logout")]
-        public IActionResult Logout()
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
         {
-            // thinks something how to handle logout
+            await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
             return Ok();
         }
@@ -112,16 +114,44 @@ namespace eshop_webAPI.Controllers
             return BadRequest();
         }
 
-        [HttpPost("reset/password")]
-        public IActionResult ResetPassword()
+        [HttpPost("forgotPassword")]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
-            return Ok();
+            var shopUser = await _userManager.FindByEmailAsync(request.Email);
+            
+            if (shopUser != null)
+            {
+                var resetPasswordToken =  EncodeHelper.Base64Encode(await _userManager.GeneratePasswordResetTokenAsync(shopUser));
+                var resetLink =
+                    $"http://localhost:3000/resetpassword?Id={shopUser.Id}&token={resetPasswordToken}"; // TODO : make this configurable and redirectible to wep app
+                await _emailSender.SendResetPasswordEmailAsync(request.Email, resetLink);
+                return Ok("Password recovery confirmation link was sent to your e-mail.");
+            }
+            return NotFound("User with this email was not found");
         }
         
-        [HttpPost("remember")]
-        public IActionResult RememberPassword()
+        // TODO : test this when UI is ready for reset password
+        [HttpPost("resetpassword")]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken] //if request is made from email remove this
+        public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordRequest request)
         {
-            return Ok();
+            var shopUser = await _userManager.FindByIdAsync(request.UserId);
+            if (shopUser != null)
+            {
+                var decodedToken = EncodeHelper.Base64Decode(request.Token);
+                var resetPasswordResult = await _userManager.ResetPasswordAsync(shopUser, decodedToken, request.Password);
+                if (resetPasswordResult.Succeeded)
+                {
+                    return Ok("Password was reset");
+                }
+
+                return BadRequest("Failed to reset password");
+            }
+
+            return NotFound("User was not found");
         }
     }
 }
