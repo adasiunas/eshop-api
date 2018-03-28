@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using eshopAPI.DataAccess;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
 using eshopAPI.Requests.Account;
@@ -15,6 +16,7 @@ namespace eshop_webAPI.Controllers
     [Route("api/account")]
     public class AccountController : Controller
     {
+        private readonly IShopUserRepository _shopUserRepository;
         private readonly UserManager<ShopUser> _userManager;
         private readonly SignInManager<ShopUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
@@ -22,11 +24,13 @@ namespace eshop_webAPI.Controllers
 
         // Add required services and they will be injected
         public AccountController(
+            IShopUserRepository shopUserRepository,
             UserManager<ShopUser> userManager,
             SignInManager<ShopUser> signInManager,
             IEmailSender emailSender,
             ILogger<AccountController> logger)
         {
+            _shopUserRepository = shopUserRepository;
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
@@ -44,8 +48,8 @@ namespace eshop_webAPI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile()
         {
-            ShopUser user = await _userManager.FindByNameAsync(User.Identity.Name);
-            return Ok(user.GetUserProfile());
+            ShopUserProfile profile = await _shopUserRepository.GetUserProfile(User.Identity.Name);
+            return Ok(profile);
         }
 
         [HttpPost("register")]

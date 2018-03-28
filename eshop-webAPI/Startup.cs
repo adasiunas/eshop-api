@@ -73,6 +73,7 @@ namespace eshopAPI
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
+            services.AddScoped<IShopUserRepository, ShopUserRepository>();
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddMvc(opt => { opt.Filters.Add(typeof(ValidatorActionFilter)); })
