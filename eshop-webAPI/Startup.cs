@@ -19,6 +19,7 @@ using Microsoft.AspNet.OData.Formatter;
 using Microsoft.Net.Http.Headers;
 using static eshopAPI.Controllers.UsersController;
 using Microsoft.AspNetCore.Antiforgery;
+using System.Linq;
 
 namespace eshopAPI
 {
