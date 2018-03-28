@@ -42,6 +42,7 @@ namespace eshopAPI
             {
                 options.Cookie.Name = "SecCookie";
                 options.Cookie.HttpOnly = true;
+                options.Cookie.Domain = ".eshop-qa-api.azurewebsites.net";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
                 options.SlidingExpiration = true;
                 options.Events.OnRedirectToLogin = context =>
@@ -65,6 +66,7 @@ namespace eshopAPI
             {
                 options.HeaderName = "X-CSRF-TOKEN";
                 options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.Domain = ".eshop-qa-api.azurewebsites.net";
             });
 
             // register services for DI
@@ -113,7 +115,7 @@ namespace eshopAPI
                 if (path != null && path.StartsWith("/api"))
                 {
                     var token = antiforgery.GetAndStoreTokens(context);
-                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken, new CookieOptions { HttpOnly = false });
+                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken, new CookieOptions { HttpOnly = false, Domain = ".eshop-qa-api.azurewebsites.net" });
                 }
                 return next(context);
             });
