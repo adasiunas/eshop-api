@@ -3,11 +3,12 @@ using FluentValidation;
 
 namespace eshopAPI.Validators.Request
 {
-    public class RegistrationValidator : AbstractValidator<RegisterRequest>
+    public class ResetPasswordValidator : AbstractValidator<ResetPasswordRequest>
     {
-        public RegistrationValidator()
+        public ResetPasswordValidator()
         {
-            RuleFor(r => r.Username).NotEmpty().EmailAddress();
+            RuleFor(r => r.UserId).NotEmpty();
+            RuleFor(r => r.Token).NotEmpty();
             RuleFor(r => r.Password).NotEmpty().Equal(r => r.ConfirmPassword)
                 .When(r => !string.IsNullOrEmpty(r.ConfirmPassword)).WithMessage("Passwords should match.");
         }

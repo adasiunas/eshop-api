@@ -1,4 +1,4 @@
-﻿namespace eshopAPI.Requests
+﻿namespace eshopAPI.Requests.Account
 {
     public class RegisterRequest
     {

@@ -16,6 +16,7 @@ namespace eshopAPI.Models
         public string Surname { get; set; }
         [MaxLength(20)]
         public string Phone { get; set; }
+        public virtual ICollection<Address> Addresses { get; set; }
     }
 
     public class ShopUserProfile
@@ -24,13 +25,14 @@ namespace eshopAPI.Models
         public string Name { get; set; }
         public string Surname { get; set; }
         public string Phone { get; set; }
+        public ICollection<Address> Addresses { get; set; }
     }
 
     public static class ShopUserExtensions
     {
         public static ShopUserProfile GetUserProfile(this ShopUser user)
         {
-            return new ShopUserProfile { Email = user.Email, Name = user.Name, Surname = user.Surname, Phone = user.Phone };
+            return new ShopUserProfile { Email = user.Email, Name = user.Name, Surname = user.Surname, Phone = user.Phone,  Addresses = user.Addresses};
         }
 
         public static ShopUser UpdateUser(this ShopUser user, ShopUserProfile profile)
@@ -38,6 +40,7 @@ namespace eshopAPI.Models
             user.Name = profile.Name;
             user.Surname = profile.Surname;
             user.Phone = profile.Phone;
+            user.Addresses = profile.Addresses;
             return user;
         }
     }
