@@ -96,7 +96,7 @@ namespace eshopAPI
             }
             // TODO: remove this afterwards
             app.UseCors(
-                options => options.AllowAnyMethod().AllowAnyHeader().AllowCredentials().AllowAnyOrigin()
+                options => options.WithOrigins("https://eshop-qa-web.azurewebsites.net/").AllowAnyMethod().AllowAnyHeader().AllowCredentials()
             );
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
