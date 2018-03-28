@@ -41,7 +41,7 @@ namespace eshopAPI
             services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.Name = "SecCookie";
-                options.Cookie.Domain = "eshop-qa-api.azurewebsites.net";
+                options.Cookie.Domain = "localhost";
                 options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
                 options.SlidingExpiration = true;
@@ -110,7 +110,7 @@ namespace eshopAPI
                 if (path != null && path.StartsWith("/api"))
                 {
                     var token = antiforgery.GetAndStoreTokens(context);
-                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken, new CookieOptions { HttpOnly = false, Domain = "eshop-qa-api.azurewebsites.net" });
+                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken, new CookieOptions { HttpOnly = false, Domain = "localhost" });
                 }
                 return next(context);
             });
