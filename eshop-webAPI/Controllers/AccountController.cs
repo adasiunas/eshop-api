@@ -44,14 +44,6 @@ namespace eshop_webAPI.Controllers
             return Ok();
         }
 
-        [HttpGet("profile")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Profile()
-        {
-            ShopUserProfile profile = await _shopUserRepository.GetUserProfile(User.Identity.Name);
-            return Ok(profile);
-        }
-
         [HttpPost("register")]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
