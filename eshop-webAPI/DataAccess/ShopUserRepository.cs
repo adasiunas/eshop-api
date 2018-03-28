@@ -46,22 +46,35 @@ namespace eshopAPI.DataAccess
         }
 
         public async Task<bool> UpdateUserAddress(string email, AddressRequest request)
-        { 
-            var query = _context.Users.Where(u => 
+        {
+            //var query = _context.Users.Where(
+            //    u => u.NormalizedEmail.Equals(email.Normalize()))
+            //    .Include(u => u.Addresses)
+            //    .Select(a => a.Addresses)
+
+            var query = _context.Users.Where(u =>
                 u.NormalizedEmail.Equals(email.Normalize()))
-                .Include(user => user.Addresses)
-                .Select(u => u.Addresses
-                .Where(a => a.ID == request.Id));
+                .Include(u => u.Addresses);
 
             if (await query.CountAsync() != 1)
                 return false;
 
-            query.First().First().Name = request.Name;
-            query.First().First().Surname = request.Surname;
-            query.First().First().Street = request.Street;
-            query.First().First().City = request.City;
-            query.First().First().Postcode = request.Postcode;
-            query.First().First().Country = request.Country;
+            ShopUser user = query.First();
+            ICollection<Address> addresses = user.Addresses;
+
+            foreach (Address address in addresses)
+            {
+                if (address.ID != request.ID)
+                    continue;
+                address.Name = request.Name;
+                address.Surname = request.Surname;
+                address.Street = request.Street;
+                address.City = request.City;
+                address.Postcode = request.Postcode;
+                address.Country = request.Country;
+            }
+
+            user.Addresses = addresses;
 
             int updates = await _context.SaveChangesAsync();
             if (updates != 1)
