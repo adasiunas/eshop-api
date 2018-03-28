@@ -38,11 +38,9 @@ namespace eshopAPI.Controllers
 
         [EnableQuery]
         [HttpGet]
-        public async Task<IQueryable<UserVM>> Get()
-        {
-            List<UserVM> userModels = await _userRepository.GetAllAsync();
-            
-            return userModels.AsQueryable();
+        public IQueryable<UserVM> Get()
+        {            
+            return _userRepository.GetAllUsersAsQueryable();
         }
 
         [HttpPost("changerole")]
