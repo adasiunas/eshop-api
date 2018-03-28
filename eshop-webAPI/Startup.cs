@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Swagger;
-using log4net.Core;
-using log4net;
-using System.Reflection;
-using log4net.Config;
-using System.IO;
 using eshopAPI.DataAccess;
 using eshopAPI.Validators;
 using FluentValidation.AspNetCore;
@@ -28,6 +18,8 @@ using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Formatter;
 using Microsoft.Net.Http.Headers;
 using static eshopAPI.Controllers.UsersController;
+using Microsoft.AspNetCore.Antiforgery;
+
 namespace eshopAPI
 {
     public class Startup
@@ -46,14 +38,34 @@ namespace eshopAPI
             services.AddDbContext<ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
-            services.AddIdentity<ShopUser, IdentityRole>()
+            services.AddIdentity<ShopUser, IdentityRole>(opt => { opt.SignIn.RequireConfirmedEmail = true;})
                 .AddEntityFrameworkStores<ShopContext>()
                 .AddDefaultTokenProviders();
+
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.Name = "SecCookie";
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
+                options.SlidingExpiration = true;
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                };
+                options.Events.OnRedirectToAccessDenied = context =>
+                {
+                    context.Response.StatusCode = 403;
+                    return Task.CompletedTask;
+                };
+            });
 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "eshop-api", Version = "v1" });
             });
+
+            services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
 
             // register services for DI
             // AddTransient - creates new services for every injection
@@ -66,6 +78,7 @@ namespace eshopAPI
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
+            services.AddScoped<IShopUserRepository, ShopUserRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddTransient<IEmailSender, EmailSender>();
 
@@ -89,7 +102,7 @@ namespace eshopAPI
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider, IAntiforgery antiforgery)
         {
             if (env.IsDevelopment())
             {
@@ -104,8 +117,20 @@ namespace eshopAPI
                 });
             }
             loggerFactory.AddLog4Net();
+
             app.UseAuthentication();
             CreateRoles(serviceProvider).Wait();
+            app.Use(next => context =>
+            {
+                string path = context.Request.Path.Value;
+                if (path != null && path.StartsWith("/api"))
+                {
+                    var token = antiforgery.GetAndStoreTokens(context);
+                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken);
+                }
+                return next(context);
+            });
+            app.UseMvc();
 
             ODataModelBuilder builder = new ODataConventionModelBuilder();
             var entitySet = builder.EntitySet<UserVM>("Users");
@@ -141,7 +166,7 @@ namespace eshopAPI
             var poweruser = new ShopUser
             {
                 UserName = Configuration["AdminUsername"],
-                Email = Configuration["AdminUserPass"],
+                Email = Configuration["AdminUsername"],
             };
             //Ensure you have these values in your appsettings.json file
             string userPWD = Configuration["AdminUserPass"];
@@ -150,6 +175,8 @@ namespace eshopAPI
             if (_user == null)
             {
                 var createPowerUser = await UserManager.CreateAsync(poweruser, userPWD);
+                var confirmToken = await UserManager.GenerateEmailConfirmationTokenAsync(poweruser);
+                await UserManager.ConfirmEmailAsync(poweruser, confirmToken);
                 if (createPowerUser.Succeeded)
                 {
                     //here we tie the new user to the role

@@ -3,11 +3,10 @@ using FluentValidation;
 
 namespace eshopAPI.Validators.Request
 {
-    public class LoginValidator : AbstractValidator<LoginRequest>
+    public class ForgotPasswordValidator: AbstractValidator<ForgotPasswordRequest>
     {
-        public LoginValidator()
+        public ForgotPasswordValidator()
         {
-            RuleFor(r => r.Password).NotEmpty();
             RuleFor(r => r.Email).NotEmpty().EmailAddress();
         }
     }
