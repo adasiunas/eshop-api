@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,9 +13,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using eshopAPI.Models;
 using eshopAPI.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.AspNetCore.Antiforgery;
 
 namespace eshopAPI
 {
@@ -36,45 +33,34 @@ namespace eshopAPI
             services.AddDbContext<ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
-            services.AddIdentity<ShopUser, IdentityRole>(opt => { opt.SignIn.RequireConfirmedEmail = true; })
+            services.AddIdentity<ShopUser, IdentityRole>(opt => { opt.SignIn.RequireConfirmedEmail = true;})
                 .AddEntityFrameworkStores<ShopContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddAuthentication(o =>
+            services.ConfigureApplicationCookie(options =>
             {
-                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                o.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(jwtBearerOptions =>
-            {
-                jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters()
+                options.Cookie.Name = "SecCookie";
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
+                options.SlidingExpiration = true;
+                options.Events.OnRedirectToLogin = context =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = Configuration["Token:Issuer"],
-                    ValidAudience = Configuration["Token:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"]))
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                };
+                options.Events.OnRedirectToAccessDenied = context =>
+                {
+                    context.Response.StatusCode = 403;
+                    return Task.CompletedTask;
                 };
             });
 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "eshop-api", Version = "v1" });
-                c.AddSecurityDefinition("Bearer", new ApiKeyScheme
-                {
-                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                    Name = "Authorization",
-                    In = "header",
-                    Type = "apiKey"
-                });
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>()
-                {
-                    {"Bearer", new string[]{ } }
-                });
             });
+
+            services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
 
             // register services for DI
             // AddTransient - creates new services for every injection
@@ -87,17 +73,15 @@ namespace eshopAPI
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
+            services.AddScoped<IShopUserRepository, ShopUserRepository>();
             services.AddTransient<IEmailSender, EmailSender>();
-            services.AddTransient<ITokenGenerator, TokenGenerator>();
-            services.AddTransient<IUserClaimsService, UserClaimsService>();
-            services.AddSingleton(Configuration);
 
             services.AddMvc(opt => { opt.Filters.Add(typeof(ValidatorActionFilter)); })
                 .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider, IAntiforgery antiforgery)
         {
             if (env.IsDevelopment())
             {
@@ -118,6 +102,16 @@ namespace eshopAPI
 
             app.UseAuthentication();
             CreateRoles(serviceProvider).Wait();
+            app.Use(next => context =>
+            {
+                string path = context.Request.Path.Value;
+                if (path != null && path.StartsWith("/api"))
+                {
+                    var token = antiforgery.GetAndStoreTokens(context);
+                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken);
+                }
+                return next(context);
+            });
             app.UseMvc();
         }
 

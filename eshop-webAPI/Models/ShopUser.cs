@@ -25,7 +25,7 @@ namespace eshopAPI.Models
         public string Name { get; set; }
         public string Surname { get; set; }
         public string Phone { get; set; }
-        public virtual ICollection<Address> Addresses { get; set; }
+        public ICollection<Address> Addresses { get; set; }
     }
 
     public static class ShopUserExtensions
