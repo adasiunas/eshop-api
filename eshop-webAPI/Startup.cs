@@ -115,7 +115,7 @@ namespace eshopAPI
                 if (path != null && path.StartsWith("/api"))
                 {
                     var token = antiforgery.GetAndStoreTokens(context);
-                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken, new CookieOptions { HttpOnly = false, Domain = ".eshop-qa-web.azurewebsites.net" });
+                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken, new CookieOptions { HttpOnly = false, Domain = ".eshop-qa-web.azurewebsites.net", SameSite = SameSiteMode.None, Secure = false });
                 }
                 return next(context);
             });
