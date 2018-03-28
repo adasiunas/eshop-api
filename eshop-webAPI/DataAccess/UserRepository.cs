@@ -9,7 +9,7 @@ namespace eshopAPI.DataAccess
 {
     public interface IUserRepository
     {
-        Task<List<UserVM>> GetAllAsync(); 
+        IQueryable<UserVM> GetAllUsersAsQueryable(); 
     }
 
     public class UserRepository : BaseRepository, IUserRepository
@@ -19,7 +19,7 @@ namespace eshopAPI.DataAccess
 
         }
 
-        public Task<List<UserVM>> GetAllAsync()
+        public IQueryable<UserVM> GetAllUsersAsQueryable()
         {
             var query =
                 from user in Context.Users
@@ -33,7 +33,7 @@ namespace eshopAPI.DataAccess
                     Role = role.Name
                 };
 
-            return query.ToListAsync();
+            return query;
         }
     }
 }
