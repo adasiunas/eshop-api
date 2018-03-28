@@ -36,33 +36,11 @@ namespace eshopAPI.Controllers
             _userRepository = userRepository;
         }
 
-        List<ShopUser> list = new List<ShopUser>()
-        {
-            new ShopUser()
-            {
-                Id = "1",
-                Email = "hahaha@hahaha.com",
-                Name = "Tomas Burkus"
-            },
-            new ShopUser()
-            {
-                Id = "2",
-                Email = "lohaha@hahaha.com",
-                Name = "Lomas Murkus",
-            },
-            new ShopUser()
-            {
-                Id = "3",
-                Email = "zozo@hahaha.com",
-                Name = "Mantas Jurkus"
-            }
-        };
-
         [EnableQuery]
         [HttpGet]
         public async Task<IQueryable<UserVM>> Get()
         {
-            List<UserVM> userModels = _userRepository.GetAll();
+            List<UserVM> userModels = await _userRepository.GetAllAsync();
             
             return userModels.AsQueryable();
         }
@@ -77,7 +55,7 @@ namespace eshopAPI.Controllers
             if (user == null)
             {
                 _logger.LogInformation($"Role changing failed, no user with such email found");
-                return BadRequest();
+                return NotFound();
             }
 
             try

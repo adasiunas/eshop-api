@@ -1,4 +1,5 @@
 ﻿using eshopAPI.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace eshopAPI.DataAccess
 {
     public interface IUserRepository
     {
-        List<UserVM> GetAll(); 
+        Task<List<UserVM>> GetAllAsync(); 
     }
 
     public class UserRepository : BaseRepository, IUserRepository
@@ -18,7 +19,7 @@ namespace eshopAPI.DataAccess
 
         }
 
-        public List<UserVM> GetAll()
+        public Task<List<UserVM>> GetAllAsync()
         {
             var query =
                 from user in Context.Users
@@ -32,7 +33,7 @@ namespace eshopAPI.DataAccess
                     Role = role.Name
                 };
 
-            return query.ToList();
+            return query.ToListAsync();
         }
     }
 }
