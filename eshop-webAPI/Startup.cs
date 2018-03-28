@@ -61,7 +61,11 @@ namespace eshopAPI
                 c.SwaggerDoc("v1", new Info { Title = "eshop-api", Version = "v1" });
             });
 
-            services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
+            services.AddAntiforgery(options => 
+            {
+                options.HeaderName = "X-CSRF-TOKEN";
+                options.Cookie.SameSite = SameSiteMode.None;
+            });
 
             // register services for DI
             // AddTransient - creates new services for every injection
