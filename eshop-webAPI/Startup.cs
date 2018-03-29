@@ -13,9 +13,15 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using eshopAPI.Models;
 using eshopAPI.Services;
+using Microsoft.AspNet.OData.Extensions;
+using Microsoft.AspNet.OData.Builder;
+using Microsoft.AspNet.OData.Formatter;
+using Microsoft.Net.Http.Headers;
+using static eshopAPI.Controllers.UsersController;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace eshopAPI
 {
@@ -80,7 +86,23 @@ namespace eshopAPI
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddScoped<IShopUserRepository, ShopUserRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddTransient<IEmailSender, EmailSender>();
+
+            services.AddOData();
+            
+            // this is needed so that swagger would work with odata-created links
+            services.AddMvcCore(options =>
+            {
+                foreach (var outputFormatter in options.OutputFormatters.OfType<ODataOutputFormatter>().Where(_ => _.SupportedMediaTypes.Count == 0))
+                {
+                    outputFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/prs.odatatestxx-odata"));
+                }
+                foreach (var inputFormatter in options.InputFormatters.OfType<ODataInputFormatter>().Where(_ => _.SupportedMediaTypes.Count == 0))
+                {
+                    inputFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/prs.odatatestxx-odata"));
+                }
+            });
 
             services.AddMvc(opt => 
             {
@@ -130,6 +152,17 @@ namespace eshopAPI
                 return next(context);
             });
             app.UseMvc();
+
+            ODataModelBuilder builder = new ODataConventionModelBuilder();
+            var entitySet = builder.EntitySet<UserVM>("Users");
+            entitySet.EntityType.HasKey(e => e.Id);
+            app.UseMvc(routeBuilder =>
+            {
+                routeBuilder.MapODataServiceRoute("odata", "odata", builder.GetEdmModel());
+                routeBuilder.Select().Expand().Filter().OrderBy().MaxTop(1000).Count();
+                // Work-around for #1175
+                routeBuilder.EnableDependencyInjection();
+            });
         }
 
         private async Task CreateRoles(IServiceProvider serviceProvider)
