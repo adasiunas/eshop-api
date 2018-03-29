@@ -97,7 +97,13 @@ namespace eshopAPI
             }
             // TODO: remove this afterwards
             app.UseCors(
-                options => options.WithOrigins(new string[] { "https://eshop-qa-web.azurewebsites.net", "http://localhost:3000" }).WithExposedHeaders("X-CSRF-COOKIE")
+                options => options.WithOrigins(new string[] 
+                {
+                    "http://eshop-qa-web.azurewebsites.net",
+                    "https://eshop-qa-web.azurewebsites.net",
+                    "http://localhost:3000",
+                    "http://127.0.0.1:3000"
+                }).WithExposedHeaders("X-CSRF-COOKIE")
                 .AllowAnyMethod().AllowAnyHeader().AllowCredentials()
             );
             app.UseDeveloperExceptionPage();
