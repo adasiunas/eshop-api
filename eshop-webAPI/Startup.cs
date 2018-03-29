@@ -41,6 +41,8 @@ namespace eshopAPI
             services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.Name = "SecCookie";
+                options.Cookie.SameSite = SameSiteMode.Strict;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
                 options.Cookie.HttpOnly = true;
                 options.Cookie.Domain = ".eshop-qa-api.azurewebsites.net";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
