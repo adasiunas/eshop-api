@@ -14,6 +14,7 @@ namespace eshop_webAPI.Controllers
 {
     [Authorize]
     [Route("api/account")]
+    [AutoValidateAntiforgeryToken]
     public class AccountController : Controller
     {
         private readonly IShopUserRepository _shopUserRepository;
@@ -37,15 +38,7 @@ namespace eshop_webAPI.Controllers
             _logger = logger;
         }
 
-        [HttpGet("testconnection")]
-        [AllowAnonymous]
-        public IActionResult TestConnection()
-        {
-            return Ok();
-        }
-
         [HttpGet("profile")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile()
         {
             ShopUserProfile profile = await _shopUserRepository.GetUserProfile(User.Identity.Name);
@@ -54,7 +47,7 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Register([FromBody]RegisterRequest request)
         {
             var user = new ShopUser { UserName = request.Username, Email = request.Username };
@@ -75,7 +68,7 @@ namespace eshop_webAPI.Controllers
         
         [HttpPost("login")]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
@@ -92,7 +85,6 @@ namespace eshop_webAPI.Controllers
         }
         
         [HttpPost("logout")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
@@ -102,6 +94,7 @@ namespace eshop_webAPI.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ConfirmEmail(ConfirmUserRequest request)
         {
             var user = await _userManager.FindByIdAsync(request.UserId);
@@ -119,7 +112,7 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("forgotPassword")]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             var shopUser = await _userManager.FindByEmailAsync(request.Email);
@@ -138,7 +131,7 @@ namespace eshop_webAPI.Controllers
         // TODO : test this when UI is ready for reset password
         [HttpPost("resetpassword")]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken] //if request is made from email remove this
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordRequest request)
         {
             var shopUser = await _userManager.FindByIdAsync(request.UserId);
