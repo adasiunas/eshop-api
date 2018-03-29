@@ -41,10 +41,9 @@ namespace eshopAPI
             services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.HttpOnly = true;
-                options.Cookie.Domain = ".eshop-qa-api.azurewebsites.net";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
                 options.SlidingExpiration = true;
-                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SameSite = SameSiteMode.Lax;
                 options.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = 401;
@@ -61,7 +60,7 @@ namespace eshopAPI
             services.AddAntiforgery(options =>
             {
                 options.HeaderName = "X-CSRF-TOKEN";
-                options.Cookie.Domain = ".eshop-qa-api.azurewebsites.net";
+                options.Cookie.SameSite = SameSiteMode.Lax;
             });
 
             services.AddSwaggerGen(c =>
