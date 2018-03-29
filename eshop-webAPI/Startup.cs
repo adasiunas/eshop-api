@@ -112,8 +112,11 @@ namespace eshopAPI
                 string path = context.Request.Path.Value;
                 if (path != null && path.StartsWith("/api"))
                 {
-                    var token = antiforgery.GetAndStoreTokens(context);
-                    context.Response.Cookies.Append("CSRF-TOKEN", token.RequestToken, new CookieOptions { HttpOnly = false, SameSite = SameSiteMode.None, Secure = false });
+                    //if (!context.Request.Method.Equals("GET"))
+                    //{
+                        var token = antiforgery.GetAndStoreTokens(context);
+                        context.Response.Headers.Add("X-CSRF-COOKIE", token.RequestToken);
+                    //}
                 }
                 return next(context);
             });
