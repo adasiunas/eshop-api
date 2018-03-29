@@ -51,5 +51,27 @@ namespace eshopAPI.Controllers
                 return Ok("User address was updated");
             return BadRequest("Address could not be updated");
         }
+
+        [HttpDelete("deleteAddress")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAddress([FromBody] AddressRequest addressRequest)
+        {
+            var success = await _shopUserRepository.DeleteAddress(User.Identity.Name, addressRequest.ID);
+            if (success)
+                return Ok("Address deleted");
+            return BadRequest("Address could not be deleted");
+        }
+
+        [HttpPost("addAddress")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddAddress([FromBody] AddressRequest newAddress)
+        {
+            Address address = AddressExtensions.GetAddressFromRequest(newAddress);
+            var success = await _shopUserRepository.AddAddress(User.Identity.Name, address);
+            if (success)
+                //ar nereikia cia 201 grazint?
+                return Ok("Address added");
+            return BadRequest("Address could not be added");
+        }
     }
 }

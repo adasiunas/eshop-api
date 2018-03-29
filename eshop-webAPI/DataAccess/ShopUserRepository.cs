@@ -13,6 +13,8 @@ namespace eshopAPI.DataAccess
         Task<ShopUserProfile> GetUserProfile(string email);
         Task<bool> UpdateUserProfile(string email, UpdateUserRequest request);
         Task<bool> UpdateUserAddress(string email, AddressRequest request);
+        Task<bool> DeleteAddress(string email, long addressID);
+        Task<bool> AddAddress(string email, Address newAddress);
     }
 
     public class ShopUserRepository : IShopUserRepository
@@ -47,11 +49,6 @@ namespace eshopAPI.DataAccess
 
         public async Task<bool> UpdateUserAddress(string email, AddressRequest request)
         {
-            //var query = _context.Users.Where(
-            //    u => u.NormalizedEmail.Equals(email.Normalize()))
-            //    .Include(u => u.Addresses)
-            //    .Select(a => a.Addresses)
-
             var query = _context.Users.Where(u =>
                 u.NormalizedEmail.Equals(email.Normalize()))
                 .Include(u => u.Addresses);
@@ -72,6 +69,7 @@ namespace eshopAPI.DataAccess
                 address.City = request.City;
                 address.Postcode = request.Postcode;
                 address.Country = request.Country;
+                break;
             }
 
             user.Addresses = addresses;
@@ -80,7 +78,40 @@ namespace eshopAPI.DataAccess
             if (updates != 1)
                 return false;
             return true;
-            
+        }
+
+        public async Task<bool> DeleteAddress(string email, long addressID)
+        {
+            var user = await GetUserWithEmail(email);
+            if (user == null)
+                return false;
+
+            return false;
+        }
+
+        public async Task<bool> AddAddress(string email, Address newAddress)
+        {
+            var user = await GetUserWithEmail(email);
+            if (user == null)
+                return false;
+
+            user.Addresses.Add(newAddress);
+
+            int updates = await _context.SaveChangesAsync();
+            if (updates != 1)
+                return false;
+            return true;
+        }
+
+        private async Task<ShopUser> GetUserWithEmail(string email)
+        {
+            var query = _context.Users.Where(u =>
+                u.NormalizedEmail.Equals(email.Normalize()))
+                .Include(u => u.Addresses);
+
+            if (await query.CountAsync() != 1)
+                return null;
+            return query.First();
         }
     }
 }
