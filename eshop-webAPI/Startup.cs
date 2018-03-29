@@ -31,12 +31,6 @@ namespace eshopAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();
-            services.AddAntiforgery(options =>
-            {
-                options.HeaderName = "X-CSRF-TOKEN";
-                options.SuppressXFrameOptionsHeader = true;
-            });
             services.AddDbContext<ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
@@ -48,6 +42,7 @@ namespace eshopAPI
             {
                 options.Cookie.Name = "SecCookie";
                 options.Cookie.HttpOnly = true;
+                options.Cookie.Domain = ".eshop-qa-api.azurewebsites.net";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
                 options.SlidingExpiration = true;
                 options.Events.OnRedirectToLogin = context =>
@@ -60,6 +55,14 @@ namespace eshopAPI
                     context.Response.StatusCode = 403;
                     return Task.CompletedTask;
                 };
+            });
+            services.AddCors();
+
+            services.AddAntiforgery(options =>
+            {
+                options.HeaderName = "X-CSRF-TOKEN";
+                options.Cookie.Domain = ".eshop-qa-api.azurewebsites.net";
+                options.SuppressXFrameOptionsHeader = true;
             });
 
             services.AddSwaggerGen(c =>
