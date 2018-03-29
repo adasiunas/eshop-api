@@ -44,10 +44,7 @@ namespace eshopAPI
                 options.Cookie.Domain = ".eshop-qa-api.azurewebsites.net";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
                 options.SlidingExpiration = true;
-                options.Cookie.Expiration = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.Path = "/api/";
                 options.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = 401;
