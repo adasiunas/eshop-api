@@ -1,4 +1,5 @@
-﻿using System;
+﻿using eshopAPI.Requests.User;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -23,5 +24,21 @@ namespace eshopAPI.Models
         public string Country { get; set; }
         [Required]
         public string Postcode { get; set; }
+    }
+
+    public class AddressExtensions
+    {
+        public static Address GetAddressFromRequest(AddressRequest request)
+        {
+            return new Address
+            {
+                Name = request.Name,
+                Surname = request.Surname,
+                Street = request.Street,
+                City = request.City,
+                Country = request.Country,
+                Postcode = request.Postcode
+            };
+        }
     }
 }
