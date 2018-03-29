@@ -9,6 +9,7 @@ namespace eshopAPI.Controllers
 {
     [Produces("application/json")]
     [Route("api/items")]
+    [AutoValidateAntiforgeryToken]
     public class ItemsController : Controller
     {
         // GET: api/Items
@@ -71,31 +72,6 @@ namespace eshopAPI.Controllers
                     img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
                 }
                 });
-        }
-
-        // GET: api/Items/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-        
-        // POST: api/Items
-        [HttpPost]
-        public void Post([FromBody]string value)
-        {
-        }
-        
-        // PUT: api/Items/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-        
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }

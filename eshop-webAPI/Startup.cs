@@ -15,6 +15,7 @@ using eshopAPI.Models;
 using eshopAPI.Services;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace eshopAPI
 {
@@ -31,6 +32,11 @@ namespace eshopAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddAntiforgery(options =>
+            {
+                options.HeaderName = "X-CSRF-TOKEN";
+                options.SuppressXFrameOptionsHeader = true;
+            });
             services.AddDbContext<ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
@@ -61,12 +67,6 @@ namespace eshopAPI
                 c.SwaggerDoc("v1", new Info { Title = "eshop-api", Version = "v1" });
             });
 
-            services.AddAntiforgery(options => 
-            {
-                options.HeaderName = "X-CSRF-TOKEN";
-                options.Cookie.SameSite = SameSiteMode.None;
-            });
-
             // register services for DI
             // AddTransient - creates new services for every injection
             // AddScoped - creates and uses same service during request
@@ -81,8 +81,12 @@ namespace eshopAPI
             services.AddScoped<IShopUserRepository, ShopUserRepository>();
             services.AddTransient<IEmailSender, EmailSender>();
 
-            services.AddMvc(opt => { opt.Filters.Add(typeof(ValidatorActionFilter)); })
-                .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
+            services.AddMvc(opt => 
+            {
+                opt.Filters.Add(typeof(ValidatorActionFilter));
+                opt.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+            })
+            .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -94,7 +98,8 @@ namespace eshopAPI
             }
             // TODO: remove this afterwards
             app.UseCors(
-                options => options.WithOrigins(new string[] { "https://eshop-qa-web.azurewebsites.net", "http://localhost:3000" }).AllowAnyMethod().AllowAnyHeader().AllowCredentials()
+                options => options.WithOrigins(new string[] { "https://eshop-qa-web.azurewebsites.net", "http://localhost:3000" }).WithExposedHeaders("X-CSRF-COOKIE")
+                .AllowAnyMethod().AllowAnyHeader().AllowCredentials()
             );
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
@@ -112,11 +117,8 @@ namespace eshopAPI
                 string path = context.Request.Path.Value;
                 if (path != null && path.StartsWith("/api"))
                 {
-                    //if (!context.Request.Method.Equals("GET"))
-                    //{
-                        var token = antiforgery.GetAndStoreTokens(context);
-                        context.Response.Headers.Add("X-CSRF-COOKIE", token.RequestToken);
-                    //}
+                    var token = antiforgery.GetAndStoreTokens(context);
+                    context.Response.Headers["X-CSRF-COOKIE"] = token.RequestToken;
                 }
                 return next(context);
             });
