@@ -49,7 +49,7 @@ namespace eshopAPI
                 options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(double.Parse(Configuration["CookieTimeSpan"]));
                 options.SlidingExpiration = true;
-                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
                 options.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = 401;
@@ -66,7 +66,7 @@ namespace eshopAPI
             services.AddAntiforgery(options =>
             {
                 options.HeaderName = "X-CSRF-TOKEN";
-                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
             });
 
             services.AddSwaggerGen(c =>
@@ -158,7 +158,7 @@ namespace eshopAPI
             entitySet.EntityType.HasKey(e => e.Id);
             app.UseMvc(routeBuilder =>
             {
-                routeBuilder.MapODataServiceRoute("odata", "odata", builder.GetEdmModel());
+                routeBuilder.MapODataServiceRoute("api/odata", "api/odata", builder.GetEdmModel());
                 routeBuilder.Select().Expand().Filter().OrderBy().MaxTop(1000).Count();
                 // Work-around for #1175
                 routeBuilder.EnableDependencyInjection();
