@@ -151,7 +151,6 @@ namespace eshopAPI
                 }
                 return next(context);
             });
-            app.UseMvc();
 
             ODataModelBuilder builder = new ODataConventionModelBuilder();
             var entitySet = builder.EntitySet<UserVM>("Users");
