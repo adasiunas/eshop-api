@@ -14,7 +14,7 @@ namespace eshopAPI.DataAccess
         Task<bool> UpdateUserProfile(string email, UpdateUserRequest request);
         Task<bool> UpdateUserAddress(string email, AddressRequest request);
         Task<bool> DeleteAddress(string email, long addressID);
-        Task<bool> AddAddress(string email, Address newAddress);
+        Task<bool> AddAddress(string email, AddressRequest newAddress);
     }
 
     public class ShopUserRepository : IShopUserRepository
@@ -80,22 +80,29 @@ namespace eshopAPI.DataAccess
             return true;
         }
 
-        public async Task<bool> DeleteAddress(string email, long addressID)
+        public async Task<bool> DeleteAddress(string email, long id)
         {
             var user = await GetUserWithEmail(email);
             if (user == null)
                 return false;
 
-            return false;
+            user.Addresses.Remove(user.Addresses.Where(a => a.ID == id).First());
+
+            int updates = await _context.SaveChangesAsync();
+            if (updates != 1)
+                return false;
+            return true;
         }
 
-        public async Task<bool> AddAddress(string email, Address newAddress)
+        public async Task<bool> AddAddress(string email, AddressRequest request)
         {
             var user = await GetUserWithEmail(email);
             if (user == null)
                 return false;
 
-            user.Addresses.Add(newAddress);
+            Address address = AddressExtensions.GetAddressFromRequest(request);
+
+            user.Addresses.Add(address);
 
             int updates = await _context.SaveChangesAsync();
             if (updates != 1)
