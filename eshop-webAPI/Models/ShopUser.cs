@@ -26,14 +26,14 @@ namespace eshopAPI.Models
         public string Name { get; set; }
         public string Surname { get; set; }
         public string Phone { get; set; }
-        public ICollection<Address> Addresses { get; set; }
+        public Address Address { get; set; }
     }
 
     public static class ShopUserExtensions
     {
         public static ShopUserProfile GetUserProfile(this ShopUser user)
         {
-            return new ShopUserProfile { Email = user.Email, Name = user.Name, Surname = user.Surname, Phone = user.Phone,  Addresses = user.Addresses};
+            return new ShopUserProfile { Email = user.Email, Name = user.Name, Surname = user.Surname, Phone = user.Phone,  Address = user.Addresses.First()};
         }
 
         public static ShopUser UpdateUserFromRequest(this ShopUser user, UpdateUserRequest request)
