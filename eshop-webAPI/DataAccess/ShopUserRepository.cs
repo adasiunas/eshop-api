@@ -23,7 +23,7 @@ namespace eshopAPI.DataAccess
 
         public async Task<ShopUserProfile> GetUserProfile(string email)
         {
-            IQueryable<ShopUser> query = _context.Users.Where(u => u.NormalizedEmail.Equals(email.Normalize())).Include(user => user.Addresses);
+            IQueryable<ShopUser> query = _context.Users.Where(u => u.NormalizedEmail.Equals(email.Normalize())).Include(user => user.Address);
             if (await query.CountAsync() != 1)
                 return null;
 
