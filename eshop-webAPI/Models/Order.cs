@@ -19,6 +19,8 @@ namespace eshopAPI.Models
         public OrderStatus Status { get; set; }
         [Required]
         public virtual ICollection<OrderItem> Items { get; set; }
+        [Required]
+        public string DeliveryAddress { get; set; }
     }
 
     public enum OrderStatus

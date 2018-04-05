@@ -38,8 +38,6 @@ namespace eshopAPI.Migrations
                     b.Property<string>("Postcode")
                         .IsRequired();
 
-                    b.Property<string>("ShopUserId");
-
                     b.Property<string>("Street")
                         .IsRequired();
 
@@ -47,8 +45,6 @@ namespace eshopAPI.Migrations
                         .IsRequired();
 
                     b.HasKey("ID");
-
-                    b.HasIndex("ShopUserId");
 
                     b.ToTable("Address");
                 });
@@ -133,11 +129,11 @@ namespace eshopAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(50);
 
-                    b.Property<long>("SubCategoryID");
+                    b.Property<long?>("ParentID");
 
                     b.HasKey("ID");
 
-                    b.HasIndex("SubCategoryID");
+                    b.HasIndex("ParentID");
 
                     b.ToTable("Categories");
                 });
@@ -178,12 +174,32 @@ namespace eshopAPI.Migrations
                     b.ToTable("Items");
                 });
 
+            modelBuilder.Entity("eshopAPI.Models.ItemPicture", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<long?>("ItemID");
+
+                    b.Property<string>("URL")
+                        .IsRequired();
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ItemID");
+
+                    b.ToTable("ItemPicture");
+                });
+
             modelBuilder.Entity("eshopAPI.Models.Order", b =>
                 {
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
                     b.Property<DateTime>("CreateDate");
+
+                    b.Property<string>("DeliveryAddress")
+                        .IsRequired();
 
                     b.Property<Guid>("OrderNumber");
 
@@ -228,6 +244,8 @@ namespace eshopAPI.Migrations
 
                     b.Property<int>("AccessFailedCount");
 
+                    b.Property<long?>("AddressID");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken();
 
@@ -269,6 +287,8 @@ namespace eshopAPI.Migrations
                         .HasMaxLength(256);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AddressID");
 
                     b.HasIndex("NormalizedEmail")
                         .HasName("EmailIndex");
@@ -389,13 +409,6 @@ namespace eshopAPI.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("eshopAPI.Models.Address", b =>
-                {
-                    b.HasOne("eshopAPI.Models.ShopUser")
-                        .WithMany("Addresses")
-                        .HasForeignKey("ShopUserId");
-                });
-
             modelBuilder.Entity("eshopAPI.Models.AttributeValue", b =>
                 {
                     b.HasOne("eshopAPI.Models.Attribute", "Attribute")
@@ -430,10 +443,9 @@ namespace eshopAPI.Migrations
 
             modelBuilder.Entity("eshopAPI.Models.Category", b =>
                 {
-                    b.HasOne("eshopAPI.Models.Category", "SubCategory")
+                    b.HasOne("eshopAPI.Models.Category", "Parent")
                         .WithMany()
-                        .HasForeignKey("SubCategoryID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("ParentID");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Item", b =>
@@ -441,6 +453,13 @@ namespace eshopAPI.Migrations
                     b.HasOne("eshopAPI.Models.Category")
                         .WithMany("Items")
                         .HasForeignKey("CategoryID");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.ItemPicture", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Item")
+                        .WithMany("Pictures")
+                        .HasForeignKey("ItemID");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Order", b =>
@@ -461,6 +480,13 @@ namespace eshopAPI.Migrations
                     b.HasOne("eshopAPI.Models.Order")
                         .WithMany("Items")
                         .HasForeignKey("OrderID");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.ShopUser", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Address", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressID");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
