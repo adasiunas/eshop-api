@@ -12,7 +12,7 @@ namespace eshopAPI.Helpers
 
         public static string ResetPasswordLink(string userId, string code, string domain)
         {
-            return domain+ "resetpassword?Id=" +userId + "&token=" + code;
+            return domain+ "/resetpassword?Id=" +userId + "&token=" + code;
         }
     }
 }
