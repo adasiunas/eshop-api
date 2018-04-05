@@ -63,7 +63,7 @@ namespace eshop_webAPI.Controllers
 
                 await _userManager.AddToRoleAsync(user, UserRole.User.ToString());
                 var code = EncodeHelper.Base64Encode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
-                var confirmationLink = Url.EmailConfirmationLink(user.Id, code, _configuration["RedirectDomain"]);
+                var confirmationLink = UrlExtensions.EmailConfirmationLink(user.Id, code, _configuration["RedirectDomain"]);
                 await _emailSender.SendConfirmationEmailAsync(request.Username, confirmationLink);
                 _logger.LogInformation($"Confirmation email was sent to user: {user.Name}");
                 return Ok();
@@ -126,8 +126,8 @@ namespace eshop_webAPI.Controllers
             if (shopUser != null)
             {
                 var resetPasswordToken =  EncodeHelper.Base64Encode(await _userManager.GeneratePasswordResetTokenAsync(shopUser));
-                var resetLink =
-                    $"http://localhost:3000/resetpassword?Id={shopUser.Id}&token={resetPasswordToken}"; // TODO : make this configurable and redirectible to wep app
+                var resetLink = UrlExtensions.ResetPasswordLink(shopUser.Id, resetPasswordToken,
+                    _configuration["RedirectDomain"]);
                 await _emailSender.SendResetPasswordEmailAsync(request.Email, resetLink);
                 return Ok("Password recovery confirmation link was sent to your e-mail.");
             }

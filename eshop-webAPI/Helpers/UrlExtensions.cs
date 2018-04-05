@@ -1,28 +1,18 @@
-﻿using eshop_webAPI.Controllers;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace eshopAPI.Helpers
 {
     public static class UrlExtensions
     {
         
-        public static string EmailConfirmationLink(this IUrlHelper urlHelper, string userId, string code, string domain)
+        public static string EmailConfirmationLink(string userId, string code, string domain)
         {
             return domain + "/confirmaccount?UserId=" + userId + "&Code=" + code; 
         }
 
-        public static string ResetPasswordCallbackLink(this IUrlHelper urlHelper, string userId, string code, string scheme)
+        public static string ResetPasswordLink(string userId, string code, string domain)
         {
-            return urlHelper.Action(
-                action: nameof(AccountController.ResetPassword),
-                controller: "Account",
-                values: new { userId, code },
-                protocol: scheme);
+            return domain+ "resetpassword?Id=" +userId + "&token=" + code;
         }
     }
 }
