@@ -1,5 +1,4 @@
-﻿using eshopAPI.Requests.User;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,7 +16,7 @@ namespace eshopAPI.Models
         public string Surname { get; set; }
         [MaxLength(20)]
         public string Phone { get; set; }
-        public virtual ICollection<Address> Addresses { get; set; }
+        public Address Address { get; set; }
     }
 
     public class ShopUserProfile
@@ -33,14 +32,15 @@ namespace eshopAPI.Models
     {
         public static ShopUserProfile GetUserProfile(this ShopUser user)
         {
-            return new ShopUserProfile { Email = user.Email, Name = user.Name, Surname = user.Surname, Phone = user.Phone,  Address = user.Addresses.First()};
+            return new ShopUserProfile { Email = user.Email, Name = user.Name, Surname = user.Surname, Phone = user.Phone,  Address = user.Address};
         }
 
-        public static ShopUser UpdateUserFromRequest(this ShopUser user, UpdateUserRequest request)
+        public static ShopUser UpdateUser(this ShopUser user, ShopUserProfile profile)
         {
-            user.Name = request.Name;
-            user.Surname = request.Surname;
-            user.Phone = request.Phone;
+            user.Name = profile.Name;
+            user.Surname = profile.Surname;
+            user.Phone = profile.Phone;
+            user.Address = profile.Address;
             return user;
         }
     }

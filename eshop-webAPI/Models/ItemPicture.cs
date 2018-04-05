@@ -6,15 +6,12 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Models
 {
-    public class Category
+    public class ItemPicture
     {
         [Key]
         public long ID { get; set; }
         [Required]
-        [MaxLength(50)]
-        public string Name { get; set; } // Bussiness key
-        public long? ParentID { get; set; }
-        public Category Parent { get; set; }
-        public virtual ICollection<Item> Items { get; set; }
+        [MaxLength(length: 500)]
+        public string URL { get; set; }
     }
 }
