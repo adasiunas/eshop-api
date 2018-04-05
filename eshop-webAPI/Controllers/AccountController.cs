@@ -9,6 +9,7 @@ using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace eshop_webAPI.Controllers
@@ -23,20 +24,23 @@ namespace eshop_webAPI.Controllers
         private readonly SignInManager<ShopUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
-
+        private readonly IConfiguration _configuration;
+        
         // Add required services and they will be injected
         public AccountController(
             IShopUserRepository shopUserRepository,
             UserManager<ShopUser> userManager,
             SignInManager<ShopUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            IConfiguration configuration)
         {
             _shopUserRepository = shopUserRepository;
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
+            _configuration = configuration;
         }
 
         [HttpGet("profile")]
@@ -58,8 +62,8 @@ namespace eshop_webAPI.Controllers
                 _logger.LogInformation("User created a new account with password.");
 
                 await _userManager.AddToRoleAsync(user, UserRole.User.ToString());
-                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var confirmationLink = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
+                var code = EncodeHelper.Base64Encode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
+                var confirmationLink = Url.EmailConfirmationLink(user.Id, code, _configuration["RedirectDomain"]);
                 await _emailSender.SendConfirmationEmailAsync(request.Username, confirmationLink);
                 _logger.LogInformation($"Confirmation email was sent to user: {user.Name}");
                 return Ok();
@@ -94,7 +98,7 @@ namespace eshop_webAPI.Controllers
             return Ok();
         }
 
-        [HttpGet]
+        [HttpGet("confirmaccount")]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ConfirmEmail(ConfirmUserRequest request)
@@ -105,7 +109,7 @@ namespace eshop_webAPI.Controllers
                 _logger.LogInformation($"User with id: {request.UserId} was not found.");
                 return NotFound("User was not found");
             }
-            var result = await _userManager.ConfirmEmailAsync(user, request.Code);
+            var result = await _userManager.ConfirmEmailAsync(user, EncodeHelper.Base64Decode(request.Code));
             if (result.Succeeded)
                 return Ok("User is confirmed");
 
