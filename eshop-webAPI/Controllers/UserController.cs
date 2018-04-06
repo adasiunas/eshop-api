@@ -21,16 +21,13 @@ namespace eshopAPI.Controllers
     {
         private readonly IShopUserRepository _shopUserRepository;
         private readonly ILogger<UserController> _logger;
-        private UserManager<ShopUser> _userManager;
 
         public UserController(
             IShopUserRepository shopUserRepository,
-            ILogger<UserController> logger,
-            UserManager<ShopUser> userManager)
+            ILogger<UserController> logger,)
         {
             _shopUserRepository = shopUserRepository;
             _logger = logger;
-            _userManager = userManager;
         }
 
         [HttpGet("profile")]
