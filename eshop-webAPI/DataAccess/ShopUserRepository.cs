@@ -13,6 +13,7 @@ namespace eshopAPI.DataAccess
         Task<ShopUserProfile> GetUserProfile(string email);
         Task<bool> UpdateUserProfile(ShopUser user, UpdateUserRequest request);
         Task<ShopUser> GetUserWithEmail(string email);
+        IQueryable<UserVM> GetAllUsersAsQueryable();
     }
 
     public class ShopUserRepository : IShopUserRepository
@@ -56,5 +57,23 @@ namespace eshopAPI.DataAccess
                 return null;
             return query.First();
         }
+
+        public IQueryable<UserVM> GetAllUsersAsQueryable()
+        {
+            var query =
+                from user in _context.Users
+                join uRole in _context.UserRoles on user.Id equals uRole.UserId
+                join role in _context.Roles on uRole.RoleId equals role.Id
+                select new UserVM
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FullName = $"{user.Name} {user.Surname}",
+                    Role = role.Name
+                };
+
+            return query;
+        }
     }
 }
+

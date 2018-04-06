@@ -21,19 +21,16 @@ namespace eshopAPI.Controllers
     {
         private readonly IShopUserRepository _shopUserRepository;
         private readonly ILogger<UserController> _logger;
-        private IUserRepository _userRepository;
         private UserManager<ShopUser> _userManager;
 
         public UserController(
             IShopUserRepository shopUserRepository,
             ILogger<UserController> logger,
-            UserManager<ShopUser> userManager,
-            IUserRepository userRepository)
+            UserManager<ShopUser> userManager)
         {
             _shopUserRepository = shopUserRepository;
             _logger = logger;
             _userManager = userManager;
-            _userRepository = userRepository;
         }
 
         [HttpGet("profile")]
@@ -70,40 +67,8 @@ namespace eshopAPI.Controllers
         [HttpGet]
         public IQueryable<UserVM> Get()
         {
-            return _userRepository.GetAllUsersAsQueryable();
+            return _shopUserRepository.GetAllUsersAsQueryable();
         }
 
-        [HttpPost("changerole")]
-        public async Task<IActionResult> ChangeRole([FromBody]RoleChangeRequest request)
-        {
-            _logger.LogInformation($"Changing role of user with email ${request.Email} to ${request.Role}");
-
-            ShopUser user = await _userManager.FindByEmailAsync(request.Email);
-
-            if (user == null)
-            {
-                _logger.LogInformation($"Role changing failed, no user with such email found");
-                return NotFound();
-            }
-
-            try
-            {
-                UserRole role = (UserRole)Enum.Parse(typeof(UserRole), request.Role);
-            }
-            // happens if role string cannot be parsed
-            catch (ArgumentException e)
-            {
-                _logger.LogInformation($"Role changing failed, bad role provided");
-                return BadRequest();
-            }
-
-            IList<string> roles = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, roles);
-
-            await _userManager.AddToRoleAsync(user, request.Role);
-
-            _logger.LogInformation($"Role succesfully changed");
-            return Ok();
-        }
     }
 }
