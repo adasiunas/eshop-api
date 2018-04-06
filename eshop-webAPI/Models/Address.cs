@@ -25,20 +25,4 @@ namespace eshopAPI.Models
         [Required]
         public string Postcode { get; set; }
     }
-
-    public class AddressExtensions
-    {
-        public static Address GetAddressFromRequest(AddressRequest request)
-        {
-            return new Address
-            {
-                Name = request.Name,
-                Surname = request.Surname,
-                Street = request.Street,
-                City = request.City,
-                Country = request.Country,
-                Postcode = request.Postcode
-            };
-        }
-    }
 }
