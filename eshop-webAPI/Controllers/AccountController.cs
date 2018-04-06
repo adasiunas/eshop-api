@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
+using eshopAPI.Requests;
 using eshopAPI.Requests.Account;
 using eshopAPI.Services;
 using eshopAPI.Utils;
@@ -147,6 +150,39 @@ namespace eshop_webAPI.Controllers
             }
 
             return NotFound("User was not found");
+        }
+
+        [HttpPost("changerole")]
+        public async Task<IActionResult> ChangeRole([FromBody]RoleChangeRequest request)
+        {
+            _logger.LogInformation($"Changing role of user with email ${request.Email} to ${request.Role}");
+
+            ShopUser user = await _userManager.FindByEmailAsync(request.Email);
+
+            if (user == null)
+            {
+                _logger.LogInformation($"Role changing failed, no user with such email found");
+                return NotFound();
+            }
+
+            try
+            {
+                UserRole role = (UserRole)Enum.Parse(typeof(UserRole), request.Role);
+            }
+            // happens if role string cannot be parsed
+            catch (ArgumentException e)
+            {
+                _logger.LogInformation($"Role changing failed, bad role provided");
+                return BadRequest();
+            }
+
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, roles);
+
+            await _userManager.AddToRoleAsync(user, request.Role);
+
+            _logger.LogInformation($"Role succesfully changed");
+            return Ok();
         }
     }
 }
