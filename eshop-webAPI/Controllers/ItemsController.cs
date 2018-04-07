@@ -1,17 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using eshopAPI.Services;
+using log4net.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace eshopAPI.Controllers
 {
     [Produces("application/json")]
     [Route("api/items")]
-    [AutoValidateAntiforgeryToken]
+//    [AutoValidateAntiforgeryToken]
     public class ItemsController : Controller
     {
+        private readonly ILogger<ItemsController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly IImageCloudService _imageCloudService;
+        public ItemsController(ILogger<ItemsController> logger, IConfiguration configuration)
+        {
+            _configuration = configuration;
+            _logger = logger;
+            _imageCloudService = new ImageCloudService(_logger, _configuration);
+        }
         // GET: api/Items
         [HttpGet]
         public JsonResult Get()
@@ -131,6 +145,21 @@ namespace eshopAPI.Controllers
                     }
                 }
                 });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadImages([FromBody] IFormFile image)
+        {
+            var listOfImageStreams = new List<Stream>();
+            
+                using (var imgStream = new MemoryStream())
+                {
+                    await image.CopyToAsync(imgStream);
+                    listOfImageStreams.Add(imgStream);
+                }
+
+            var result = _imageCloudService.UploadImagesFromFiles(listOfImageStreams);
+            return Ok(result.ToString());
         }
     }
 }
