@@ -12,7 +12,10 @@ namespace eshopAPI.Validators.Request
         public ChangePasswordValidator()
         {
             RuleFor(r => r.CurrentPassword).NotEmpty();
-            RuleFor(r => r.NewPassword).NotEmpty();
+            RuleFor(r => r.NewPassword)
+                .NotEmpty()
+                .NotEqual(r => r.CurrentPassword)
+                .WithMessage("New password and current password match!");
         }
     }
 }
