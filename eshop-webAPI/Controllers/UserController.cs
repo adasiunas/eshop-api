@@ -24,7 +24,7 @@ namespace eshopAPI.Controllers
 
         public UserController(
             IShopUserRepository shopUserRepository,
-            ILogger<UserController> logger,)
+            ILogger<UserController> logger)
         {
             _shopUserRepository = shopUserRepository;
             _logger = logger;
