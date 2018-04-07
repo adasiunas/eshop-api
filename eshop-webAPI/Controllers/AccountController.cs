@@ -28,7 +28,7 @@ namespace eshop_webAPI.Controllers
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _configuration;
-        
+
         // Add required services and they will be injected
         public AccountController(
             IShopUserRepository shopUserRepository,
@@ -67,14 +67,14 @@ namespace eshop_webAPI.Controllers
 
             return BadRequest(result.Errors.Select(e => e.Description));
         }
-        
+
         [HttpPost("login")]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
-            
+
             var result = await _signInManager.PasswordSignInAsync(loginRequest.Email, loginRequest.Password,
                 loginRequest.RememberMe, lockoutOnFailure: false);
             if (result.Succeeded)
@@ -85,7 +85,7 @@ namespace eshop_webAPI.Controllers
 
             return BadRequest("Can not log in");
         }
-        
+
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
@@ -118,10 +118,10 @@ namespace eshop_webAPI.Controllers
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             var shopUser = await _userManager.FindByEmailAsync(request.Email);
-            
+
             if (shopUser != null)
             {
-                var resetPasswordToken =  EncodeHelper.Base64Encode(await _userManager.GeneratePasswordResetTokenAsync(shopUser));
+                var resetPasswordToken = EncodeHelper.Base64Encode(await _userManager.GeneratePasswordResetTokenAsync(shopUser));
                 var resetLink = UrlExtensions.ResetPasswordLink(shopUser.Id, resetPasswordToken,
                     _configuration["RedirectDomain"]);
                 await _emailSender.SendResetPasswordEmailAsync(request.Email, resetLink);
@@ -129,7 +129,7 @@ namespace eshop_webAPI.Controllers
             }
             return NotFound("User with this email was not found");
         }
-        
+
         // TODO : test this when UI is ready for reset password
         [HttpPost("resetpassword")]
         [AllowAnonymous]
@@ -183,6 +183,31 @@ namespace eshop_webAPI.Controllers
 
             _logger.LogInformation($"Role succesfully changed");
             return Ok();
+        }
+
+        [HttpPut("changePassword")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            _logger.LogInformation($"Attempt to change paswword for user with email ${User.Identity.Name}");
+            ShopUser user = await _userManager.FindByEmailAsync(User.Identity.Name);
+
+            if (user == null)
+            {
+                _logger.LogInformation("User with such email not found");
+                return NotFound();
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+
+            if(result.Succeeded)
+            {
+                _logger.LogInformation("Password changed successfully");
+                return Ok();
+            }
+
+            _logger.LogInformation("Attempt to change password failed");
+            return BadRequest();
         }
     }
 }
