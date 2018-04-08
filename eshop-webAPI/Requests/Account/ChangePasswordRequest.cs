@@ -9,5 +9,6 @@ namespace eshopAPI.Requests.Account
     {
         public string CurrentPassword { get; set; }
         public string NewPassword { get; set; }
+        public string RepeatNewPassword { get; set; }
     }
 }
