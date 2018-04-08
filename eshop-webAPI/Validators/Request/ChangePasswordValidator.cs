@@ -15,7 +15,11 @@ namespace eshopAPI.Validators.Request
             RuleFor(r => r.NewPassword)
                 .NotEmpty()
                 .NotEqual(r => r.CurrentPassword)
-                .WithMessage("New password and current password match!");
+                .WithMessage("New password can\'t match current password");
+            RuleFor(r => r.RepeatNewPassword)
+                .NotEmpty()
+                .Equal(r => r.NewPassword)
+                .WithMessage("New passwords don\'t match");
         }
     }
 }

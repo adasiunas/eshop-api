@@ -185,11 +185,11 @@ namespace eshop_webAPI.Controllers
             return Ok();
         }
 
-        [HttpPut("changePassword")]
+        [HttpPut("changepassword")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
-            _logger.LogInformation($"Attempt to change paswword for user with email ${User.Identity.Name}");
+            _logger.LogInformation($"Attempt to change password for user with email ${User.Identity.Name}");
             ShopUser user = await _userManager.FindByEmailAsync(User.Identity.Name);
 
             if (user == null)
@@ -206,8 +206,8 @@ namespace eshop_webAPI.Controllers
                 return Ok();
             }
 
-            _logger.LogInformation("Attempt to change password failed");
-            return BadRequest();
+            _logger.LogInformation($"Attempt to change password failed: {result.Errors.Select(e => e.Description)}");
+            return BadRequest(result.Errors.Select(e => e.Description));
         }
     }
 }
