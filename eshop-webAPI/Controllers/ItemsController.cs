@@ -20,11 +20,11 @@ namespace eshopAPI.Controllers
         private readonly ILogger<ItemsController> _logger;
         private readonly IConfiguration _configuration;
         private readonly IImageCloudService _imageCloudService;
-        public ItemsController(ILogger<ItemsController> logger, IConfiguration configuration)
+        public ItemsController(ILogger<ItemsController> logger, IConfiguration configuration, IImageCloudService imageCloudService)
         {
             _configuration = configuration;
             _logger = logger;
-            _imageCloudService = new ImageCloudService(_logger, _configuration);
+            _imageCloudService = imageCloudService;
         }
         // GET: api/Items
         [HttpGet]
@@ -146,20 +146,20 @@ namespace eshopAPI.Controllers
                 }
                 });
         }
-
+        
         [HttpPost]
-        public async Task<IActionResult> UploadImages([FromBody] IFormFile image)
+        public async Task<IActionResult> UploadImages([FromForm]IEnumerable<IFormFile> images)
         {
             var listOfImageStreams = new List<Stream>();
-            
-                using (var imgStream = new MemoryStream())
-                {
-                    await image.CopyToAsync(imgStream);
-                    listOfImageStreams.Add(imgStream);
-                }
+            foreach (var image in images)
+            {
+                var imgStream = new MemoryStream();
+                await image.CopyToAsync(imgStream);
+                listOfImageStreams.Add(imgStream);                
+            }            
 
             var result = _imageCloudService.UploadImagesFromFiles(listOfImageStreams);
-            return Ok(result.ToString());
+            return Ok(result.ToArray());
         }
     }
 }
