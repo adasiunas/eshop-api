@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Configuration;
@@ -11,16 +12,15 @@ namespace eshopAPI.Services
     public interface IImageCloudService
     {
         List<Uri> UploadImagesFromFiles(IEnumerable<Stream> images);
-        bool DeleteImage();
     }
     public class ImageCloudService : IImageCloudService
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger _logger;
+        private readonly ILogger<IImageCloudService> _logger;
         private readonly Account _account;
         private readonly Cloudinary _cloudinary;
 
-        public ImageCloudService(ILogger logger, IConfiguration configuration)
+        public ImageCloudService(ILogger<IImageCloudService> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
@@ -32,23 +32,29 @@ namespace eshopAPI.Services
         
         public List<Uri> UploadImagesFromFiles(IEnumerable<Stream> images)
         {
+            _logger.LogInformation($"Starting to upload {images.Count()} images to Cloud");
             var imagesUrls = new List<Uri>();
             foreach (var image in images)
             {
-                var result = _cloudinary.Upload(new ImageUploadParams()
+                image.Position = 0;
+                var uploadParam = new RawUploadParams()
                 {
-                   File = new FileDescription(new Random().ToString(), image),
-                   Async = "true"
-                });
-                imagesUrls.Add(result.Uri);
+                    File = new FileDescription(new Random().ToString(), image)    
+                };
+                var result = _cloudinary.Upload(uploadParam);
+                
+                if (result.Error != null)
+                {
+                    _logger.LogWarning($"Failed to upload image. Error: {result.Error.Message}");
+                }
+                else
+                {
+                    imagesUrls.Add(result.SecureUri);
+                    _logger.LogInformation($"Image was successfully uploaded to the cloud. Url: {result.SecureUri}");
+                }
             }
 
             return imagesUrls;
-        }
-
-        public bool DeleteImage()
-        {
-            throw new System.NotImplementedException();
         }
     }
 }
