@@ -14,7 +14,7 @@ namespace eshopAPI.Controllers
 {
     [Produces("application/json")]
     [Route("api/items")]
-//    [AutoValidateAntiforgeryToken]
+    [AutoValidateAntiforgeryToken]
     public class ItemsController : Controller
     {
         private readonly ILogger<ItemsController> _logger;
