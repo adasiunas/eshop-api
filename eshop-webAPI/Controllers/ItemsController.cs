@@ -21,7 +21,6 @@ namespace eshopAPI.Controllers
     [AutoValidateAntiforgeryToken]
     public class ItemsController : ODataController
     {
-<<<<<<< eshop-webAPI/Controllers/ItemsController.cs
         private readonly ILogger<ItemsController> _logger;
         private readonly IConfiguration _configuration;
         private readonly IImageCloudService _imageCloudService;
