@@ -202,6 +202,8 @@ namespace eshop_webAPI.Controllers
 
             if(result.Succeeded)
             {
+                await _signInManager.SignOutAsync();
+                _logger.LogInformation($"User {User.Identity.Name} has been signed out");
                 _logger.LogInformation("Password changed successfully");
                 return Ok();
             }
