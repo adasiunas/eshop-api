@@ -12,8 +12,8 @@ using System;
 namespace eshopAPI.Migrations
 {
     [DbContext(typeof(ShopContext))]
-    [Migration("20180321075736_DeliveryAddress")]
-    partial class DeliveryAddress
+    [Migration("20180415091547_CategoriesRework")]
+    partial class CategoriesRework
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -39,8 +39,6 @@ namespace eshopAPI.Migrations
                     b.Property<string>("Postcode")
                         .IsRequired();
 
-                    b.Property<string>("ShopUserId");
-
                     b.Property<string>("Street")
                         .IsRequired();
 
@@ -48,8 +46,6 @@ namespace eshopAPI.Migrations
                         .IsRequired();
 
                     b.HasKey("ID");
-
-                    b.HasIndex("ShopUserId");
 
                     b.ToTable("Address");
                 });
@@ -134,11 +130,7 @@ namespace eshopAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(50);
 
-                    b.Property<long>("SubCategoryID");
-
                     b.HasKey("ID");
-
-                    b.HasIndex("SubCategoryID");
 
                     b.ToTable("Categories");
                 });
@@ -147,8 +139,6 @@ namespace eshopAPI.Migrations
                 {
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<long?>("CategoryID");
 
                     b.Property<DateTime>("CreateDate");
 
@@ -172,11 +162,31 @@ namespace eshopAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(10);
 
+                    b.Property<long?>("SubCategoryID");
+
                     b.HasKey("ID");
 
-                    b.HasIndex("CategoryID");
+                    b.HasIndex("SubCategoryID");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.ItemPicture", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<long?>("ItemID");
+
+                    b.Property<string>("URL")
+                        .IsRequired()
+                        .HasMaxLength(500);
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ItemID");
+
+                    b.ToTable("ItemPicture");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Order", b =>
@@ -185,6 +195,9 @@ namespace eshopAPI.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<DateTime>("CreateDate");
+
+                    b.Property<string>("DeliveryAddress")
+                        .IsRequired();
 
                     b.Property<Guid>("OrderNumber");
 
@@ -229,6 +242,8 @@ namespace eshopAPI.Migrations
 
                     b.Property<int>("AccessFailedCount");
 
+                    b.Property<long?>("AddressID");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken();
 
@@ -271,6 +286,8 @@ namespace eshopAPI.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AddressID");
+
                     b.HasIndex("NormalizedEmail")
                         .HasName("EmailIndex");
 
@@ -280,6 +297,24 @@ namespace eshopAPI.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.SubCategory", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<long?>("CategoryID");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CategoryID");
+
+                    b.ToTable("SubCategory");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -390,13 +425,6 @@ namespace eshopAPI.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("eshopAPI.Models.Address", b =>
-                {
-                    b.HasOne("eshopAPI.Models.ShopUser")
-                        .WithMany("Addresses")
-                        .HasForeignKey("ShopUserId");
-                });
-
             modelBuilder.Entity("eshopAPI.Models.AttributeValue", b =>
                 {
                     b.HasOne("eshopAPI.Models.Attribute", "Attribute")
@@ -405,7 +433,7 @@ namespace eshopAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("eshopAPI.Models.Item")
-                        .WithMany("Attrbutes")
+                        .WithMany("Attributes")
                         .HasForeignKey("ItemID");
                 });
 
@@ -429,19 +457,18 @@ namespace eshopAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("eshopAPI.Models.Category", b =>
-                {
-                    b.HasOne("eshopAPI.Models.Category", "SubCategory")
-                        .WithMany()
-                        .HasForeignKey("SubCategoryID")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
             modelBuilder.Entity("eshopAPI.Models.Item", b =>
                 {
-                    b.HasOne("eshopAPI.Models.Category")
+                    b.HasOne("eshopAPI.Models.SubCategory")
                         .WithMany("Items")
-                        .HasForeignKey("CategoryID");
+                        .HasForeignKey("SubCategoryID");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.ItemPicture", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Item")
+                        .WithMany("Pictures")
+                        .HasForeignKey("ItemID");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Order", b =>
@@ -462,6 +489,20 @@ namespace eshopAPI.Migrations
                     b.HasOne("eshopAPI.Models.Order")
                         .WithMany("Items")
                         .HasForeignKey("OrderID");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.ShopUser", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Address", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressID");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.SubCategory", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Category")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("CategoryID");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
