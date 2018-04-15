@@ -154,8 +154,10 @@ namespace eshopAPI
             app.UseMvc();
 
             ODataModelBuilder builder = new ODataConventionModelBuilder();
-            var entitySet = builder.EntitySet<UserVM>("Users");
-            entitySet.EntityType.HasKey(e => e.Id);
+            var userEntitySet = builder.EntitySet<UserVM>("Users");
+            userEntitySet.EntityType.HasKey(e => e.Id);
+            var itemEntitySet = builder.EntitySet<AdminItemVM>("AdminItems");
+            itemEntitySet.EntityType.HasKey(e => e.ID);
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapODataServiceRoute("api/odata", "api/odata", builder.GetEdmModel());

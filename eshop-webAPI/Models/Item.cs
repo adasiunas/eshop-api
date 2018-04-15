@@ -25,6 +25,8 @@ namespace eshopAPI.Models
         public DateTime ModifiedDate { get; set; }
         public DateTime DeleteDate { get; set; }
         public bool IsDeleted { get; set; }
+        public long CategoryID { get; set; }
+        public Category Category { get; set; }
 
         public virtual ICollection<AttributeValue> Attrbutes { get; set; }
     }

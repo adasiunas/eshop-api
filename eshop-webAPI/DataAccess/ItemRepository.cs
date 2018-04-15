@@ -8,8 +8,9 @@ namespace eshopAPI.DataAccess
 {
     public interface IItemRepository
     {
+        IQueryable<AdminItemVM> GetAllAdminItemVMAsQueryable();
         Item FindByID(long itemID);
-        void Insert(Item item);
+        Task<Item> InsertAsync(Item item);
         void Update(Item item);
         void Save();
     }
@@ -20,14 +21,33 @@ namespace eshopAPI.DataAccess
         {
         }
 
+        public IQueryable<AdminItemVM> GetAllAdminItemVMAsQueryable()
+        {
+            var query =
+                from item in Context.Items
+                join category in Context.Categories on item.CategoryID equals category.ID
+                select new AdminItemVM()
+                {
+                    Category = category.Name,
+                    Name = item.Name,
+                    ID = item.ID,
+                    Description = item.Description,
+                    Price = item.Price,
+                    SKU = item.SKU
+                };
+            return query;
+        }
+
         public Item FindByID(long itemID)
         {
             throw new NotImplementedException();
         }
 
-        public void Insert(Item item)
+        public async Task<Item> InsertAsync(Item item)
         {
-            throw new NotImplementedException();
+            Item insertedItem = (await Context.Items.AddAsync(item)).Entity;
+            await Context.SaveChangesAsync();
+            return insertedItem;
         }
 
         public void Save()
