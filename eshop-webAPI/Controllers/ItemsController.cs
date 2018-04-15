@@ -29,5 +29,16 @@ namespace eshopAPI.Controllers
         {
             return _itemRepository.GetAllItemsForFirstPageAsQueryable();
         }
+
+        [HttpGet("itemdetails/{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ItemDetails([FromRoute] long id)
+        {
+            Item item = await _itemRepository.FindByID(id);
+            if (item == null)
+                return BadRequest("Item not found");
+
+            return Ok(item.GetItemVM());
+        }
     }
 }
