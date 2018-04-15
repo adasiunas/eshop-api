@@ -86,6 +86,7 @@ namespace eshopAPI
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddScoped<IShopUserRepository, ShopUserRepository>();
+            services.AddScoped<IImageCloudService, ImageCloudService>();
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddOData();
