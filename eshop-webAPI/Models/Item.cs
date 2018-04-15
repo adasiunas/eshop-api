@@ -28,6 +28,7 @@ namespace eshopAPI.Models
         public long CategoryID { get; set; }
         public Category Category { get; set; }
 
-        public virtual ICollection<AttributeValue> Attrbutes { get; set; }
+        public virtual ICollection<AttributeValue> Attributes { get; set; }
+        public virtual ICollection<ItemPicture> Pictures { get; set; }
     }
 }

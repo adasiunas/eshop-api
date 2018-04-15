@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using eshopAPI.Requests.User;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,7 +17,7 @@ namespace eshopAPI.Models
         public string Surname { get; set; }
         [MaxLength(20)]
         public string Phone { get; set; }
-        public virtual ICollection<Address> Addresses { get; set; }
+        public Address Address { get; set; }
     }
 
     public class ShopUserProfile
@@ -25,22 +26,27 @@ namespace eshopAPI.Models
         public string Name { get; set; }
         public string Surname { get; set; }
         public string Phone { get; set; }
-        public ICollection<Address> Addresses { get; set; }
+        public Address Address { get; set; }
     }
 
     public static class ShopUserExtensions
     {
         public static ShopUserProfile GetUserProfile(this ShopUser user)
         {
-            return new ShopUserProfile { Email = user.Email, Name = user.Name, Surname = user.Surname, Phone = user.Phone,  Addresses = user.Addresses};
+            return new ShopUserProfile { Email = user.Email, Name = user.Name, Surname = user.Surname, Phone = user.Phone,  Address = user.Address};
         }
 
-        public static ShopUser UpdateUser(this ShopUser user, ShopUserProfile profile)
+        public static ShopUser UpdateUserFromRequest(this ShopUser user, UpdateUserRequest request)
         {
-            user.Name = profile.Name;
-            user.Surname = profile.Surname;
-            user.Phone = profile.Phone;
-            user.Addresses = profile.Addresses;
+            user.Name = request.Name;
+            user.Surname = request.Surname;
+            user.Phone = request.Phone;
+            user.Address.Name = request.Address.Name;
+            user.Address.Surname = request.Address.Surname;
+            user.Address.Street = request.Address.Street;
+            user.Address.City = request.Address.City;
+            user.Address.Country = request.Address.Country;
+            user.Address.Postcode = request.Address.Postcode;
             return user;
         }
     }

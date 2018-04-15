@@ -17,7 +17,7 @@ using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Formatter;
 using Microsoft.Net.Http.Headers;
-using static eshopAPI.Controllers.UsersController;
+using static eshopAPI.Controllers.UserController;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -86,7 +86,7 @@ namespace eshopAPI
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddScoped<IShopUserRepository, ShopUserRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IImageCloudService, ImageCloudService>();
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddOData();
@@ -154,8 +154,13 @@ namespace eshopAPI
             app.UseMvc();
 
             ODataModelBuilder builder = new ODataConventionModelBuilder();
-            var userEntitySet = builder.EntitySet<UserVM>("Users");
-            userEntitySet.EntityType.HasKey(e => e.Id);
+
+            var entitySet = builder.EntitySet<UserVM>("Users");
+            entitySet.EntityType.HasKey(e => e.Id);
+
+            var itemEntitySet = builder.EntitySet<ItemVM>("Items");
+            itemEntitySet.EntityType.HasKey(e => e.ID);
+
             var itemEntitySet = builder.EntitySet<AdminItemVM>("AdminItems");
             itemEntitySet.EntityType.HasKey(e => e.ID);
             app.UseMvc(routeBuilder =>

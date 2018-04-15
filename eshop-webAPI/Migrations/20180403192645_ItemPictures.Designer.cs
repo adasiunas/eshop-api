@@ -12,9 +12,10 @@ using System;
 namespace eshopAPI.Migrations
 {
     [DbContext(typeof(ShopContext))]
-    partial class ShopContextModelSnapshot : ModelSnapshot
+    [Migration("20180403192645_ItemPictures")]
+    partial class ItemPictures
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,7 +130,11 @@ namespace eshopAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(50);
 
+                    b.Property<long?>("ParentID");
+
                     b.HasKey("ID");
+
+                    b.HasIndex("ParentID");
 
                     b.ToTable("Categories");
                 });
@@ -138,6 +143,8 @@ namespace eshopAPI.Migrations
                 {
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<long?>("CategoryID");
 
                     b.Property<DateTime>("CreateDate");
 
@@ -161,11 +168,9 @@ namespace eshopAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(10);
 
-                    b.Property<long?>("SubCategoryID");
-
                     b.HasKey("ID");
 
-                    b.HasIndex("SubCategoryID");
+                    b.HasIndex("CategoryID");
 
                     b.ToTable("Items");
                 });
@@ -178,8 +183,7 @@ namespace eshopAPI.Migrations
                     b.Property<long?>("ItemID");
 
                     b.Property<string>("URL")
-                        .IsRequired()
-                        .HasMaxLength(500);
+                        .IsRequired();
 
                     b.HasKey("ID");
 
@@ -298,24 +302,6 @@ namespace eshopAPI.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
-            modelBuilder.Entity("eshopAPI.Models.SubCategory", b =>
-                {
-                    b.Property<long>("ID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<long?>("CategoryID");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50);
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("CategoryID");
-
-                    b.ToTable("SubCategory");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -432,7 +418,7 @@ namespace eshopAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("eshopAPI.Models.Item")
-                        .WithMany("Attributes")
+                        .WithMany("Attrbutes")
                         .HasForeignKey("ItemID");
                 });
 
@@ -456,11 +442,18 @@ namespace eshopAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("eshopAPI.Models.Category", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Category", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentID");
+                });
+
             modelBuilder.Entity("eshopAPI.Models.Item", b =>
                 {
-                    b.HasOne("eshopAPI.Models.SubCategory")
+                    b.HasOne("eshopAPI.Models.Category")
                         .WithMany("Items")
-                        .HasForeignKey("SubCategoryID");
+                        .HasForeignKey("CategoryID");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.ItemPicture", b =>
@@ -495,13 +488,6 @@ namespace eshopAPI.Migrations
                     b.HasOne("eshopAPI.Models.Address", "Address")
                         .WithMany()
                         .HasForeignKey("AddressID");
-                });
-
-            modelBuilder.Entity("eshopAPI.Models.SubCategory", b =>
-                {
-                    b.HasOne("eshopAPI.Models.Category")
-                        .WithMany("SubCategories")
-                        .HasForeignKey("CategoryID");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
