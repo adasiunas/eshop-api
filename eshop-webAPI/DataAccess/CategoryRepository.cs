@@ -1,4 +1,5 @@
 ﻿using eshopAPI.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,8 @@ namespace eshopAPI.DataAccess
 {
     public interface ICategoryRepository
     {
-        Category FindByID(long categoryID);
+        Task<Category> FindByIDAsync(long categoryID);
+        Task<IEnumerable<Category>> GetAllCategoriesAsync();
         Category FindByName(string name);
         void Insert(Category category);
         void Update(Category category);
@@ -21,14 +23,28 @@ namespace eshopAPI.DataAccess
         {
         }
 
-        public Category FindByID(long categoryID)
+        public async Task<Category> FindByIDAsync(long categoryID)
         {
-            throw new NotImplementedException();
+            return await Context.Categories.FirstOrDefaultAsync(x => x.ID == categoryID);
         }
 
         public Category FindByName(string name)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+        {
+            var a = Context.Categories
+                .Where(x => x.ParentID == null)
+                .Include(x => x.Children).ToList();
+
+            foreach (var item in a)
+            {
+                item.Children.ToList().ForEach(x => x.Parent = null);
+            }
+
+            return a;
         }
 
         public void Insert(Category category)
