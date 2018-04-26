@@ -46,7 +46,7 @@ namespace eshopAPI.Migrations
 
                     b.HasKey("ID");
 
-                    b.ToTable("Address");
+                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Attribute", b =>
@@ -117,7 +117,7 @@ namespace eshopAPI.Migrations
 
                     b.HasIndex("ItemID");
 
-                    b.ToTable("CartItem");
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Category", b =>
@@ -129,11 +129,7 @@ namespace eshopAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(50);
 
-                    b.Property<long?>("ParentID");
-
                     b.HasKey("ID");
-
-                    b.HasIndex("ParentID");
 
                     b.ToTable("Categories");
                 });
@@ -142,8 +138,6 @@ namespace eshopAPI.Migrations
                 {
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<long?>("CategoryID");
 
                     b.Property<DateTime>("CreateDate");
 
@@ -167,9 +161,11 @@ namespace eshopAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(10);
 
+                    b.Property<long?>("SubCategoryID");
+
                     b.HasKey("ID");
 
-                    b.HasIndex("CategoryID");
+                    b.HasIndex("SubCategoryID");
 
                     b.ToTable("Items");
                 });
@@ -182,13 +178,14 @@ namespace eshopAPI.Migrations
                     b.Property<long?>("ItemID");
 
                     b.Property<string>("URL")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasMaxLength(500);
 
                     b.HasKey("ID");
 
                     b.HasIndex("ItemID");
 
-                    b.ToTable("ItemPicture");
+                    b.ToTable("ItemPictures");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Order", b =>
@@ -234,7 +231,7 @@ namespace eshopAPI.Migrations
 
                     b.HasIndex("OrderID");
 
-                    b.ToTable("OrderItem");
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.ShopUser", b =>
@@ -299,6 +296,24 @@ namespace eshopAPI.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.SubCategory", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<long?>("CategoryID");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CategoryID");
+
+                    b.ToTable("SubCategories");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -417,7 +432,7 @@ namespace eshopAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("eshopAPI.Models.Item")
-                        .WithMany("Attrbutes")
+                        .WithMany("Attributes")
                         .HasForeignKey("ItemID");
                 });
 
@@ -441,18 +456,11 @@ namespace eshopAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("eshopAPI.Models.Category", b =>
-                {
-                    b.HasOne("eshopAPI.Models.Category", "Parent")
-                        .WithMany()
-                        .HasForeignKey("ParentID");
-                });
-
             modelBuilder.Entity("eshopAPI.Models.Item", b =>
                 {
-                    b.HasOne("eshopAPI.Models.Category")
+                    b.HasOne("eshopAPI.Models.SubCategory")
                         .WithMany("Items")
-                        .HasForeignKey("CategoryID");
+                        .HasForeignKey("SubCategoryID");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.ItemPicture", b =>
@@ -487,6 +495,13 @@ namespace eshopAPI.Migrations
                     b.HasOne("eshopAPI.Models.Address", "Address")
                         .WithMany()
                         .HasForeignKey("AddressID");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.SubCategory", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Category")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("CategoryID");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

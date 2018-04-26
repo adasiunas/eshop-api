@@ -5,10 +5,28 @@ using System.Collections.Generic;
 
 namespace eshopAPI.Migrations
 {
-    public partial class initial : Migration
+    public partial class FirstOne : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Addresses",
+                columns: table => new
+                {
+                    ID = table.Column<long>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    City = table.Column<string>(nullable: false),
+                    Country = table.Column<string>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
+                    Postcode = table.Column<string>(nullable: false),
+                    Street = table.Column<string>(nullable: false),
+                    Surname = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Addresses", x => x.ID);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -21,34 +39,6 @@ namespace eshopAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUsers",
-                columns: table => new
-                {
-                    Id = table.Column<string>(nullable: false),
-                    AccessFailedCount = table.Column<int>(nullable: false),
-                    ConcurrencyStamp = table.Column<string>(nullable: true),
-                    Email = table.Column<string>(maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(nullable: false),
-                    LockoutEnabled = table.Column<bool>(nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
-                    Name = table.Column<string>(maxLength: 30, nullable: true),
-                    NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
-                    PasswordHash = table.Column<string>(nullable: true),
-                    Phone = table.Column<string>(maxLength: 20, nullable: true),
-                    PhoneNumber = table.Column<string>(nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(nullable: false),
-                    SecurityStamp = table.Column<string>(nullable: true),
-                    Surname = table.Column<string>(maxLength: 30, nullable: true),
-                    TwoFactorEnabled = table.Column<bool>(nullable: false),
-                    UserName = table.Column<string>(maxLength: 256, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -70,18 +60,46 @@ namespace eshopAPI.Migrations
                 {
                     ID = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(maxLength: 50, nullable: false),
-                    SubCategoryID = table.Column<long>(nullable: true)
+                    Name = table.Column<string>(maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    AccessFailedCount = table.Column<int>(nullable: false),
+                    AddressID = table.Column<long>(nullable: true),
+                    ConcurrencyStamp = table.Column<string>(nullable: true),
+                    Email = table.Column<string>(maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(nullable: false),
+                    LockoutEnabled = table.Column<bool>(nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
+                    Name = table.Column<string>(maxLength: 30, nullable: true),
+                    NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
+                    PasswordHash = table.Column<string>(nullable: true),
+                    Phone = table.Column<string>(maxLength: 20, nullable: true),
+                    PhoneNumber = table.Column<string>(nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(nullable: false),
+                    SecurityStamp = table.Column<string>(nullable: true),
+                    Surname = table.Column<string>(maxLength: 30, nullable: true),
+                    TwoFactorEnabled = table.Column<bool>(nullable: false),
+                    UserName = table.Column<string>(maxLength: 256, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Categories_Categories_SubCategoryID",
-                        column: x => x.SubCategoryID,
-                        principalTable: "Categories",
+                        name: "FK_AspNetUsers_Addresses_AddressID",
+                        column: x => x.AddressID,
+                        principalTable: "Addresses",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -103,6 +121,26 @@ namespace eshopAPI.Migrations
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SubCategories",
+                columns: table => new
+                {
+                    ID = table.Column<long>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    CategoryID = table.Column<long>(nullable: true),
+                    Name = table.Column<string>(maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SubCategories", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_SubCategories_Categories_CategoryID",
+                        column: x => x.CategoryID,
+                        principalTable: "Categories",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -215,10 +253,11 @@ namespace eshopAPI.Migrations
                 {
                     ID = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    CreateDate = table.Column<DateTime>(nullable: false, defaultValueSql: "GETDATE()"),
-                    OrderNumber = table.Column<Guid>(nullable: false, defaultValueSql: "NEWID()"),
+                    CreateDate = table.Column<DateTime>(nullable: false),
+                    DeliveryAddress = table.Column<string>(nullable: false),
+                    OrderNumber = table.Column<Guid>(nullable: false),
                     Status = table.Column<int>(nullable: false),
-                    UserId = table.Column<long>(nullable: false)
+                    UserId = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -228,7 +267,7 @@ namespace eshopAPI.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -237,23 +276,23 @@ namespace eshopAPI.Migrations
                 {
                     ID = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    CategoryID = table.Column<long>(nullable: false),
-                    CreateDate = table.Column<DateTime>(nullable: false, defaultValueSql: "GETDATE()"),
-                    DeleteDate = table.Column<DateTime>(nullable: true),
+                    CreateDate = table.Column<DateTime>(nullable: false),
+                    DeleteDate = table.Column<DateTime>(nullable: false),
                     Description = table.Column<string>(maxLength: 5000, nullable: false),
-                    IsDeleted = table.Column<bool>(nullable: false, defaultValue: false),
-                    ModifiedDate = table.Column<DateTime>(nullable: false, defaultValueSql: "GETDATE()"),
+                    IsDeleted = table.Column<bool>(nullable: false),
+                    ModifiedDate = table.Column<DateTime>(nullable: false),
                     Name = table.Column<string>(maxLength: 150, nullable: false),
                     Price = table.Column<decimal>(nullable: false),
-                    SKU = table.Column<string>(maxLength: 10, nullable: false)
+                    SKU = table.Column<string>(maxLength: 10, nullable: false),
+                    SubCategoryID = table.Column<long>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Items", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_Items_Categories_CategoryID",
-                        column: x => x.CategoryID,
-                        principalTable: "Categories",
+                        name: "FK_Items_SubCategories_SubCategoryID",
+                        column: x => x.SubCategoryID,
+                        principalTable: "SubCategories",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -265,7 +304,7 @@ namespace eshopAPI.Migrations
                     ID = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     AttributeID = table.Column<long>(nullable: false),
-                    ItemID = table.Column<long>(nullable: false),
+                    ItemID = table.Column<long>(nullable: true),
                     Value = table.Column<string>(maxLength: 100, nullable: false)
                 },
                 constraints: table =>
@@ -276,7 +315,7 @@ namespace eshopAPI.Migrations
                         column: x => x.AttributeID,
                         principalTable: "Attributes",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AttributeValue_Items_ItemID",
                         column: x => x.ItemID,
@@ -286,26 +325,46 @@ namespace eshopAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CartItem",
+                name: "CartItems",
                 columns: table => new
                 {
                     ID = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    CartID = table.Column<long>(nullable: false),
+                    CartID = table.Column<long>(nullable: true),
                     Count = table.Column<int>(nullable: false),
                     ItemID = table.Column<long>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CartItem", x => x.ID);
+                    table.PrimaryKey("PK_CartItems", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_CartItem_Carts_CartID",
+                        name: "FK_CartItems_Carts_CartID",
                         column: x => x.CartID,
                         principalTable: "Carts",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_CartItem_Items_ItemID",
+                        name: "FK_CartItems_Items_ItemID",
+                        column: x => x.ItemID,
+                        principalTable: "Items",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItemPictures",
+                columns: table => new
+                {
+                    ID = table.Column<long>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    ItemID = table.Column<long>(nullable: true),
+                    URL = table.Column<string>(maxLength: 500, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItemPictures", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_ItemPictures_Items_ItemID",
                         column: x => x.ItemID,
                         principalTable: "Items",
                         principalColumn: "ID",
@@ -313,27 +372,27 @@ namespace eshopAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OrderItem",
+                name: "OrderItems",
                 columns: table => new
                 {
                     ID = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Count = table.Column<int>(nullable: false),
                     ItemID = table.Column<long>(nullable: false),
-                    OrderID = table.Column<long>(nullable: false),
+                    OrderID = table.Column<long>(nullable: true),
                     Price = table.Column<decimal>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderItem", x => x.ID);
+                    table.PrimaryKey("PK_OrderItems", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_OrderItem_Items_ItemID",
+                        name: "FK_OrderItems_Items_ItemID",
                         column: x => x.ItemID,
                         principalTable: "Items",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_OrderItem_Orders_OrderID",
+                        name: "FK_OrderItems_Orders_OrderID",
                         column: x => x.OrderID,
                         principalTable: "Orders",
                         principalColumn: "ID",
@@ -368,6 +427,11 @@ namespace eshopAPI.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_AddressID",
+                table: "AspNetUsers",
+                column: "AddressID");
+
+            migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
@@ -390,13 +454,13 @@ namespace eshopAPI.Migrations
                 column: "ItemID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CartItem_CartID",
-                table: "CartItem",
+                name: "IX_CartItems_CartID",
+                table: "CartItems",
                 column: "CartID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CartItem_ItemID",
-                table: "CartItem",
+                name: "IX_CartItems_ItemID",
+                table: "CartItems",
                 column: "ItemID");
 
             migrationBuilder.CreateIndex(
@@ -405,23 +469,23 @@ namespace eshopAPI.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Categories_SubCategoryID",
-                table: "Categories",
-                column: "SubCategoryID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Items_CategoryID",
-                table: "Items",
-                column: "CategoryID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderItem_ItemID",
-                table: "OrderItem",
+                name: "IX_ItemPictures_ItemID",
+                table: "ItemPictures",
                 column: "ItemID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderItem_OrderID",
-                table: "OrderItem",
+                name: "IX_Items_SubCategoryID",
+                table: "Items",
+                column: "SubCategoryID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_ItemID",
+                table: "OrderItems",
+                column: "ItemID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_OrderID",
+                table: "OrderItems",
                 column: "OrderID");
 
             migrationBuilder.CreateIndex(
@@ -430,30 +494,9 @@ namespace eshopAPI.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "UX_Items_SKU",
-                table: "Items",
-                column: "SKU",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "UX_Carts_UserID",
-                table: "Carts",
-                column: "UserID",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "UX_CartItem_Item",
-                table: "CartItem",
-                columns: new string[] { "CartID", "ItemID" },
-                unique: true
-                );
-
-            migrationBuilder.CreateIndex(
-                name: "UX_OrderItem_Item",
-                table: "OrderItem",
-                columns: new string[] { "OrderID", "ItemID" },
-                unique: true
-                );
+                name: "IX_SubCategories_CategoryID",
+                table: "SubCategories",
+                column: "CategoryID");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -477,10 +520,13 @@ namespace eshopAPI.Migrations
                 name: "AttributeValue");
 
             migrationBuilder.DropTable(
-                name: "CartItem");
+                name: "CartItems");
 
             migrationBuilder.DropTable(
-                name: "OrderItem");
+                name: "ItemPictures");
+
+            migrationBuilder.DropTable(
+                name: "OrderItems");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -498,10 +544,16 @@ namespace eshopAPI.Migrations
                 name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "SubCategories");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
+
+            migrationBuilder.DropTable(
+                name: "Addresses");
         }
     }
 }
