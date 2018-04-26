@@ -56,6 +56,7 @@ namespace eshopAPI.Controllers
             var result = _imageCloudService.UploadImagesFromFiles(listOfImageStreams);
             return Ok(result.ToArray());
         }
+
         [HttpGet("itemdetails/{id}")]
         [AllowAnonymous]
         public async Task<IActionResult> ItemDetails([FromRoute] long id)
