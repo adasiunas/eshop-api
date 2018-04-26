@@ -16,7 +16,8 @@ namespace eshopAPI.Controllers
 {
     [Produces("application/json")]
     [Route("api/user")]
-    //[Authorize]
+    [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class UserController : ODataController
     {
         private readonly IShopUserRepository _shopUserRepository;
@@ -31,7 +32,6 @@ namespace eshopAPI.Controllers
         }
 
         [HttpGet("profile")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile()
         {
             ShopUserProfile profile = await _shopUserRepository.GetUserProfile(User.Identity.Name);
@@ -39,7 +39,6 @@ namespace eshopAPI.Controllers
         }
 
         [HttpPut("updateUser")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest updatedUser)
         {
             _logger.LogInformation($"Attempt to update profile of user with email ${User.Identity.Name}");
