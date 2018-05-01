@@ -7,12 +7,15 @@ using eshopAPI.Services;
 using log4net.Core;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
+using eshopAPI.Requests;
+using eshopAPI.Response;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace eshopAPI.Controllers
 {
@@ -25,12 +28,14 @@ namespace eshopAPI.Controllers
         private readonly IConfiguration _configuration;
         private readonly IImageCloudService _imageCloudService;
         private IItemRepository _itemRepository;
-        public ItemsController(ILogger<ItemsController> logger, IConfiguration configuration, IImageCloudService imageCloudService, IItemRepository itemRepository)
+        private readonly IPaymentService _paymentService;
+        public ItemsController(ILogger<ItemsController> logger, IConfiguration configuration, IImageCloudService imageCloudService, IItemRepository itemRepository, IPaymentService paymentService)
         {
             _configuration = configuration;
             _logger = logger;
             _imageCloudService = imageCloudService;
             _itemRepository = itemRepository;
+            _paymentService = paymentService;
         }
         
         // GET: api/Items
@@ -55,6 +60,17 @@ namespace eshopAPI.Controllers
 
             var result = _imageCloudService.UploadImagesFromFiles(listOfImageStreams);
             return Ok(result.ToArray());
+        }
+
+        [HttpPost("testPaymentService")]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> TestPayment([FromBody] PaymentRequest request)
+        {
+            var paymentResponse = await _paymentService.ProcessPaymentAsync(request);
+            
+            return StatusCode(paymentResponse.ResponseCode, paymentResponse);
+           
         }
     }
 }
