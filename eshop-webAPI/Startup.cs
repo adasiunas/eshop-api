@@ -87,6 +87,7 @@ namespace eshopAPI
             services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddScoped<IShopUserRepository, ShopUserRepository>();
             services.AddScoped<IImageCloudService, ImageCloudService>();
+            services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddOData();
@@ -104,12 +105,13 @@ namespace eshopAPI
                 }
             });
 
-            services.AddMvc(opt => 
+            services.AddMvc(opt =>
             {
                 opt.Filters.Add(typeof(ValidatorActionFilter));
                 opt.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             })
             .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
