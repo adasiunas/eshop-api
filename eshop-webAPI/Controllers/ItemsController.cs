@@ -41,7 +41,7 @@ namespace eshopAPI.Controllers
         {
             return _itemRepository.GetAllItemsForFirstPageAsQueryable();
         }
-        
+
         [HttpPost]
         public async Task<IActionResult> UploadImages([FromForm]IEnumerable<IFormFile> images)
         {
@@ -50,11 +50,22 @@ namespace eshopAPI.Controllers
             {
                 var imgStream = new MemoryStream();
                 await image.CopyToAsync(imgStream);
-                listOfImageStreams.Add(imgStream);                
-            }            
+                listOfImageStreams.Add(imgStream);
+            }
 
             var result = _imageCloudService.UploadImagesFromFiles(listOfImageStreams);
             return Ok(result.ToArray());
+        }
+
+        [HttpGet("itemdetails/{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ItemDetails([FromRoute] long id)
+        {
+            Item item = await _itemRepository.FindByID(id);
+            if (item == null)
+                return BadRequest("Item not found");
+
+            return Ok(item.GetItemVM());
         }
     }
 }
