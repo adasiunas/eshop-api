@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Helpers;
@@ -65,7 +66,8 @@ namespace eshop_webAPI.Controllers
                 return Ok();
             }
 
-            return BadRequest(result.Errors.Select(e => e.Description));
+            var errorResponse = new ErrorResponse(ErrorReasons.BadRequest, result.Errors.Select(e => e.Description).FirstOrDefault());
+            return StatusCode((int) HttpStatusCode.BadRequest, errorResponse);
         }
 
         [HttpPost("login")]
@@ -74,16 +76,31 @@ namespace eshop_webAPI.Controllers
         public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
-
-            var result = await _signInManager.PasswordSignInAsync(loginRequest.Email, loginRequest.Password,
-                loginRequest.RememberMe, lockoutOnFailure: false);
-            if (result.Succeeded)
+            
+            var user = await _userManager.FindByEmailAsync(loginRequest.Email);
+            
+            if (user == null)
             {
-                _logger.LogInformation("User logged in.");
-                return Ok();
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.InvalidEmailOrPassword, "Invalid email or password."));
             }
 
-            return BadRequest("Can not log in");
+            if (!user.EmailConfirmed)
+            {
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.EmailNotConfirmed, "Please confirm your account"));
+            }
+            
+            var result = await _signInManager.PasswordSignInAsync(user, loginRequest.Password,
+                loginRequest.RememberMe, lockoutOnFailure: false);
+
+            if (!result.Succeeded)
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.BadRequest, "Failed to log in. Please make sure you have entered correct credentials."));
+            
+            _logger.LogInformation("User logged in.");
+            return Ok();
+
         }
 
         [HttpPost("logout")]
@@ -103,13 +120,15 @@ namespace eshop_webAPI.Controllers
             if (user == null)
             {
                 _logger.LogInformation($"User with id: {request.UserId} was not found.");
-                return NotFound("User was not found");
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
             var result = await _userManager.ConfirmEmailAsync(user, EncodeHelper.Base64Decode(request.Code));
             if (result.Succeeded)
-                return Ok("User is confirmed");
+                return Ok("User confirmed");
 
-            return BadRequest();
+            return StatusCode((int) HttpStatusCode.BadRequest,
+                new ErrorResponse(ErrorReasons.BadRequest, ErrorReasons.BadRequest));
         }
 
         [HttpPost("forgotPassword")]
@@ -127,10 +146,11 @@ namespace eshop_webAPI.Controllers
                 await _emailSender.SendResetPasswordEmailAsync(request.Email, resetLink);
                 return Ok("Password recovery confirmation link was sent to your e-mail.");
             }
-            return NotFound("User with this email was not found");
+            
+            return StatusCode((int) HttpStatusCode.NotFound,
+                new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
         }
 
-        // TODO : test this when UI is ready for reset password
         [HttpPost("resetpassword")]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
@@ -145,11 +165,14 @@ namespace eshop_webAPI.Controllers
                 {
                     return Ok("Password was reset");
                 }
-
-                return BadRequest("Failed to reset password");
+                
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.BadRequest,
+                        resetPasswordResult.Errors.Select(e => e.Description).FirstOrDefault()));
             }
 
-            return NotFound("User was not found");
+            return StatusCode((int) HttpStatusCode.NotFound,
+                new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
         }
 
         [HttpPost("changerole")]
@@ -162,7 +185,8 @@ namespace eshop_webAPI.Controllers
             if (user == null)
             {
                 _logger.LogInformation($"Role changing failed, no user with such email found");
-                return NotFound();
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
 
             try
@@ -173,7 +197,8 @@ namespace eshop_webAPI.Controllers
             catch (ArgumentException e)
             {
                 _logger.LogInformation($"Role changing failed, bad role provided");
-                return BadRequest();
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.FailedToChangeUserRole, "Failed to change user role. Bad role provided."));
             }
 
             IList<string> roles = await _userManager.GetRolesAsync(user);
@@ -195,7 +220,8 @@ namespace eshop_webAPI.Controllers
             if (user == null)
             {
                 _logger.LogInformation("User with such email not found");
-                return NotFound();
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
 
             var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
@@ -209,7 +235,9 @@ namespace eshop_webAPI.Controllers
             }
 
             _logger.LogInformation($"Attempt to change password failed: {result.Errors.Select(e => e.Description)}");
-            return BadRequest(result.Errors.Select(e => e.Description));
+            return StatusCode((int) HttpStatusCode.BadRequest,
+                new ErrorResponse(ErrorReasons.BadRequest,
+                    result.Errors.Select(e => e.Description).FirstOrDefault()));
         }
     }
 }
