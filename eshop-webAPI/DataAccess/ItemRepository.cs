@@ -9,7 +9,7 @@ namespace eshopAPI.DataAccess
 {
     public interface IItemRepository
     {
-        Item FindByID(long itemID);
+        Task<Item> FindByID(long itemID);
         void Insert(Item item);
         void Update(Item item);
         void Save();
@@ -24,12 +24,13 @@ namespace eshopAPI.DataAccess
             _context = context;
         }
 
-        public Item FindByID(long itemID)
+        public async Task<Item> FindByID(long itemID)
         {
-            throw new NotImplementedException();
+            return await _context.Items.Where(i => i.ID == itemID)
+                .Include(i => i.Pictures)
+                .Include(i => i.Attributes).ThenInclude(a => a.Attribute)
+                .FirstOrDefaultAsync();
         }
-
-
 
         public void Insert(Item item)
         {
