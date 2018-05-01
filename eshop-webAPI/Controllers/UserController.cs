@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests;
 using eshopAPI.Requests.User;
+using eshopAPI.Utils;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -46,7 +48,8 @@ namespace eshopAPI.Controllers
             if (user == null)
             {
                 _logger.LogInformation("Attempt to update user profile failed, user with such email not found");
-                return NotFound();
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
 
             var success = await _shopUserRepository.UpdateUserProfile(user, updatedUser);
@@ -56,7 +59,9 @@ namespace eshopAPI.Controllers
                 return Ok();
             }
             _logger.LogInformation("User profile could not be updated");
-            return BadRequest("User profile could not be updated");
+            
+            return StatusCode((int) HttpStatusCode.BadRequest,
+                new ErrorResponse(ErrorReasons.BadRequest, "User profile could not be updated."));
         }
 
         [EnableQuery]
