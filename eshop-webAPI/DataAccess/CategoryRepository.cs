@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
-    public interface ICategoryRepository
+    public interface ICategoryRepository : IBaseRepository
     {
         Category FindByID(long categoryID);
         Category FindByName(string name);
         void Insert(Category category);
         void Update(Category category);
-        void Save();
     }
 
     public class CategoryRepository : BaseRepository, ICategoryRepository
@@ -32,11 +31,6 @@ namespace eshopAPI.DataAccess
         }
 
         public void Insert(Category category)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Save()
         {
             throw new NotImplementedException();
         }

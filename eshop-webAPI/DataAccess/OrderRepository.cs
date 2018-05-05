@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
-    public interface IOrderRepository
+    public interface IOrderRepository : IBaseRepository
     {
         Order FindByID(long orderID);
         Order FindByOrderNumber(Guid orderNumber);
         void Insert(Order order);
         void Update(Order order);
-        void Save();
     }
 
     public class OrderRepository : BaseRepository, IOrderRepository
@@ -32,11 +31,6 @@ namespace eshopAPI.DataAccess
         }
 
         public void Insert(Order order)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Save()
         {
             throw new NotImplementedException();
         }
