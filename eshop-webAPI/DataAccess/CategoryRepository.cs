@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Expressions;
 
 namespace eshopAPI.DataAccess
 {
@@ -12,7 +14,7 @@ namespace eshopAPI.DataAccess
         Category FindByName(string name);
         void Insert(Category category);
         void Update(Category category);
-        void Save();
+        IEnumerable<Category> GetAllCategories();
     }
 
     public class CategoryRepository : BaseRepository, ICategoryRepository
@@ -31,12 +33,20 @@ namespace eshopAPI.DataAccess
             throw new NotImplementedException();
         }
 
-        public void Insert(Category category)
+        public IEnumerable<Category> GetAllCategories()
         {
-            throw new NotImplementedException();
+            var query = from c in Context.Categories
+                select new Category
+                {
+                    Name = c.Name,
+                    ID = c.ID,
+                    SubCategories = c.SubCategories.OrderBy(sc => sc.Name).ToList()
+                };
+
+            return query;
         }
 
-        public void Save()
+        public void Insert(Category category)
         {
             throw new NotImplementedException();
         }
