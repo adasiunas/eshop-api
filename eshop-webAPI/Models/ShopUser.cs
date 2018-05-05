@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using eshopAPI.Requests.User;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -35,12 +36,35 @@ namespace eshopAPI.Models
             return new ShopUserProfile { Email = user.Email, Name = user.Name, Surname = user.Surname, Phone = user.Phone,  Address = user.Address};
         }
 
-        public static ShopUser UpdateUser(this ShopUser user, ShopUserProfile profile)
+        public static ShopUser UpdateUserFromRequestUpdateAddress(this ShopUser user, UpdateUserRequest request)
         {
-            user.Name = profile.Name;
-            user.Surname = profile.Surname;
-            user.Phone = profile.Phone;
-            user.Address = profile.Address;
+            user.Name = request.Name;
+            user.Surname = request.Surname;
+            user.Phone = request.Phone;
+            user.Address.Name = request.Address.Name;
+            user.Address.Surname = request.Address.Surname;
+            user.Address.Street = request.Address.Street;
+            user.Address.City = request.Address.City;
+            user.Address.Country = request.Address.Country;
+            user.Address.Postcode = request.Address.Postcode;
+            return user;
+        }
+
+        public static ShopUser UpdateUserFromRequestCreateAddress(this ShopUser user, UpdateUserRequest request)
+        {
+            user.Name = request.Name;
+            user.Surname = request.Surname;
+            user.Phone = request.Phone;
+            Address newAddress = new Address()
+            {
+                Name = request.Address.Name,
+                Surname = request.Address.Surname,
+                Street = request.Address.Street,
+                City = request.Address.City,
+                Country = request.Address.Country,
+                Postcode = request.Address.Postcode
+            };
+            user.Address = newAddress;
             return user;
         }
     }

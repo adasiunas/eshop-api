@@ -17,7 +17,7 @@ using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Formatter;
 using Microsoft.Net.Http.Headers;
-using static eshopAPI.Controllers.UsersController;
+using static eshopAPI.Controllers.UserController;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -86,7 +86,8 @@ namespace eshopAPI
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddScoped<IShopUserRepository, ShopUserRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IImageCloudService, ImageCloudService>();
+            services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddOData();
@@ -104,12 +105,13 @@ namespace eshopAPI
                 }
             });
 
-            services.AddMvc(opt => 
+            services.AddMvc(opt =>
             {
                 opt.Filters.Add(typeof(ValidatorActionFilter));
                 opt.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             })
             .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -153,8 +155,13 @@ namespace eshopAPI
             });
 
             ODataModelBuilder builder = new ODataConventionModelBuilder();
+
             var entitySet = builder.EntitySet<UserVM>("Users");
             entitySet.EntityType.HasKey(e => e.Id);
+
+            var itemEntitySet = builder.EntitySet<ItemVM>("Items");
+            itemEntitySet.EntityType.HasKey(e => e.ID);
+
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapODataServiceRoute("api/odata", "api/odata", builder.GetEdmModel());

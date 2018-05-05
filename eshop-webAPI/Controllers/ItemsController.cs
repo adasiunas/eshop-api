@@ -1,77 +1,86 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using eshopAPI.Services;
+using log4net.Core;
+using eshopAPI.DataAccess;
+using eshopAPI.Models;
+using eshopAPI.Requests;
+using eshopAPI.Response;
+using Microsoft.AspNet.OData;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace eshopAPI.Controllers
 {
     [Produces("application/json")]
     [Route("api/items")]
     [AutoValidateAntiforgeryToken]
-    public class ItemsController : Controller
+    public class ItemsController : ODataController
     {
-        // GET: api/Items
-        [HttpGet]
-        public JsonResult Get()
+        private readonly ILogger<ItemsController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly IImageCloudService _imageCloudService;
+        private IItemRepository _itemRepository;
+        private readonly IPaymentService _paymentService;
+        public ItemsController(ILogger<ItemsController> logger, IConfiguration configuration, IImageCloudService imageCloudService, IItemRepository itemRepository, IPaymentService paymentService)
         {
-            return new JsonResult(new []{
-                new
-                {
-                    SKU = "1234",
-                    name = "Testas",
-                    img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
-                },
-                new
-                {
-                    SKU = "5678",
-                    name = "Ilgas testinis tekstas kuris turetu netilpti vienoje korteles eiluteje",
-                    img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
-                },
-                new
-                {
-                    SKU = "1357",
-                    name = "Vidutinio ilgio testinis tekstas",
-                    img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
-                },
-                new
-                {
-                    SKU = "1327",
-                    name = "Vidutinio ilgio testinis tekstas",
-                    img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
-                },
-                new
-                {
-                    SKU = "1157",
-                    name = "Vidutinio ilgio testinis tekstas",
-                    img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
-                },
-                new
-                {
-                    SKU = "13573",
-                    name = "Vidutinio ilgio testinis tekstas",
-                    img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
-                },
-                new
-                {
-                    SKU = "135237",
-                    name = "Vidutinio ilgio testinis tekstas Vidutinio ilgio testinis tekstas Vidutinio ilgio testinis tekstas Vidutinio ilgio testinis tekstas",
-                    img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
-                },
-                 new
-                {
-                    SKU = "13534237",
-                    name = "Vidutinio ilgio testinis tekstas Vidutinio ilgio testinis tekstas Vidutinio ilgio testinis tekstas Vidutinio ilgio testinis tekstas",
-                    img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
-                },
-                new
-                {
-                    SKU = "2468",
-                    name = "Labai labai labai ilgas testinis tekstas kuris tikrai turi netilpti vienoje korteles eiluteje, nes tokia ir yra sio teksto prasme, kad jis netilptu",
-                    img = "https://img.buzzfeed.com/buzzfeed-static/static/2016-08/17/18/campaign_images/buzzfeed-prod-fastlane02/19-poop-facts-that-will-make-you-say-shit-2-22195-1471473131-1_dblbig.jpg"
-                }
-                });
+            _configuration = configuration;
+            _logger = logger;
+            _imageCloudService = imageCloudService;
+            _itemRepository = itemRepository;
+            _paymentService = paymentService;
+        }
+        
+        // GET: api/Items
+        [EnableQuery]
+        [HttpGet]
+        [AllowAnonymous]
+        public IQueryable<ItemVM> Get()
+        {
+            return _itemRepository.GetAllItemsForFirstPageAsQueryable();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadImages([FromForm]IEnumerable<IFormFile> images)
+        {
+            var listOfImageStreams = new List<Stream>();
+            foreach (var image in images)
+            {
+                var imgStream = new MemoryStream();
+                await image.CopyToAsync(imgStream);
+                listOfImageStreams.Add(imgStream);
+            }
+
+            var result = _imageCloudService.UploadImagesFromFiles(listOfImageStreams);
+            return Ok(result.ToArray());
+        }
+
+        [HttpPost("testPaymentService")]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> TestPayment([FromBody] PaymentRequest request)
+        {
+            var paymentResponse = await _paymentService.ProcessPaymentAsync(request);
+            
+            return StatusCode(paymentResponse.ResponseCode, paymentResponse);
+        }
+
+        [HttpGet("itemdetails/{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ItemDetails([FromRoute] long id)
+        {
+            Item item = await _itemRepository.FindByID(id);
+            if (item == null)
+                return BadRequest("Item not found");
+
+            return Ok(item.GetItemVM());
         }
     }
 }

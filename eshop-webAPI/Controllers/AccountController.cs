@@ -1,14 +1,19 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
+using eshopAPI.Requests;
 using eshopAPI.Requests.Account;
 using eshopAPI.Services;
 using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace eshop_webAPI.Controllers
@@ -23,6 +28,7 @@ namespace eshop_webAPI.Controllers
         private readonly SignInManager<ShopUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _configuration;
 
         // Add required services and they will be injected
         public AccountController(
@@ -30,20 +36,15 @@ namespace eshop_webAPI.Controllers
             UserManager<ShopUser> userManager,
             SignInManager<ShopUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            IConfiguration configuration)
         {
             _shopUserRepository = shopUserRepository;
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
-        }
-
-        [HttpGet("profile")]
-        public async Task<IActionResult> Profile()
-        {
-            ShopUserProfile profile = await _shopUserRepository.GetUserProfile(User.Identity.Name);
-            return Ok(profile);
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -58,16 +59,17 @@ namespace eshop_webAPI.Controllers
                 _logger.LogInformation("User created a new account with password.");
 
                 await _userManager.AddToRoleAsync(user, UserRole.User.ToString());
-                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var confirmationLink = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
+                var code = EncodeHelper.Base64Encode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
+                var confirmationLink = UrlExtensions.EmailConfirmationLink(user.Id, code, _configuration["RedirectDomain"]);
                 await _emailSender.SendConfirmationEmailAsync(request.Username, confirmationLink);
                 _logger.LogInformation($"Confirmation email was sent to user: {user.Name}");
                 return Ok();
             }
 
-            return BadRequest(result.Errors.Select(e => e.Description));
+            var errorResponse = new ErrorResponse(ErrorReasons.BadRequest, result.Errors.Select(e => e.Description).FirstOrDefault());
+            return StatusCode((int) HttpStatusCode.BadRequest, errorResponse);
         }
-        
+
         [HttpPost("login")]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
@@ -75,17 +77,32 @@ namespace eshop_webAPI.Controllers
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
             
-            var result = await _signInManager.PasswordSignInAsync(loginRequest.Email, loginRequest.Password,
-                loginRequest.RememberMe, lockoutOnFailure: false);
-            if (result.Succeeded)
+            var user = await _userManager.FindByEmailAsync(loginRequest.Email);
+            
+            if (user == null)
             {
-                _logger.LogInformation("User logged in.");
-                return Ok();
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.InvalidEmailOrPassword, "Invalid email or password."));
             }
 
-            return BadRequest("Can not log in");
+            if (!user.EmailConfirmed)
+            {
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.EmailNotConfirmed, "Please confirm your account"));
+            }
+            
+            var result = await _signInManager.PasswordSignInAsync(user, loginRequest.Password,
+                loginRequest.RememberMe, lockoutOnFailure: false);
+
+            if (!result.Succeeded)
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.BadRequest, "Failed to log in. Please make sure you have entered correct credentials."));
+            
+            _logger.LogInformation("User logged in.");
+            return Ok();
+
         }
-        
+
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
@@ -94,7 +111,7 @@ namespace eshop_webAPI.Controllers
             return Ok();
         }
 
-        [HttpGet]
+        [HttpGet("confirmaccount")]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ConfirmEmail(ConfirmUserRequest request)
@@ -103,13 +120,15 @@ namespace eshop_webAPI.Controllers
             if (user == null)
             {
                 _logger.LogInformation($"User with id: {request.UserId} was not found.");
-                return NotFound("User was not found");
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
-            var result = await _userManager.ConfirmEmailAsync(user, request.Code);
+            var result = await _userManager.ConfirmEmailAsync(user, EncodeHelper.Base64Decode(request.Code));
             if (result.Succeeded)
-                return Ok("User is confirmed");
+                return Ok("User confirmed");
 
-            return BadRequest();
+            return StatusCode((int) HttpStatusCode.BadRequest,
+                new ErrorResponse(ErrorReasons.BadRequest, ErrorReasons.BadRequest));
         }
 
         [HttpPost("forgotPassword")]
@@ -118,19 +137,20 @@ namespace eshop_webAPI.Controllers
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             var shopUser = await _userManager.FindByEmailAsync(request.Email);
-            
+
             if (shopUser != null)
             {
-                var resetPasswordToken =  EncodeHelper.Base64Encode(await _userManager.GeneratePasswordResetTokenAsync(shopUser));
-                var resetLink =
-                    $"http://localhost:3000/resetpassword?Id={shopUser.Id}&token={resetPasswordToken}"; // TODO : make this configurable and redirectible to wep app
+                var resetPasswordToken = EncodeHelper.Base64Encode(await _userManager.GeneratePasswordResetTokenAsync(shopUser));
+                var resetLink = UrlExtensions.ResetPasswordLink(shopUser.Id, resetPasswordToken,
+                    _configuration["RedirectDomain"]);
                 await _emailSender.SendResetPasswordEmailAsync(request.Email, resetLink);
                 return Ok("Password recovery confirmation link was sent to your e-mail.");
             }
-            return NotFound("User with this email was not found");
+            
+            return StatusCode((int) HttpStatusCode.NotFound,
+                new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
         }
-        
-        // TODO : test this when UI is ready for reset password
+
         [HttpPost("resetpassword")]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
@@ -145,11 +165,79 @@ namespace eshop_webAPI.Controllers
                 {
                     return Ok("Password was reset");
                 }
-
-                return BadRequest("Failed to reset password");
+                
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.BadRequest,
+                        resetPasswordResult.Errors.Select(e => e.Description).FirstOrDefault()));
             }
 
-            return NotFound("User was not found");
+            return StatusCode((int) HttpStatusCode.NotFound,
+                new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
+        }
+
+        [HttpPost("changerole")]
+        public async Task<IActionResult> ChangeRole([FromBody]RoleChangeRequest request)
+        {
+            _logger.LogInformation($"Changing role of user with email ${request.Email} to ${request.Role}");
+
+            ShopUser user = await _userManager.FindByEmailAsync(request.Email);
+
+            if (user == null)
+            {
+                _logger.LogInformation($"Role changing failed, no user with such email found");
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
+            }
+
+            try
+            {
+                UserRole role = (UserRole)Enum.Parse(typeof(UserRole), request.Role);
+            }
+            // happens if role string cannot be parsed
+            catch (ArgumentException e)
+            {
+                _logger.LogInformation($"Role changing failed, bad role provided");
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.FailedToChangeUserRole, "Failed to change user role. Bad role provided."));
+            }
+
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, roles);
+
+            await _userManager.AddToRoleAsync(user, request.Role);
+
+            _logger.LogInformation($"Role succesfully changed");
+            return Ok();
+        }
+
+        [HttpPut("changepassword")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            _logger.LogInformation($"Attempt to change password for user with email ${User.Identity.Name}");
+            ShopUser user = await _userManager.FindByEmailAsync(User.Identity.Name);
+
+            if (user == null)
+            {
+                _logger.LogInformation("User with such email not found");
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+
+            if(result.Succeeded)
+            {
+                await _signInManager.SignOutAsync();
+                _logger.LogInformation($"User {User.Identity.Name} has been signed out");
+                _logger.LogInformation("Password changed successfully");
+                return Ok();
+            }
+
+            _logger.LogInformation($"Attempt to change password failed: {result.Errors.Select(e => e.Description)}");
+            return StatusCode((int) HttpStatusCode.BadRequest,
+                new ErrorResponse(ErrorReasons.BadRequest,
+                    result.Errors.Select(e => e.Description).FirstOrDefault()));
         }
     }
 }
