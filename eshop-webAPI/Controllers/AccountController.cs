@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 
 namespace eshop_webAPI.Controllers
 {
+    [Produces("application/json")]
     [Authorize]
     [Route("api/account")]
     [AutoValidateAntiforgeryToken]
