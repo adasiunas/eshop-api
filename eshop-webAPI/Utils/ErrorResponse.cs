@@ -37,9 +37,10 @@
         public const string EmailNotConfirmed = nameof(EmailNotConfirmed);
         public const string AccountIsLocked = nameof(AccountIsLocked);
         public const string FailedToChangeUserRole = nameof(FailedToChangeUserRole);
-        
+
         // Server Errors 5**
         public const string InternalServerError = nameof(InternalServerError); // 500
         public const string StorageErrorException = nameof(StorageErrorException); // 500
+        public const string DbUpdateException = nameof(DbUpdateException);
     }
 }
