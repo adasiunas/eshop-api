@@ -39,32 +39,18 @@ namespace eshopAPI.DataAccess
             if (user == null)
                 return false;
 
+            int updates;
+
             if (user.Address == null)
             {
-                return await UpdateUserWithoutAddress(user, request);
+                user.UpdateUserFromRequestCreateAddress(request);
+                updates = await _context.SaveChangesAsync();
             }
 
-            return await UpdateUserWithAddress(user, request);
-        }
-
-        private async Task<bool> UpdateUserWithAddress(ShopUser user, UpdateUserRequest request)
-        {
             user.UpdateUserFromRequestUpdateAddress(request);
+            updates = await _context.SaveChangesAsync();
 
-            int updates = await _context.SaveChangesAsync();
-
-            if (updates != 1)
-                return false;
-            return true;
-        }
-
-        private async Task<bool> UpdateUserWithoutAddress(ShopUser user, UpdateUserRequest request)
-        {
-            user.UpdateUserFromRequestCreateAddress(request);
-
-            int updates = await _context.SaveChangesAsync();
-
-            if (updates != 2)
+            if (updates != 1 && updates != 2)
                 return false;
             return true;
         }
