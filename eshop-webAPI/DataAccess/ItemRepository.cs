@@ -12,21 +12,18 @@ namespace eshopAPI.DataAccess
         Task<Item> FindByID(long itemID);
         void Insert(Item item);
         void Update(Item item);
-        void Save();
         IQueryable<ItemVM> GetAllItemsForFirstPageAsQueryable();
     }
 
     public class ItemRepository : BaseRepository, IItemRepository
     {
-        private readonly ShopContext _context;
         public ItemRepository(ShopContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<Item> FindByID(long itemID)
         {
-            return await _context.Items.Where(i => i.ID == itemID)
+            return await Context.Items.Where(i => i.ID == itemID)
                 .Include(i => i.Pictures)
                 .Include(i => i.Attributes).ThenInclude(a => a.Attribute)
                 .FirstOrDefaultAsync();
@@ -37,18 +34,13 @@ namespace eshopAPI.DataAccess
             throw new NotImplementedException();
         }
 
-        public void Save()
-        {
-            throw new NotImplementedException();
-        }
-
         public void Update(Item item)
         {
             throw new NotImplementedException();
         }
         public IQueryable<ItemVM> GetAllItemsForFirstPageAsQueryable()
         {
-            var query = _context.Items
+            var query = Context.Items
                 .Where(i => i.IsDeleted.Equals(false))
                 .Select(i => new ItemVM
                 {
