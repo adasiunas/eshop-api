@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
-    public interface IItemRepository
+    public interface IItemRepository : IBaseRepository
     {
         Task<Item> FindByID(long itemID);
         void Insert(Item item);

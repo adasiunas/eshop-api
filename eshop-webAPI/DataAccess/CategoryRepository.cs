@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Query.Expressions;
 
 namespace eshopAPI.DataAccess
 {
-    public interface ICategoryRepository
+    public interface ICategoryRepository : IBaseRepository
     {
         Category FindByID(long categoryID);
         Category FindByName(string name);
