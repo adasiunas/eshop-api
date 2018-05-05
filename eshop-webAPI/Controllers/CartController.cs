@@ -65,7 +65,7 @@ namespace eshopAPI.Controllers
                 CartItem cartItem = new CartItem { Item = item, Count = itemRequest.Count };
                 cart.Items.Add(cartItem);
             }
-            await _cartRepository.Save();
+            await _cartRepository.SaveChanges();
 
             _logger.LogInformation("New cart was created.");
             return Ok();
@@ -101,7 +101,7 @@ namespace eshopAPI.Controllers
                 _logger.LogInformation("Item is already in cart, changing count from " + existingItem.Count + " to " + existingItem.Count + itemRequest.Count);
                 existingItem.Count += itemRequest.Count;
             }
-            await _cartRepository.Save();
+            await _cartRepository.SaveChanges();
             return Ok();
         }
         
@@ -117,7 +117,7 @@ namespace eshopAPI.Controllers
             }
             CartItem itemToRemove = cart.Items.Where(c => c.ID == id).FirstOrDefault();
             cart.Items.Remove(itemToRemove);
-            await _cartRepository.Save();
+            await _cartRepository.SaveChanges();
 
             return Ok();
         }

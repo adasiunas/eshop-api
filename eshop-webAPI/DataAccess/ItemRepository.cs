@@ -7,12 +7,11 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
-    public interface IItemRepository
+    public interface IItemRepository : IBaseRepository
     {
         Task<Item> FindByID(long itemID);
         void Insert(Item item);
         void Update(Item item);
-        void Save();
         IQueryable<ItemVM> GetAllItemsForFirstPageAsQueryable();
     }
 
@@ -33,11 +32,6 @@ namespace eshopAPI.DataAccess
         }
 
         public void Insert(Item item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Save()
         {
             throw new NotImplementedException();
         }

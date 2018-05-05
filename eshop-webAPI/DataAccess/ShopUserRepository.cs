@@ -8,56 +8,48 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
-    public interface IShopUserRepository
+    public interface IShopUserRepository : IBaseRepository
     {
         Task<ShopUserProfile> GetUserProfile(string email);
-        Task<bool> UpdateUserProfile(ShopUser user, UpdateUserRequest request);
+        void UpdateUserProfile(ShopUser user, UpdateUserRequest request);
         Task<ShopUser> GetUserWithEmail(string email);
         IQueryable<UserVM> GetAllUsersAsQueryable();
     }
 
-    public class ShopUserRepository : IShopUserRepository
+    public class ShopUserRepository : BaseRepository, IShopUserRepository
     {
-        private readonly ShopContext _context;
-
-        public ShopUserRepository(ShopContext context)
+        public ShopUserRepository(ShopContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<ShopUserProfile> GetUserProfile(string email)
         {
-            IQueryable<ShopUser> query = _context.Users.Where(u => u.NormalizedEmail.Equals(email.Normalize())).Include(user => user.Address);
+            IQueryable<ShopUser> query = Context.Users.Where(u => u.NormalizedEmail.Equals(email.Normalize())).Include(user => user.Address);
             if (await query.CountAsync() != 1)
                 return null;
 
             return query.First().GetUserProfile();
         }
 
-        public async Task<bool> UpdateUserProfile(ShopUser user, UpdateUserRequest request)
+        public void UpdateUserProfile(ShopUser user, UpdateUserRequest request)
         {
             if (user == null)
-                return false;
-
-            int updates;
+                return;
 
             if (user.Address == null)
             {
                 user.UpdateUserFromRequestCreateAddress(request);
-                updates = await _context.SaveChangesAsync();
             }
+            else
+            {
 
-            user.UpdateUserFromRequestUpdateAddress(request);
-            updates = await _context.SaveChangesAsync();
-
-            if (updates != 1 && updates != 2)
-                return false;
-            return true;
+                user.UpdateUserFromRequestUpdateAddress(request);
+            }
         }
 
         public async Task<ShopUser> GetUserWithEmail(string email)
         {
-            var query = _context.Users.Where(u =>
+            var query = Context.Users.Where(u =>
                 u.NormalizedEmail.Equals(email.Normalize())).Include(user => user.Address);
 
             if (await query.CountAsync() != 1)
@@ -70,9 +62,9 @@ namespace eshopAPI.DataAccess
         public IQueryable<UserVM> GetAllUsersAsQueryable()
         {
             var query =
-                from user in _context.Users
-                join uRole in _context.UserRoles on user.Id equals uRole.UserId
-                join role in _context.Roles on uRole.RoleId equals role.Id
+                from user in Context.Users
+                join uRole in Context.UserRoles on user.Id equals uRole.UserId
+                join role in Context.Roles on uRole.RoleId equals role.Id
                 select new UserVM
                 {
                     Id = user.Id,
