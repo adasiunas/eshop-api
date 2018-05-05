@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using eshopAPI.Utils;
 
 namespace eshopAPI
 {
@@ -109,6 +110,7 @@ namespace eshopAPI
             {
                 opt.Filters.Add(typeof(ValidatorActionFilter));
                 opt.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+                opt.Filters.Add(new ExceptionsHandlingFilter());
             })
             .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
 
