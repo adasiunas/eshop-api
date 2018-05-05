@@ -23,12 +23,30 @@ namespace eshopAPI.Models
         public decimal Price { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime ModifiedDate { get; set; }
-        public DateTime DeleteDate { get; set; }
+        public DateTime? DeleteDate { get; set; }
         public bool IsDeleted { get; set; }
         public long CategoryID { get; set; }
         public Category Category { get; set; }
 
         public virtual ICollection<AttributeValue> Attributes { get; set; }
         public virtual ICollection<ItemPicture> Pictures { get; set; }
+    }
+
+    public static class ItemExtensions
+    {
+        public static ItemVM GetItemVM(this Item item)
+        {
+            return new ItemVM
+            {
+                ID = item.ID,
+                Name = item.Name,
+                SKU = item.SKU,
+                Description = item.Description,
+                Pictures = item.Pictures,
+                Attributes = item.Attributes?.Select(i => new ItemAttributesVM { ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value }),
+                Price = item.Price,
+                MainPicture = item.Pictures?.Select(p => p.URL).FirstOrDefault()
+            };
+        }
     }
 }

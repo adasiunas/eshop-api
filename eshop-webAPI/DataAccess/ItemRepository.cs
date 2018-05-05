@@ -9,9 +9,9 @@ namespace eshopAPI.DataAccess
 {
     public interface IItemRepository
     {
+        Task<Item> FindByID(long itemID);
+        void Insert(Item item);
         IQueryable<AdminItemVM> GetAllAdminItemVMAsQueryable();
-        Item FindByID(long itemID);
-        Task<Item> InsertAsync(Item item);
         void Update(Item item);
         void Save();
         IQueryable<ItemVM> GetAllItemsForFirstPageAsQueryable();
@@ -41,12 +41,15 @@ namespace eshopAPI.DataAccess
             return query;
         }
 
-        public Item FindByID(long itemID)
+        public async Task<Item> FindByID(long itemID)
         {
-            throw new NotImplementedException();
+            return await _context.Items.Where(i => i.ID == itemID)
+                .Include(i => i.Pictures)
+                .Include(i => i.Attributes).ThenInclude(a => a.Attribute)
+                .FirstOrDefaultAsync();
         }
 
-        public async Task<Item> InsertAsync(Item item)
+        public void Insert(Item item)
         {
             Item insertedItem = (await Context.Items.AddAsync(item)).Entity;
             await Context.SaveChangesAsync();

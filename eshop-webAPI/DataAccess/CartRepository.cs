@@ -1,4 +1,5 @@
 ﻿using eshopAPI.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,10 @@ namespace eshopAPI.DataAccess
     public interface ICartRepository
     {
         Cart FindByID(long cartID);
-        Cart FindByUser(long userID);
+        Task<Cart> FindByUser(string email);
         void Insert(Cart cart);
         void Update(Cart cart);
-        void Save();
+        Task<int> Save();
     }
 
     public class CartRepository : BaseRepository, ICartRepository
@@ -26,19 +27,19 @@ namespace eshopAPI.DataAccess
             throw new NotImplementedException();
         }
 
-        public Cart FindByUser(long userID)
+        public async Task<Cart> FindByUser(string email)
         {
-            throw new NotImplementedException();
+            return await Context.Carts.Include(c => c.User).Include(c => c.Items).Where(c => c.User.NormalizedEmail.Equals(email.Normalize())).FirstOrDefaultAsync();
         }
 
         public void Insert(Cart cart)
         {
-            throw new NotImplementedException();
+            Context.Carts.Add(cart);
         }
 
-        public void Save()
+        public async Task<int> Save()
         {
-            throw new NotImplementedException();
+            return await Context.SaveChangesAsync();
         }
 
         public void Update(Cart cart)

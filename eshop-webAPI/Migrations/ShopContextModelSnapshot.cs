@@ -46,7 +46,7 @@ namespace eshopAPI.Migrations
 
                     b.HasKey("ID");
 
-                    b.ToTable("Address");
+                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Attribute", b =>
@@ -117,7 +117,7 @@ namespace eshopAPI.Migrations
 
                     b.HasIndex("ItemID");
 
-                    b.ToTable("CartItem");
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Category", b =>
@@ -185,7 +185,7 @@ namespace eshopAPI.Migrations
 
                     b.HasIndex("ItemID");
 
-                    b.ToTable("ItemPicture");
+                    b.ToTable("ItemPictures");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Order", b =>
@@ -231,7 +231,7 @@ namespace eshopAPI.Migrations
 
                     b.HasIndex("OrderID");
 
-                    b.ToTable("OrderItem");
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.ShopUser", b =>
@@ -313,7 +313,7 @@ namespace eshopAPI.Migrations
 
                     b.HasIndex("CategoryID");
 
-                    b.ToTable("SubCategory");
+                    b.ToTable("SubCategories");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
