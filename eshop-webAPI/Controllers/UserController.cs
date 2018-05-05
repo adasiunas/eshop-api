@@ -45,6 +45,7 @@ namespace eshopAPI.Controllers
         {
             _logger.LogInformation($"Attempt to update profile of user with email ${User.Identity.Name}");
             ShopUser user = await _shopUserRepository.GetUserWithEmail(User.Identity.Name);
+            
             if (user == null)
             {
                 _logger.LogInformation("Attempt to update user profile failed, user with such email not found");
@@ -52,16 +53,17 @@ namespace eshopAPI.Controllers
                     new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
 
-            var success = await _shopUserRepository.UpdateUserProfile(user, updatedUser);
-            if (success)
-            {
-                _logger.LogInformation("User profile successfully updated");
-                return Ok();
-            }
-            _logger.LogInformation("User profile could not be updated");
+            _shopUserRepository.UpdateUserProfile(user, updatedUser);
+
+            await _shopUserRepository.SaveChanges();
             
-            return StatusCode((int) HttpStatusCode.BadRequest,
-                new ErrorResponse(ErrorReasons.BadRequest, "User profile could not be updated."));
+            _logger.LogInformation("User profile successfully updated");
+            return Ok();
+            
+            //_logger.LogInformation("User profile could not be updated");
+            
+            //return StatusCode((int) HttpStatusCode.BadRequest,
+            //    new ErrorResponse(ErrorReasons.BadRequest, "User profile could not be updated."));
         }
 
         [EnableQuery]

@@ -7,13 +7,12 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
-    public interface ICartRepository
+    public interface ICartRepository : IBaseRepository
     {
         Cart FindByID(long cartID);
         Task<Cart> FindByUser(string email);
         void Insert(Cart cart);
         void Update(Cart cart);
-        Task<int> Save();
     }
 
     public class CartRepository : BaseRepository, ICartRepository
@@ -35,11 +34,6 @@ namespace eshopAPI.DataAccess
         public void Insert(Cart cart)
         {
             Context.Carts.Add(cart);
-        }
-
-        public async Task<int> Save()
-        {
-            return await Context.SaveChangesAsync();
         }
 
         public void Update(Cart cart)

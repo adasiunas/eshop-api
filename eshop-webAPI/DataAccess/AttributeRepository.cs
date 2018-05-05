@@ -2,7 +2,7 @@
 
 namespace eshopAPI.DataAccess
 {
-    public interface IAttributeRepository
+    public interface IAttributeRepository : IBaseRepository
     {
         Attribute FindByID(long attributeID);
         Attribute FindByName(string name);
