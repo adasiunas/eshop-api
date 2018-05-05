@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
-    public class BaseRepository
+    public interface IBaseRepository
+    {
+        Task<int> SaveChanges();
+    }
+
+    public class BaseRepository : IBaseRepository
     {
         public BaseRepository(ShopContext context)
         {
@@ -14,5 +19,10 @@ namespace eshopAPI.DataAccess
         }
 
         protected ShopContext Context { get; }
+
+        public async Task<int> SaveChanges()
+        {
+           return await Context.SaveChangesAsync();
+        }
     }
 }
