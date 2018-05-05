@@ -39,11 +39,32 @@ namespace eshopAPI.DataAccess
             if (user == null)
                 return false;
 
-            user.UpdateUserFromRequest(request);
+            if (user.Address == null)
+            {
+                return await UpdateUserWithoutAddress(user, request);
+            }
+
+            return await UpdateUserWithAddress(user, request);
+        }
+
+        private async Task<bool> UpdateUserWithAddress(ShopUser user, UpdateUserRequest request)
+        {
+            user.UpdateUserFromRequestUpdateAddress(request);
 
             int updates = await _context.SaveChangesAsync();
-            
+
             if (updates != 1)
+                return false;
+            return true;
+        }
+
+        private async Task<bool> UpdateUserWithoutAddress(ShopUser user, UpdateUserRequest request)
+        {
+            user.UpdateUserFromRequestCreateAddress(request);
+
+            int updates = await _context.SaveChangesAsync();
+
+            if (updates != 2)
                 return false;
             return true;
         }
@@ -57,6 +78,8 @@ namespace eshopAPI.DataAccess
                 return null;
             return query.First();
         }
+
+
 
         public IQueryable<UserVM> GetAllUsersAsQueryable()
         {
