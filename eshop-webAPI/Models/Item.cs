@@ -26,6 +26,7 @@ namespace eshopAPI.Models
         public DateTime? DeleteDate { get; set; }
         public bool IsDeleted { get; set; }
         public long SubCategoryID { get; set; }
+        public SubCategory SubCategory { get; set; }
 
         public virtual ICollection<AttributeValue> Attributes { get; set; }
         public virtual ICollection<ItemPicture> Pictures { get; set; }

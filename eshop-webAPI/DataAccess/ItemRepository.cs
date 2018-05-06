@@ -10,7 +10,8 @@ namespace eshopAPI.DataAccess
     public interface IItemRepository : IBaseRepository
     {
         Task<Item> FindByID(long itemID);
-        void Insert(Item item);
+        Task<Item> InsertAsync(Item item);
+        IQueryable<AdminItemVM> GetAllAdminItemVMAsQueryable();
         void Update(Item item);
         IQueryable<ItemVM> GetAllItemsForFirstPageAsQueryable();
     }
@@ -23,6 +24,23 @@ namespace eshopAPI.DataAccess
             _context = context;
         }
 
+        public IQueryable<AdminItemVM> GetAllAdminItemVMAsQueryable()
+        {
+            var query =
+                Context.Items
+                .Include(x => x.SubCategory)
+                .Select(x => new AdminItemVM()
+                {
+                    Category = x.SubCategory.Name,
+                    Name = x.Name,
+                    ID = x.ID,
+                    Description = x.Description,
+                    Price = x.Price,
+                    SKU = x.SKU
+                });
+            return query;
+        }
+
         public async Task<Item> FindByID(long itemID)
         {
             return await _context.Items.Where(i => i.ID == itemID)
@@ -31,9 +49,9 @@ namespace eshopAPI.DataAccess
                 .FirstOrDefaultAsync();
         }
 
-        public void Insert(Item item)
+        public async Task<Item> InsertAsync(Item item)
         {
-            throw new NotImplementedException();
+            return (await Context.Items.AddAsync(item)).Entity;
         }
 
         public void Update(Item item)
