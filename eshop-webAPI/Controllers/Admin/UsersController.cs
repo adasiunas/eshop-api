@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using eshopAPI.Models;
 using eshopAPI.Requests;
 using Microsoft.AspNet.OData;
-using Microsoft.AspNet.OData.Query;
-using Microsoft.AspNet.OData.Extensions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using eshopAPI.DataAccess;
+using System.Net;
+using eshopAPI.Utils;
 
 namespace eshopAPI.Controllers.Admin
 {
@@ -38,9 +35,9 @@ namespace eshopAPI.Controllers.Admin
 
         [EnableQuery]
         [HttpGet]
-        public IQueryable<UserVM> Get()
+        public async Task<IQueryable<UserVM>> Get()
         {
-            return _userRepository.GetAllUsersAsQueryable();
+            return await _userRepository.GetAllUsersAsQueryable();
         }
 
         [HttpPost("changerole")]
@@ -53,7 +50,8 @@ namespace eshopAPI.Controllers.Admin
             if (user == null)
             {
                 _logger.LogInformation($"Role changing failed, no user with such email found");
-                return NotFound();
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "User was not found"));
             }
 
             try
@@ -61,10 +59,11 @@ namespace eshopAPI.Controllers.Admin
                 UserRole role = (UserRole)Enum.Parse(typeof(UserRole), request.Role);
             }
             // happens if role string cannot be parsed
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 _logger.LogInformation($"Role changing failed, bad role provided");
-                return BadRequest();
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.BadRequest, "Provided role does not exist"));
             }
 
             IList<string> roles = await _userManager.GetRolesAsync(user);
@@ -73,7 +72,7 @@ namespace eshopAPI.Controllers.Admin
             await _userManager.AddToRoleAsync(user, request.Role);
 
             _logger.LogInformation($"Role succesfully changed");
-            return Ok();
+            return StatusCode((int) HttpStatusCode.NoContent);
         }
     }
 }
