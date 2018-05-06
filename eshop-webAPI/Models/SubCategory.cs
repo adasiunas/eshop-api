@@ -13,6 +13,7 @@ namespace eshopAPI.Models
         [Required]
         [MaxLength(50)]
         public string Name { get; set; } // Bussiness key
+        public Category Category { get; set; }
         public virtual ICollection<Item> Items { get; set; }
     }
 }
