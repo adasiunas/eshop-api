@@ -11,7 +11,7 @@ namespace eshopAPI.DataAccess
     {
         Cart FindByID(long cartID);
         Task<Cart> FindByUser(string email);
-        void Insert(Cart cart);
+        Task InsertAsync(Cart cart);
         void Update(Cart cart);
     }
 
@@ -31,9 +31,9 @@ namespace eshopAPI.DataAccess
             return await Context.Carts.Include(c => c.User).Include(c => c.Items).Where(c => c.User.NormalizedEmail.Equals(email.Normalize())).FirstOrDefaultAsync();
         }
 
-        public void Insert(Cart cart)
+        public Task InsertAsync(Cart cart)
         {
-            Context.Carts.Add(cart);
+            return Context.Carts.AddAsync(cart);
         }
 
         public void Update(Cart cart)

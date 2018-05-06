@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests;
+using eshopAPI.Utils;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -48,15 +50,12 @@ namespace eshopAPI.Controllers.Admin
             if (category == null)
             {
                 _logger.LogInformation($"No category found with id {request.CategoryID}");
-                return NotFound();
+                return StatusCode((int) HttpStatusCode.NotFound, 
+                    new ErrorResponse(ErrorReasons.NotFound, "Category was not found"));
             }
-
-            DateTime currentDate = DateTime.Now;
 
             await _itemRepository.InsertAsync(new Item()
             {
-                CreateDate = currentDate,
-                ModifiedDate = currentDate,
                 Description = request.Description,
                 Name = request.Name,
                 Price = request.Price,
@@ -66,7 +65,7 @@ namespace eshopAPI.Controllers.Admin
 
             await _itemRepository.SaveChanges();
 
-            return Ok();
+            return StatusCode((int) HttpStatusCode.NoContent);
         }
 
     }

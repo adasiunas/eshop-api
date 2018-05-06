@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Net;
+using eshopAPI.Utils;
 
 namespace eshopAPI.Controllers
 {
@@ -68,7 +70,7 @@ namespace eshopAPI.Controllers
             }
 
             var result = _imageCloudService.UploadImagesFromFiles(listOfImageStreams);
-            return Ok(result.ToArray());
+            return StatusCode((int) HttpStatusCode.OK, result.ToArray());
         }
 
         [HttpPost("testPaymentService")]
@@ -87,14 +89,21 @@ namespace eshopAPI.Controllers
         {
             Item item = await _itemRepository.FindByID(id);
             if (item == null)
-                return BadRequest("Item not found");
+            {
+                _logger.LogError("Item with ID - " + id + " was not found.");
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Item was not found."));
+            }
 
             SubCategory subCat = await _categoryRepository.FindSubCategoryByIDAsync(item.SubCategoryID);
             if (subCat == null)
-                return BadRequest("Item does not have subcategory.");
+            {
+                _logger.LogError("Subcategory ID - " + item.SubCategoryID + " was not found for Item - " + item.ID);
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Item does not have subcategory.");
+            }
 
-
-            return Ok(item.GetItemVM(subCat));
+            return StatusCode((int) HttpStatusCode.OK, item.GetItemVM(subCat));
         }
     }
 }

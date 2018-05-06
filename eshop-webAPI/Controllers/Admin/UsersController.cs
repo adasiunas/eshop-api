@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using eshopAPI.DataAccess;
+using System.Net;
+using eshopAPI.Utils;
 
 namespace eshopAPI.Controllers.Admin
 {
@@ -53,7 +55,8 @@ namespace eshopAPI.Controllers.Admin
             if (user == null)
             {
                 _logger.LogInformation($"Role changing failed, no user with such email found");
-                return NotFound();
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "User was not found"));
             }
 
             try
@@ -64,7 +67,8 @@ namespace eshopAPI.Controllers.Admin
             catch (ArgumentException e)
             {
                 _logger.LogInformation($"Role changing failed, bad role provided");
-                return BadRequest();
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.BadRequest, "Provided role does not exist"));
             }
 
             IList<string> roles = await _userManager.GetRolesAsync(user);
@@ -73,7 +77,7 @@ namespace eshopAPI.Controllers.Admin
             await _userManager.AddToRoleAsync(user, request.Role);
 
             _logger.LogInformation($"Role succesfully changed");
-            return Ok();
+            return StatusCode((int) HttpStatusCode.NoContent);
         }
     }
 }
