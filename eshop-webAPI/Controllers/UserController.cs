@@ -37,7 +37,7 @@ namespace eshopAPI.Controllers
         public async Task<IActionResult> Profile()
         {
             ShopUserProfile profile = await _shopUserRepository.GetUserProfile(User.Identity.Name);
-            return Ok(profile);
+            return StatusCode((int) HttpStatusCode.OK, profile);
         }
 
         [HttpPut("updateUser")]
@@ -58,12 +58,7 @@ namespace eshopAPI.Controllers
             await _shopUserRepository.SaveChanges();
             
             _logger.LogInformation("User profile successfully updated");
-            return Ok();
-            
-            //_logger.LogInformation("User profile could not be updated");
-            
-            //return StatusCode((int) HttpStatusCode.BadRequest,
-            //    new ErrorResponse(ErrorReasons.BadRequest, "User profile could not be updated."));
+            return StatusCode((int) HttpStatusCode.NoContent);
         }
     }
 }

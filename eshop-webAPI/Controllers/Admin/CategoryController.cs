@@ -1,9 +1,11 @@
 ﻿using eshopAPI.DataAccess;
+using eshopAPI.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace eshopAPI.Controllers.Admin
@@ -27,7 +29,7 @@ namespace eshopAPI.Controllers.Admin
         public async Task<IActionResult> Get()
         {
             var categories = await _categoryRepository.GetAllParentCategoriesAsync();
-            return Ok(categories);
+            return StatusCode((int) HttpStatusCode.OK, categories);
         }
 
         [HttpGet("{parentId}")]
@@ -38,10 +40,12 @@ namespace eshopAPI.Controllers.Admin
 
             if(children == null)
             {
-                return BadRequest("No parent area found with this ID");
+                _logger.LogError("No subcategories found for category - " + parentId);
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "No subcategories found"));
             }
 
-            return Ok(children);
+            return StatusCode((int) HttpStatusCode.OK, children);
         }
     }
 }
