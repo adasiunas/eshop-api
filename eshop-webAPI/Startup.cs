@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using eshopAPI.Models.ViewModels;
 
 namespace eshopAPI
 {
@@ -162,6 +163,9 @@ namespace eshopAPI
 
             var itemEntitySet = builder.EntitySet<ItemVM>("Items");
             itemEntitySet.EntityType.HasKey(e => e.ID);
+
+            var orderEntitySet = builder.EntitySet<OrderVM>("Orders");
+            orderEntitySet.EntityType.HasKey(e => e.ID);
 
             app.UseMvc(routeBuilder =>
             {
