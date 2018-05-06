@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
-using eshopAPI.Requests;
 using eshopAPI.Requests.Account;
 using eshopAPI.Services;
 using eshopAPI.Utils;
@@ -18,6 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace eshop_webAPI.Controllers
 {
+    [Produces("application/json")]
     [Authorize]
     [Route("api/account")]
     [AutoValidateAntiforgeryToken]
@@ -47,9 +45,15 @@ namespace eshop_webAPI.Controllers
             _configuration = configuration;
         }
 
+        [HttpGet("renewcsrftoken")]
+        [AllowAnonymous]
+        public IActionResult RenewCsrfToken()
+        {
+            return NoContent();
+        }
+
         [HttpPost("register")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Register([FromBody]RegisterRequest request)
         {
             var user = new ShopUser { UserName = request.Username, Email = request.Username };
@@ -63,7 +67,7 @@ namespace eshop_webAPI.Controllers
                 var confirmationLink = UrlExtensions.EmailConfirmationLink(user.Id, code, _configuration["RedirectDomain"]);
                 await _emailSender.SendConfirmationEmailAsync(request.Username, confirmationLink);
                 _logger.LogInformation($"Confirmation email was sent to user: {user.Name}");
-                return Ok();
+                return StatusCode((int) HttpStatusCode.NoContent);
             }
 
             var errorResponse = new ErrorResponse(ErrorReasons.BadRequest, result.Errors.Select(e => e.Description).FirstOrDefault());
@@ -72,11 +76,16 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
             
+            if (_signInManager.IsSignedIn(HttpContext.User))
+            {
+                _logger.LogInformation("User is already signed in.");
+                return StatusCode((int) HttpStatusCode.NoContent);
+            }
+
             var user = await _userManager.FindByEmailAsync(loginRequest.Email);
             
             if (user == null)
@@ -99,21 +108,26 @@ namespace eshop_webAPI.Controllers
                     new ErrorResponse(ErrorReasons.BadRequest, "Failed to log in. Please make sure you have entered correct credentials."));
             
             _logger.LogInformation("User logged in.");
-            return Ok();
+            return StatusCode((int) HttpStatusCode.NoContent);
 
         }
 
         [HttpPost("logout")]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Logout()
         {
+            if (!_signInManager.IsSignedIn(User))
+            {
+                _logger.LogInformation("User is not signed in so it cannot be signed out");
+                return StatusCode((int)HttpStatusCode.NoContent);
+            }
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
-            return Ok();
+            return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         [HttpGet("confirmaccount")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ConfirmEmail(ConfirmUserRequest request)
         {
             var user = await _userManager.FindByIdAsync(request.UserId);
@@ -125,7 +139,7 @@ namespace eshop_webAPI.Controllers
             }
             var result = await _userManager.ConfirmEmailAsync(user, EncodeHelper.Base64Decode(request.Code));
             if (result.Succeeded)
-                return Ok("User confirmed");
+                return StatusCode((int)HttpStatusCode.OK, "User confirmed");
 
             return StatusCode((int) HttpStatusCode.BadRequest,
                 new ErrorResponse(ErrorReasons.BadRequest, ErrorReasons.BadRequest));
@@ -133,7 +147,6 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("forgotPassword")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             var shopUser = await _userManager.FindByEmailAsync(request.Email);
@@ -144,7 +157,7 @@ namespace eshop_webAPI.Controllers
                 var resetLink = UrlExtensions.ResetPasswordLink(shopUser.Id, resetPasswordToken,
                     _configuration["RedirectDomain"]);
                 await _emailSender.SendResetPasswordEmailAsync(request.Email, resetLink);
-                return Ok("Password recovery confirmation link was sent to your e-mail.");
+                return StatusCode((int)HttpStatusCode.OK, "Password recovery confirmation link was sent to your e-mail.");
             }
             
             return StatusCode((int) HttpStatusCode.NotFound,
@@ -153,7 +166,6 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("resetpassword")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordRequest request)
         {
             var shopUser = await _userManager.FindByIdAsync(request.UserId);
@@ -163,7 +175,7 @@ namespace eshop_webAPI.Controllers
                 var resetPasswordResult = await _userManager.ResetPasswordAsync(shopUser, decodedToken, request.Password);
                 if (resetPasswordResult.Succeeded)
                 {
-                    return Ok("Password was reset");
+                    return StatusCode((int) HttpStatusCode.OK, "Password was reset");
                 }
                 
                 return StatusCode((int) HttpStatusCode.BadRequest,
@@ -173,41 +185,6 @@ namespace eshop_webAPI.Controllers
 
             return StatusCode((int) HttpStatusCode.NotFound,
                 new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
-        }
-
-        [HttpPost("changerole")]
-        public async Task<IActionResult> ChangeRole([FromBody]RoleChangeRequest request)
-        {
-            _logger.LogInformation($"Changing role of user with email ${request.Email} to ${request.Role}");
-
-            ShopUser user = await _userManager.FindByEmailAsync(request.Email);
-
-            if (user == null)
-            {
-                _logger.LogInformation($"Role changing failed, no user with such email found");
-                return StatusCode((int) HttpStatusCode.NotFound,
-                    new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
-            }
-
-            try
-            {
-                UserRole role = (UserRole)Enum.Parse(typeof(UserRole), request.Role);
-            }
-            // happens if role string cannot be parsed
-            catch (ArgumentException e)
-            {
-                _logger.LogInformation($"Role changing failed, bad role provided");
-                return StatusCode((int) HttpStatusCode.BadRequest,
-                    new ErrorResponse(ErrorReasons.FailedToChangeUserRole, "Failed to change user role. Bad role provided."));
-            }
-
-            IList<string> roles = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, roles);
-
-            await _userManager.AddToRoleAsync(user, request.Role);
-
-            _logger.LogInformation($"Role succesfully changed");
-            return Ok();
         }
 
         [HttpPut("changepassword")]
@@ -231,7 +208,7 @@ namespace eshop_webAPI.Controllers
                 await _signInManager.SignOutAsync();
                 _logger.LogInformation($"User {User.Identity.Name} has been signed out");
                 _logger.LogInformation("Password changed successfully");
-                return Ok();
+                return StatusCode((int)HttpStatusCode.NoContent);
             }
 
             _logger.LogInformation($"Attempt to change password failed: {result.Errors.Select(e => e.Description)}");
