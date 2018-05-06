@@ -14,7 +14,6 @@ namespace eshopAPI.DataAccess
         Task<Order> FindByID(long orderID);
         Task<Order> FindByOrderNumber(Guid orderNumber);
         Task Insert(Order order);
-        Task Update(Order order);
         Task<IQueryable<OrderVM>> GetAllOrdersAsQueryable(string email);
     }
 
@@ -45,22 +44,6 @@ namespace eshopAPI.DataAccess
             throw new NotImplementedException();
         }
 
-        public Task Update(Order updatedOrder)
-        {
-            //var updateQuery = Context.Orders
-            //    .Where(o => o.ID == updatedOrder.ID)
-            //    .Include(o => o.Items)
-            //    .ThenInclude(i => i.Item)
-            //    .Single();
-            //updateQuery.OrderNumber = updatedOrder.OrderNumber;
-            //updateQuery.Status = updatedOrder.Status;
-            //updateQuery.DeliveryAddress = updatedOrder.DeliveryAddress;
-            //updateQuery.Items = updatedOrder.Items;
-            //Context.Update(updateQuery);
-            //Context.SaveChanges();
-            throw new NotImplementedException();
-        }
-
         public Task<IQueryable<OrderVM>> GetAllOrdersAsQueryable(string email)
         {
             var query = Context.Orders
@@ -80,10 +63,10 @@ namespace eshopAPI.DataAccess
                             Count = i.Count,
                             Name = i.Item.Name,
                             SKU = i.Item.SKU
-                        }).ToList(),
+                        }),
                         DeliveryAddress = o.DeliveryAddress
                     });
             return Task.FromResult(query);
-            }
+        }
     }
 }
