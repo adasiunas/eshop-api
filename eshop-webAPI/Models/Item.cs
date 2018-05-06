@@ -34,7 +34,7 @@ namespace eshopAPI.Models
 
     public static class ItemExtensions
     {
-        public static ItemVM GetItemVM(this Item item)
+        public static ItemVM GetItemVM(this Item item, SubCategory subCategory)
         {
             return new ItemVM
             {
@@ -45,7 +45,17 @@ namespace eshopAPI.Models
                 Pictures = item.Pictures,
                 Attributes = item.Attributes?.Select(i => new ItemAttributesVM { ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value }),
                 Price = item.Price,
-                MainPicture = item.Pictures?.Select(p => p.URL).FirstOrDefault()
+                MainPicture = item.Pictures?.Select(p => p.URL).FirstOrDefault(),
+                ItemCategory = new ItemCategoryVM
+                {
+                    Name = subCategory.Category.Name,
+                    ID = subCategory.Category.ID,
+                    Subcategory = new ItemSubcategoryVM
+                    {
+                        Name = subCategory.Name,
+                        ID = subCategory.ID
+                    }
+                }
             };
         }
     }
