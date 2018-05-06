@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using eshopAPI.Utils;
+using eshopAPI.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 
@@ -171,6 +172,10 @@ namespace eshopAPI
 
             var adminItemEntitySet = builder.EntitySet<AdminItemVM>("AdminItems");
             adminItemEntitySet.EntityType.HasKey(e => e.ID);
+
+            var orderEntitySet = builder.EntitySet<OrderVM>("Orders");
+            orderEntitySet.EntityType.HasKey(e => e.ID);
+
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapODataServiceRoute("api/odata", "api/odata", builder.GetEdmModel());
