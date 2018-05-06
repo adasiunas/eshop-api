@@ -1,4 +1,5 @@
 ﻿using eshopAPI.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,10 @@ namespace eshopAPI.DataAccess
 {
     public interface ICategoryRepository : IBaseRepository
     {
-        Category FindByID(long categoryID);
+        Task<SubCategory> FindSubCategoryByIDAsync(long categoryId);
+        Task<Category> FindByIDAsync(long categoryID);
+        Task<List<Category>> GetAllParentCategoriesAsync();
+        Task<IEnumerable<SubCategory>> GetChildrenOfParent(int parentId);
         Category FindByName(string name);
         void Insert(Category category);
         void Update(Category category);
@@ -20,14 +24,34 @@ namespace eshopAPI.DataAccess
         {
         }
 
-        public Category FindByID(long categoryID)
+        public Task<Category> FindByIDAsync(long categoryID)
         {
-            throw new NotImplementedException();
+            return Context.Categories.FirstOrDefaultAsync(x => x.ID == categoryID);
         }
 
         public Category FindByName(string name)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<SubCategory> FindSubCategoryByIDAsync(long categoryId)
+        {
+            return await Context.SubCategories.Include(sc => sc.Category).FirstOrDefaultAsync(x => x.ID == categoryId);
+        }
+
+        public Task<List<Category>> GetAllParentCategoriesAsync()
+        {
+            return Context.Categories.ToListAsync();
+        }
+
+        public async Task<IEnumerable<SubCategory>> GetChildrenOfParent(int parentId)
+        {
+            var categoryList = (await Context.Categories
+                .Where(x => x.ID == parentId)
+                .Include(x => x.SubCategories)
+                .FirstOrDefaultAsync())?.SubCategories;
+
+            return categoryList;
         }
 
         public void Insert(Category category)

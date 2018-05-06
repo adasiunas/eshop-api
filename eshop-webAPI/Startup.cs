@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using eshopAPI.Utils;
 using eshopAPI.Models.ViewModels;
 
 namespace eshopAPI
@@ -110,6 +111,7 @@ namespace eshopAPI
             {
                 opt.Filters.Add(typeof(ValidatorActionFilter));
                 opt.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+                opt.Filters.Add(new ExceptionsHandlingFilter());
             })
             .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
 
@@ -163,6 +165,9 @@ namespace eshopAPI
 
             var itemEntitySet = builder.EntitySet<ItemVM>("Items");
             itemEntitySet.EntityType.HasKey(e => e.ID);
+
+            var adminItemEntitySet = builder.EntitySet<AdminItemVM>("AdminItems");
+            adminItemEntitySet.EntityType.HasKey(e => e.ID);
 
             var orderEntitySet = builder.EntitySet<OrderVM>("Orders");
             orderEntitySet.EntityType.HasKey(e => e.ID);

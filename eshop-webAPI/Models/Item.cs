@@ -25,6 +25,8 @@ namespace eshopAPI.Models
         public DateTime ModifiedDate { get; set; }
         public DateTime? DeleteDate { get; set; }
         public bool IsDeleted { get; set; }
+        public long SubCategoryID { get; set; }
+        public SubCategory SubCategory { get; set; }
 
         public virtual ICollection<AttributeValue> Attributes { get; set; }
         public virtual ICollection<ItemPicture> Pictures { get; set; }
@@ -32,7 +34,7 @@ namespace eshopAPI.Models
 
     public static class ItemExtensions
     {
-        public static ItemVM GetItemVM(this Item item)
+        public static ItemVM GetItemVM(this Item item, SubCategory subCategory)
         {
             return new ItemVM
             {
@@ -43,7 +45,17 @@ namespace eshopAPI.Models
                 Pictures = item.Pictures,
                 Attributes = item.Attributes?.Select(i => new ItemAttributesVM { ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value }),
                 Price = item.Price,
-                MainPicture = item.Pictures?.Select(p => p.URL).FirstOrDefault()
+                MainPicture = item.Pictures?.Select(p => p.URL).FirstOrDefault(),
+                ItemCategory = new ItemCategoryVM
+                {
+                    Name = subCategory.Category.Name,
+                    ID = subCategory.Category.ID,
+                    Subcategory = new ItemSubcategoryVM
+                    {
+                        Name = subCategory.Name,
+                        ID = subCategory.ID
+                    }
+                }
             };
         }
     }
