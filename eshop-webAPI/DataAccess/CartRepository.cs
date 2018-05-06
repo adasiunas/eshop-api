@@ -13,6 +13,7 @@ namespace eshopAPI.DataAccess
         Task<Cart> FindByUser(string email);
         void Insert(Cart cart);
         void Update(Cart cart);
+        void RemoveCartItem(CartItem item);
     }
 
     public class CartRepository : BaseRepository, ICartRepository
@@ -28,12 +29,23 @@ namespace eshopAPI.DataAccess
 
         public async Task<Cart> FindByUser(string email)
         {
-            return await Context.Carts.Include(c => c.User).Include(c => c.Items).Where(c => c.User.NormalizedEmail.Equals(email.Normalize())).FirstOrDefaultAsync();
+
+            return await Context.Carts.Include(c => c.User)
+                .Include(c => c.Items).ThenInclude(i => i.Item).ThenInclude(p => p.Pictures)
+                .Include(c => c.Items).ThenInclude(i => i.Item).ThenInclude(a => a.Attributes).ThenInclude(a => a.Attribute)
+                .Where(c => c.User.NormalizedEmail
+                    .Equals(email.Normalize()))
+                .FirstOrDefaultAsync();
         }
 
         public void Insert(Cart cart)
         {
             Context.Carts.Add(cart);
+        }
+
+        public void RemoveCartItem(CartItem item)
+        {
+            Context.CartItems.Remove(item);
         }
 
         public void Update(Cart cart)
