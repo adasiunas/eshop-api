@@ -165,6 +165,8 @@ namespace eshopAPI
             var itemEntitySet = builder.EntitySet<ItemVM>("Items");
             itemEntitySet.EntityType.HasKey(e => e.ID);
 
+            var adminItemEntitySet = builder.EntitySet<AdminItemVM>("AdminItems");
+            adminItemEntitySet.EntityType.HasKey(e => e.ID);
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapODataServiceRoute("api/odata", "api/odata", builder.GetEdmModel());
