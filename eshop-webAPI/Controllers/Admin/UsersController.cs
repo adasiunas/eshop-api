@@ -40,9 +40,9 @@ namespace eshopAPI.Controllers.Admin
 
         [EnableQuery]
         [HttpGet]
-        public IQueryable<UserVM> Get()
+        public async Task<IQueryable<UserVM>> Get()
         {
-            return _userRepository.GetAllUsersAsQueryable();
+            return await _userRepository.GetAllUsersAsQueryable();
         }
 
         [HttpPost("changerole")]
@@ -64,7 +64,7 @@ namespace eshopAPI.Controllers.Admin
                 UserRole role = (UserRole)Enum.Parse(typeof(UserRole), request.Role);
             }
             // happens if role string cannot be parsed
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 _logger.LogInformation($"Role changing failed, bad role provided");
                 return StatusCode((int) HttpStatusCode.BadRequest,

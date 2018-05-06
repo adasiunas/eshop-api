@@ -10,10 +10,10 @@ namespace eshopAPI.DataAccess
     public interface IItemRepository : IBaseRepository
     {
         Task<Item> FindByID(long itemID);
-        Task<Item> InsertAsync(Item item);
-        IQueryable<AdminItemVM> GetAllAdminItemVMAsQueryable();
-        void Update(Item item);
-        IQueryable<ItemVM> GetAllItemsForFirstPageAsQueryable();
+        Task<Item> Insert(Item item);
+        Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
+        Task Update(Item item);
+        Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
     }
 
     public class ItemRepository : BaseRepository, IItemRepository
@@ -24,7 +24,7 @@ namespace eshopAPI.DataAccess
             _context = context;
         }
 
-        public IQueryable<AdminItemVM> GetAllAdminItemVMAsQueryable()
+        public Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable()
         {
             var query =
                 Context.Items
@@ -38,27 +38,27 @@ namespace eshopAPI.DataAccess
                     Price = x.Price,
                     SKU = x.SKU
                 });
-            return query;
+            return Task.FromResult(query);
         }
 
-        public async Task<Item> FindByID(long itemID)
+        public Task<Item> FindByID(long itemID)
         {
-            return await _context.Items.Where(i => i.ID == itemID)
+            return _context.Items.Where(i => i.ID == itemID)
                 .Include(i => i.Pictures)
                 .Include(i => i.Attributes).ThenInclude(a => a.Attribute)
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<Item> InsertAsync(Item item)
+        public async Task<Item> Insert(Item item)
         {
             return (await Context.Items.AddAsync(item)).Entity;
         }
 
-        public void Update(Item item)
+        public Task Update(Item item)
         {
             throw new NotImplementedException();
         }
-        public IQueryable<ItemVM> GetAllItemsForFirstPageAsQueryable()
+        public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable()
         {
             var query = _context.Items
                 .Where(i => i.IsDeleted.Equals(false))
@@ -76,7 +76,7 @@ namespace eshopAPI.DataAccess
                     }).Take(2)
                 });
 
-            return query;
+            return Task.FromResult(query);
         }
 
     }

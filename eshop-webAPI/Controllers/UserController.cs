@@ -53,7 +53,7 @@ namespace eshopAPI.Controllers
                     new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
 
-            _shopUserRepository.UpdateUserProfile(user, updatedUser);
+            await _shopUserRepository.UpdateUserProfile(user, updatedUser);
 
             await _shopUserRepository.SaveChanges();
             

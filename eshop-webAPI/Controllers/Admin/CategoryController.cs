@@ -28,7 +28,7 @@ namespace eshopAPI.Controllers.Admin
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Get()
         {
-            var categories = await _categoryRepository.GetAllParentCategoriesAsync();
+            var categories = await _categoryRepository.GetAllParentCategories();
             return StatusCode((int) HttpStatusCode.OK, categories);
         }
 
