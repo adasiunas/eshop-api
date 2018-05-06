@@ -195,7 +195,7 @@ namespace eshop_webAPI.Controllers
                 UserRole role = (UserRole)Enum.Parse(typeof(UserRole), request.Role);
             }
             // happens if role string cannot be parsed
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 _logger.LogInformation($"Role changing failed, bad role provided");
                 return StatusCode((int) HttpStatusCode.BadRequest,

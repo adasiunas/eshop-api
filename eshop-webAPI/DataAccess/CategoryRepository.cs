@@ -12,9 +12,8 @@ namespace eshopAPI.DataAccess
         Task<SubCategory> FindSubCategoryByIDAsync(long categoryId);
         Task<Category> FindByIDAsync(long categoryID);
         Task<List<Category>> GetAllParentCategoriesAsync();
-        IEnumerable<SubCategory> GetChildrenOfParent(int parentId);
+        Task<IEnumerable<SubCategory>> GetChildrenOfParent(int parentId);
         Category FindByName(string name);
-        Task<SubCategory> FindSubCategoryByID(long ID);
         void Insert(Category category);
         void Update(Category category);
     }
@@ -37,7 +36,7 @@ namespace eshopAPI.DataAccess
 
         public async Task<SubCategory> FindSubCategoryByIDAsync(long categoryId)
         {
-            return await Context.SubCategories.FirstOrDefaultAsync(x => x.ID == categoryId);
+            return await Context.SubCategories.Include(sc => sc.Category).FirstOrDefaultAsync(x => x.ID == categoryId);
         }
 
         public Task<List<Category>> GetAllParentCategoriesAsync()
@@ -45,12 +44,12 @@ namespace eshopAPI.DataAccess
             return Context.Categories.ToListAsync();
         }
 
-        public IEnumerable<SubCategory> GetChildrenOfParent(int parentId)
+        public async Task<IEnumerable<SubCategory>> GetChildrenOfParent(int parentId)
         {
-            var categoryList = Context.Categories
+            var categoryList = (await Context.Categories
                 .Where(x => x.ID == parentId)
                 .Include(x => x.SubCategories)
-                .FirstOrDefault()?.SubCategories;
+                .FirstOrDefaultAsync())?.SubCategories;
 
             return categoryList;
         }
