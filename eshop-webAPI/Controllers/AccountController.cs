@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Helpers;
 using eshopAPI.Models;
-using eshopAPI.Requests;
 using eshopAPI.Requests.Account;
 using eshopAPI.Services;
 using eshopAPI.Utils;
