@@ -9,8 +9,10 @@ namespace eshopAPI.DataAccess
 {
     public interface ICategoryRepository
     {
+        Task<SubCategory> FindSubCategoryByIDAsync(long categoryId);
         Task<Category> FindByIDAsync(long categoryID);
-        Task<IEnumerable<Category>> GetAllCategoriesAsync();
+        Task<IEnumerable<Category>> GetAllParentCategoriesAsync();
+        IEnumerable<SubCategory> GetChildrenOfParent(int parentId);
         Category FindByName(string name);
         void Insert(Category category);
         void Update(Category category);
@@ -33,18 +35,26 @@ namespace eshopAPI.DataAccess
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+        public async Task<SubCategory> FindSubCategoryByIDAsync(long categoryId)
         {
-            var a = Context.Categories
-                .Where(x => x.ParentID == null)
-                .Include(x => x.Children).ToList();
+            return await Context.SubCategories.FirstOrDefaultAsync(x => x.ID == categoryId);
+        }
 
-            foreach (var item in a)
-            {
-                item.Children.ToList().ForEach(x => x.Parent = null);
-            }
+        public async Task<IEnumerable<Category>> GetAllParentCategoriesAsync()
+        {
+            var categoryList = await Context.Categories.ToListAsync();
 
-            return a;
+            return categoryList;
+        }
+
+        public IEnumerable<SubCategory> GetChildrenOfParent(int parentId)
+        {
+            var categoryList = Context.Categories
+                .Where(x => x.ID == parentId)
+                .Include(x => x.SubCategories)
+                .FirstOrDefault()?.SubCategories;
+
+            return categoryList;
         }
 
         public void Insert(Category category)

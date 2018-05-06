@@ -6,21 +6,22 @@ using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests;
 using Microsoft.AspNet.OData;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace eshopAPI.Controllers.Admin
 {
-    [Route("api/admin/items")]
+    [Route("api/admin/Items")]
     [AutoValidateAntiforgeryToken]
-    public class ItemsController : Controller
+    public class AdminItemsController : ODataController
     {
         private IItemRepository _itemRepository;
         private ILogger<ItemsController> _logger;
         private ICategoryRepository _categoryRepository;
 
-        public ItemsController(
+        public AdminItemsController(
             ILogger<ItemsController> logger,
             IItemRepository itemRepository,
             ICategoryRepository categoryRepository)
@@ -42,7 +43,7 @@ namespace eshopAPI.Controllers.Admin
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Create([FromBody]ItemCreateRequest request)
         {
-            Category category = await _categoryRepository.FindByIDAsync(request.CategoryID);
+            SubCategory category = await _categoryRepository.FindSubCategoryByIDAsync(request.CategoryID);
 
             if (category == null)
             {
@@ -50,14 +51,17 @@ namespace eshopAPI.Controllers.Admin
                 return NotFound();
             }
 
+            DateTime currentDate = DateTime.Now;
+
             await _itemRepository.InsertAsync(new Item()
             {
-                CreateDate = DateTime.Now,
+                CreateDate = currentDate,
+                ModifiedDate = currentDate,
                 Description = request.Description,
                 Name = request.Name,
                 Price = request.Price,
                 SKU = request.SKU,
-                Category = category
+                SubCategoryID = request.CategoryID
             });
 
             return Ok();

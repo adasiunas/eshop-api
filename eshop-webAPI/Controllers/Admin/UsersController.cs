@@ -23,12 +23,12 @@ namespace eshopAPI.Controllers.Admin
     {
         private UserManager<ShopUser> _userManager;
         private readonly ILogger<UsersController> _logger;
-        private IUserRepository _userRepository;
+        private IShopUserRepository _userRepository;
 
         public UsersController(
             UserManager<ShopUser> userManager,
             ILogger<UsersController> logger,
-            IUserRepository userRepository
+            IShopUserRepository userRepository
             )
         {
             _userManager = userManager;

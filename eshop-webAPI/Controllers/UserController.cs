@@ -63,13 +63,5 @@ namespace eshopAPI.Controllers
             return StatusCode((int) HttpStatusCode.BadRequest,
                 new ErrorResponse(ErrorReasons.BadRequest, "User profile could not be updated."));
         }
-
-        [EnableQuery]
-        [HttpGet]
-        public IQueryable<UserVM> Get()
-        {
-            return _shopUserRepository.GetAllUsersAsQueryable();
-        }
-
     }
 }
