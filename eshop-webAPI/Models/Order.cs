@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace eshopAPI.Models
@@ -25,9 +27,27 @@ namespace eshopAPI.Models
 
     public enum OrderStatus
     {
+        [Description("Accepted")]
         Accepted,
+        [Description("In progress")]
         InProgress, // maybe something different
+        [Description("Sent")]
         Sent,
+        [Description("Delivered")]
         Delivered
+    }
+
+    public static class EnumExtensions
+    {
+        public static string GetDescription(this OrderStatus value)
+        {
+            FieldInfo field = value.GetType().GetField(value.ToString());
+            object[] attribs = field.GetCustomAttributes(typeof(DescriptionAttribute), true);
+            if (attribs.Length > 0)
+            {
+                return ((DescriptionAttribute)attribs[0]).Description;
+            }
+            return value.ToString();
+        }
     }
 }
