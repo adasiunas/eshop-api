@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests.Cart;
+using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -33,42 +33,29 @@ namespace eshopAPI.Controllers
 
         // GET: api/Cart
         [HttpGet]
-        public async Task<Cart> Get()
+        public async Task<IActionResult> Get()
         {
             Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
-            return cart;
+            return StatusCode((int) HttpStatusCode.OK, cart);
         }
         
         // POST: api/Cart
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]CartRequest request)
         {
-            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
-            ShopUser user = await _userRepository.GetUserWithEmail(User.Identity.Name);
-            if (cart == null)
-            {
-                _logger.LogInformation("Creating new cart for user - " + User.Identity.Name);
-                cart = new Cart { User = user };
-                _cartRepository.Insert(cart);
-            }
+            Cart cart = await GetUserCart();
 
-            cart.Items = new List<CartItem>();
+            int notFoundCount = 0;
             foreach(var itemRequest in request.Items)
             {
-                Item item = await _itemRepository.FindByID(itemRequest.ItemID);
-                if (item == null)
-                {
-                    _logger.LogError("Item with ID - " + itemRequest.ItemID + " was not found.");
-                    return BadRequest("Attempting to add non-existing item to cart.");
-                }
-
-                CartItem cartItem = new CartItem { Item = item, Count = itemRequest.Count };
-                cart.Items.Add(cartItem);
+                bool added = await AddItemToCart(cart, itemRequest);
+                if (!added)
+                    notFoundCount++;
             }
             await _cartRepository.SaveChanges();
 
-            _logger.LogInformation("New cart was created.");
-            return Ok();
+            _logger.LogInformation(notFoundCount + " items was not found and could not be added to cart");
+            return StatusCode((int) HttpStatusCode.OK, notFoundCount);
         }
         
         // PUT: api/Cart
@@ -76,20 +63,61 @@ namespace eshopAPI.Controllers
         public async Task<IActionResult> Put([FromBody]CartItemRequest itemRequest)
         {
             Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
+
+            bool itemAdded = await AddItemToCart(cart, itemRequest);
+            if (itemAdded)
+            {
+                await _cartRepository.SaveChanges();
+                return StatusCode((int) HttpStatusCode.NoContent);
+            }
+
+            return StatusCode((int)HttpStatusCode.NotFound,
+                new ErrorResponse(ErrorReasons.NotFound, "Item you want to add to cart does not exist."));
+        }
+        
+        // DELETE: api/deletecartitem/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCartItem([FromQuery] int id)
+        {
+            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
+            if (cart == null)
+            {
+                _logger.LogError("Trying to remove item but cart does not exist");
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "There are no cart created for this user."));
+            }
+            CartItem itemToRemove = cart.Items.Where(c => c.ID == id).FirstOrDefault();
+            cart.Items.Remove(itemToRemove);
+            await _cartRepository.SaveChanges();
+
+            return StatusCode((int) HttpStatusCode.NoContent);
+        }
+
+        private async Task<Cart> GetUserCart()
+        {
+            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
             if (cart == null)
             {
                 _logger.LogInformation("Creating new cart for user - " + User.Identity.Name);
                 ShopUser user = await _userRepository.GetUserWithEmail(User.Identity.Name);
-                cart = new Cart { User = user, Items = new List<CartItem>() };
-                _cartRepository.Insert(cart);
+                await _cartRepository.Insert(new Cart
+                {
+                    User = user,
+                    Items = new List<CartItem>()
+                });
             }
+            return cart;
+        }
 
+        private async Task<bool> AddItemToCart(Cart cart, CartItemRequest itemRequest)
+        {
             Item item = await _itemRepository.FindByID(itemRequest.ItemID);
             if (item == null)
             {
                 _logger.LogError("Item with ID - " + itemRequest.ItemID + " was not found.");
-                return BadRequest("Attempting to add non-existing item to cart.");
+                return false;
             }
+
             CartItem existingItem = cart.Items.Where(i => i.ItemID == item.ID).FirstOrDefault();
             if (existingItem == null)
             {
@@ -101,25 +129,7 @@ namespace eshopAPI.Controllers
                 _logger.LogInformation("Item is already in cart, changing count from " + existingItem.Count + " to " + existingItem.Count + itemRequest.Count);
                 existingItem.Count += itemRequest.Count;
             }
-            await _cartRepository.SaveChanges();
-            return Ok();
-        }
-        
-        // DELETE: api/deletecartitem/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCartItem([FromQuery] int id)
-        {
-            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
-            if (cart == null)
-            {
-                _logger.LogError("Trying to remove item but cart does not exist");
-                return BadRequest("Cart does not exist");
-            }
-            CartItem itemToRemove = cart.Items.Where(c => c.ID == id).FirstOrDefault();
-            cart.Items.Remove(itemToRemove);
-            await _cartRepository.SaveChanges();
-
-            return Ok();
+            return true;
         }
     }
 }

@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using eshopAPI.Services;
-using log4net.Core;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests;
-using eshopAPI.Response;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Net;
+using eshopAPI.Utils;
 
 namespace eshopAPI.Controllers
 {
@@ -51,9 +49,9 @@ namespace eshopAPI.Controllers
         [EnableQuery]
         [HttpGet]
         [AllowAnonymous]
-        public IQueryable<ItemVM> Get()
+        public async Task<IQueryable<ItemVM>> Get()
         {
-            return _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            return await _itemRepository.GetAllItemsForFirstPageAsQueryable();
         }
 
         [HttpPost]
@@ -68,7 +66,7 @@ namespace eshopAPI.Controllers
             }
 
             var result = _imageCloudService.UploadImagesFromFiles(listOfImageStreams);
-            return Ok(result.ToArray());
+            return StatusCode((int) HttpStatusCode.OK, result.ToArray());
         }
 
         [HttpPost("testPaymentService")]
@@ -87,14 +85,21 @@ namespace eshopAPI.Controllers
         {
             Item item = await _itemRepository.FindByID(id);
             if (item == null)
-                return BadRequest("Item not found");
+            {
+                _logger.LogError("Item with ID - " + id + " was not found.");
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Item was not found."));
+            }
 
-            SubCategory subCat = await _categoryRepository.FindSubCategoryByIDAsync(item.SubCategoryID);
+            SubCategory subCat = await _categoryRepository.FindSubCategoryByID(item.SubCategoryID);
             if (subCat == null)
-                return BadRequest("Item does not have subcategory.");
+            {
+                _logger.LogError("Subcategory ID - " + item.SubCategoryID + " was not found for Item - " + item.ID);
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Item does not have subcategory."));
+            }
 
-
-            return Ok(item.GetItemVM(subCat));
+            return StatusCode((int) HttpStatusCode.OK, item.GetItemVM(subCat));
         }
     }
 }
