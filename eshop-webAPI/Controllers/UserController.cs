@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
-using eshopAPI.Requests;
 using eshopAPI.Requests.User;
 using eshopAPI.Utils;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -37,7 +32,7 @@ namespace eshopAPI.Controllers
         public async Task<IActionResult> Profile()
         {
             ShopUserProfile profile = await _shopUserRepository.GetUserProfile(User.Identity.Name);
-            return Ok(profile);
+            return StatusCode((int) HttpStatusCode.OK, profile);
         }
 
         [HttpPut("updateUser")]
@@ -53,17 +48,12 @@ namespace eshopAPI.Controllers
                     new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
 
-            _shopUserRepository.UpdateUserProfile(user, updatedUser);
+            await _shopUserRepository.UpdateUserProfile(user, updatedUser);
 
             await _shopUserRepository.SaveChanges();
             
             _logger.LogInformation("User profile successfully updated");
-            return Ok();
-            
-            //_logger.LogInformation("User profile could not be updated");
-            
-            //return StatusCode((int) HttpStatusCode.BadRequest,
-            //    new ErrorResponse(ErrorReasons.BadRequest, "User profile could not be updated."));
+            return StatusCode((int) HttpStatusCode.NoContent);
         }
     }
 }

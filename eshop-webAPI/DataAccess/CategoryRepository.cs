@@ -9,13 +9,13 @@ namespace eshopAPI.DataAccess
 {
     public interface ICategoryRepository : IBaseRepository
     {
-        Task<SubCategory> FindSubCategoryByIDAsync(long categoryId);
-        Task<Category> FindByIDAsync(long categoryID);
-        Task<List<Category>> GetAllParentCategoriesAsync();
+        Task<SubCategory> FindSubCategoryByID(long categoryId);
+        Task<Category> FindByID(long categoryID);
+        Task<List<Category>> GetAllParentCategories();
         Task<IEnumerable<SubCategory>> GetChildrenOfParent(int parentId);
-        Category FindByName(string name);
-        void Insert(Category category);
-        void Update(Category category);
+        Task<Category> FindByName(string name);
+        Task Insert(Category category);
+        Task Update(Category category);
     }
 
     public class CategoryRepository : BaseRepository, ICategoryRepository
@@ -24,22 +24,22 @@ namespace eshopAPI.DataAccess
         {
         }
 
-        public Task<Category> FindByIDAsync(long categoryID)
+        public Task<Category> FindByID(long categoryID)
         {
             return Context.Categories.FirstOrDefaultAsync(x => x.ID == categoryID);
         }
 
-        public Category FindByName(string name)
+        public Task<Category> FindByName(string name)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<SubCategory> FindSubCategoryByIDAsync(long categoryId)
+        public Task<SubCategory> FindSubCategoryByID(long categoryId)
         {
-            return await Context.SubCategories.Include(sc => sc.Category).FirstOrDefaultAsync(x => x.ID == categoryId);
+            return Context.SubCategories.Include(sc => sc.Category).FirstOrDefaultAsync(x => x.ID == categoryId);
         }
 
-        public Task<List<Category>> GetAllParentCategoriesAsync()
+        public Task<List<Category>> GetAllParentCategories()
         {
             return Context.Categories.ToListAsync();
         }
@@ -54,12 +54,12 @@ namespace eshopAPI.DataAccess
             return categoryList;
         }
 
-        public void Insert(Category category)
+        public Task Insert(Category category)
         {
             throw new NotImplementedException();
         }
 
-        public void Update(Category category)
+        public Task Update(Category category)
         {
             throw new NotImplementedException();
         }

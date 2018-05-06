@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests;
+using eshopAPI.Utils;
 using Microsoft.AspNet.OData;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -34,29 +32,26 @@ namespace eshopAPI.Controllers.Admin
         // GET: api/Items
         [EnableQuery]
         [HttpGet]
-        public IQueryable<AdminItemVM> Get()
+        public async Task<IQueryable<AdminItemVM>> Get()
         {
-            return _itemRepository.GetAllAdminItemVMAsQueryable();
+            return await _itemRepository.GetAllAdminItemVMAsQueryable();
         }
 
         [HttpPost("create")]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Create([FromBody]ItemCreateRequest request)
         {
-            SubCategory category = await _categoryRepository.FindSubCategoryByIDAsync(request.CategoryID);
+            SubCategory category = await _categoryRepository.FindSubCategoryByID(request.CategoryID);
 
             if (category == null)
             {
                 _logger.LogInformation($"No category found with id {request.CategoryID}");
-                return NotFound();
+                return StatusCode((int) HttpStatusCode.NotFound, 
+                    new ErrorResponse(ErrorReasons.NotFound, "Category was not found"));
             }
 
-            DateTime currentDate = DateTime.Now;
-
-            await _itemRepository.InsertAsync(new Item()
+            await _itemRepository.Insert(new Item()
             {
-                CreateDate = currentDate,
-                ModifiedDate = currentDate,
                 Description = request.Description,
                 Name = request.Name,
                 Price = request.Price,
@@ -66,7 +61,7 @@ namespace eshopAPI.Controllers.Admin
 
             await _itemRepository.SaveChanges();
 
-            return Ok();
+            return StatusCode((int) HttpStatusCode.NoContent);
         }
 
     }

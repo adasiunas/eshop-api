@@ -17,12 +17,12 @@ using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Formatter;
 using Microsoft.Net.Http.Headers;
-using static eshopAPI.Controllers.UserController;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using eshopAPI.Utils;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace eshopAPI
 {
@@ -54,12 +54,16 @@ namespace eshopAPI
                 options.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = 401;
-                    return Task.CompletedTask;
+                    context.Response.ContentType = "application/json";
+                    var errorResponse = JsonConvert.SerializeObject(new ErrorResponse(ErrorReasons.Unauthorized, "Unauthorized"));
+                    return context.Response.WriteAsync(errorResponse);
                 };
                 options.Events.OnRedirectToAccessDenied = context =>
                 {
                     context.Response.StatusCode = 403;
-                    return Task.CompletedTask;
+                    context.Response.ContentType = "application/json";
+                    var errorResponse = JsonConvert.SerializeObject(new ErrorResponse(ErrorReasons.Forbidden, "Access forbidden"));
+                    return context.Response.WriteAsync(errorResponse);
                 };
             });
             services.AddCors();
@@ -213,7 +217,6 @@ namespace eshopAPI
                 {
                     //here we tie the new user to the role
                     await UserManager.AddToRoleAsync(poweruser, UserRole.Admin.ToString());
-
                 }
             }
         }
