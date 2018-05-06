@@ -45,9 +45,15 @@ namespace eshop_webAPI.Controllers
             _configuration = configuration;
         }
 
+        [HttpGet("renewcsrftoken")]
+        [AllowAnonymous]
+        public IActionResult RenewCsrfToken()
+        {
+            return NoContent();
+        }
+
         [HttpPost("register")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Register([FromBody]RegisterRequest request)
         {
             var user = new ShopUser { UserName = request.Username, Email = request.Username };
@@ -70,7 +76,6 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
@@ -108,6 +113,7 @@ namespace eshop_webAPI.Controllers
         }
 
         [HttpPost("logout")]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Logout()
         {
             if (!_signInManager.IsSignedIn(User))
@@ -122,7 +128,6 @@ namespace eshop_webAPI.Controllers
 
         [HttpGet("confirmaccount")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ConfirmEmail(ConfirmUserRequest request)
         {
             var user = await _userManager.FindByIdAsync(request.UserId);
@@ -142,7 +147,6 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("forgotPassword")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             var shopUser = await _userManager.FindByEmailAsync(request.Email);
@@ -162,7 +166,6 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("resetpassword")]
         [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordRequest request)
         {
             var shopUser = await _userManager.FindByIdAsync(request.UserId);

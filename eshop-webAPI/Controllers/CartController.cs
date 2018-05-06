@@ -62,7 +62,7 @@ namespace eshopAPI.Controllers
         [HttpPut]
         public async Task<IActionResult> Put([FromBody]CartItemRequest itemRequest)
         {
-            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
+            Cart cart = await GetUserCart();
 
             bool itemAdded = await AddItemToCart(cart, itemRequest);
             if (itemAdded)
@@ -100,11 +100,12 @@ namespace eshopAPI.Controllers
             {
                 _logger.LogInformation("Creating new cart for user - " + User.Identity.Name);
                 ShopUser user = await _userRepository.GetUserWithEmail(User.Identity.Name);
-                await _cartRepository.Insert(new Cart
+                cart = new Cart
                 {
                     User = user,
                     Items = new List<CartItem>()
-                });
+                };
+                await _cartRepository.Insert(cart);
             }
             return cart;
         }

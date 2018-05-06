@@ -95,6 +95,8 @@ namespace eshopAPI
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IEmailSender, EmailSender>();
 
+            services.AddSingleton(typeof(AntiforgeryMiddleware));
+
             services.AddOData();
             
             // this is needed so that swagger would work with odata-created links
@@ -148,17 +150,8 @@ namespace eshopAPI
             loggerFactory.AddLog4Net();
 
             app.UseAuthentication();
+            app.UseAntiforgeryMiddleware();
             CreateRoles(serviceProvider).Wait();
-            app.Use(next => context =>
-            {
-                string path = context.Request.Path.Value;
-                if (path != null && path.StartsWith("/api"))
-                {
-                    var token = antiforgery.GetAndStoreTokens(context);
-                    context.Response.Headers["X-CSRF-COOKIE"] = token.RequestToken;
-                }
-                return next(context);
-            });
             app.UseMvc();
 
             ODataModelBuilder builder = new ODataConventionModelBuilder();
