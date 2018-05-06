@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
@@ -8,8 +6,6 @@ using eshopAPI.Models;
 using eshopAPI.Requests;
 using eshopAPI.Utils;
 using Microsoft.AspNet.OData;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
