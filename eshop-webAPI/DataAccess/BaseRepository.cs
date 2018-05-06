@@ -20,9 +20,9 @@ namespace eshopAPI.DataAccess
 
         protected ShopContext Context { get; }
 
-        public async Task<int> SaveChanges()
+        public Task<int> SaveChanges()
         {
-           return await Context.SaveChangesAsync();
+           return Context.SaveChangesAsync();
         }
     }
 }

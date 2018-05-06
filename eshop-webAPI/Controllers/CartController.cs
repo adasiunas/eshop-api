@@ -102,7 +102,7 @@ namespace eshopAPI.Controllers
             {
                 _logger.LogInformation("Creating new cart for user - " + User.Identity.Name);
                 ShopUser user = await _userRepository.GetUserWithEmail(User.Identity.Name);
-                await _cartRepository.InsertAsync(new Cart
+                await _cartRepository.Insert(new Cart
                 {
                     User = user,
                     Items = new List<CartItem>()

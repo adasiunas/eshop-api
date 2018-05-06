@@ -36,16 +36,16 @@ namespace eshopAPI.Controllers.Admin
         // GET: api/Items
         [EnableQuery]
         [HttpGet]
-        public IQueryable<AdminItemVM> Get()
+        public async Task<IQueryable<AdminItemVM>> Get()
         {
-            return _itemRepository.GetAllAdminItemVMAsQueryable();
+            return await _itemRepository.GetAllAdminItemVMAsQueryable();
         }
 
         [HttpPost("create")]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Create([FromBody]ItemCreateRequest request)
         {
-            SubCategory category = await _categoryRepository.FindSubCategoryByIDAsync(request.CategoryID);
+            SubCategory category = await _categoryRepository.FindSubCategoryByID(request.CategoryID);
 
             if (category == null)
             {
@@ -54,7 +54,7 @@ namespace eshopAPI.Controllers.Admin
                     new ErrorResponse(ErrorReasons.NotFound, "Category was not found"));
             }
 
-            await _itemRepository.InsertAsync(new Item()
+            await _itemRepository.Insert(new Item()
             {
                 Description = request.Description,
                 Name = request.Name,

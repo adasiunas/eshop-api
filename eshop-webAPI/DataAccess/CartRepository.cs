@@ -9,10 +9,10 @@ namespace eshopAPI.DataAccess
 {
     public interface ICartRepository : IBaseRepository
     {
-        Cart FindByID(long cartID);
+        Task<Cart> FindByID(long cartID);
         Task<Cart> FindByUser(string email);
-        Task InsertAsync(Cart cart);
-        void Update(Cart cart);
+        Task Insert(Cart cart);
+        Task Update(Cart cart);
     }
 
     public class CartRepository : BaseRepository, ICartRepository
@@ -21,22 +21,22 @@ namespace eshopAPI.DataAccess
         {
         }
 
-        public Cart FindByID(long cartID)
+        public Task<Cart> FindByID(long cartID)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Cart> FindByUser(string email)
+        public Task<Cart> FindByUser(string email)
         {
-            return await Context.Carts.Include(c => c.User).Include(c => c.Items).Where(c => c.User.NormalizedEmail.Equals(email.Normalize())).FirstOrDefaultAsync();
+            return Context.Carts.Include(c => c.User).Include(c => c.Items).Where(c => c.User.NormalizedEmail.Equals(email.Normalize())).FirstOrDefaultAsync();
         }
 
-        public Task InsertAsync(Cart cart)
+        public Task Insert(Cart cart)
         {
             return Context.Carts.AddAsync(cart);
         }
 
-        public void Update(Cart cart)
+        public Task Update(Cart cart)
         {
             throw new NotImplementedException();
         }

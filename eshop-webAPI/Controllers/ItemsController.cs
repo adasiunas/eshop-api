@@ -53,9 +53,9 @@ namespace eshopAPI.Controllers
         [EnableQuery]
         [HttpGet]
         [AllowAnonymous]
-        public IQueryable<ItemVM> Get()
+        public async Task<IQueryable<ItemVM>> Get()
         {
-            return _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            return await _itemRepository.GetAllItemsForFirstPageAsQueryable();
         }
 
         [HttpPost]
@@ -95,12 +95,12 @@ namespace eshopAPI.Controllers
                     new ErrorResponse(ErrorReasons.NotFound, "Item was not found."));
             }
 
-            SubCategory subCat = await _categoryRepository.FindSubCategoryByIDAsync(item.SubCategoryID);
+            SubCategory subCat = await _categoryRepository.FindSubCategoryByID(item.SubCategoryID);
             if (subCat == null)
             {
                 _logger.LogError("Subcategory ID - " + item.SubCategoryID + " was not found for Item - " + item.ID);
                 return StatusCode((int)HttpStatusCode.NotFound,
-                    new ErrorResponse(ErrorReasons.NotFound, "Item does not have subcategory.");
+                    new ErrorResponse(ErrorReasons.NotFound, "Item does not have subcategory."));
             }
 
             return StatusCode((int) HttpStatusCode.OK, item.GetItemVM(subCat));
