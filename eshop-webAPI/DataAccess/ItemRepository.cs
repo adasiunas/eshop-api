@@ -52,9 +52,7 @@ namespace eshopAPI.DataAccess
 
         public async Task<Item> InsertAsync(Item item)
         {
-            Item insertedItem = (await Context.Items.AddAsync(item)).Entity;
-            await Context.SaveChangesAsync();
-            return insertedItem;
+            return (await Context.Items.AddAsync(item)).Entity;
         }
 
         public void Save()

@@ -64,6 +64,8 @@ namespace eshopAPI.Controllers.Admin
                 SubCategoryID = request.CategoryID
             });
 
+            _itemRepository.Save();
+
             return Ok();
         }
 
