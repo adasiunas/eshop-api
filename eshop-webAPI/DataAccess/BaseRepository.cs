@@ -1,8 +1,4 @@
-﻿using eshopAPI.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
@@ -20,9 +16,9 @@ namespace eshopAPI.DataAccess
 
         protected ShopContext Context { get; }
 
-        public async Task<int> SaveChanges()
+        public Task<int> SaveChanges()
         {
-           return await Context.SaveChangesAsync();
+           return Context.SaveChangesAsync();
         }
     }
 }
