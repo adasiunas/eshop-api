@@ -25,7 +25,7 @@ namespace eshopAPI.Controllers
         private readonly ILogger<ItemsController> _logger;
         private readonly IConfiguration _configuration;
         private readonly IImageCloudService _imageCloudService;
-        private IItemRepository _itemRepository;
+        private readonly IItemRepository _itemRepository;
         private readonly IPaymentService _paymentService;
         private readonly ICategoryRepository _categoryRepository;
 

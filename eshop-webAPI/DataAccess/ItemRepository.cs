@@ -17,10 +17,8 @@ namespace eshopAPI.DataAccess
 
     public class ItemRepository : BaseRepository, IItemRepository
     {
-        private readonly ShopContext _context;
         public ItemRepository(ShopContext context) : base(context)
         {
-            _context = context;
         }
 
         public Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable()
@@ -59,7 +57,7 @@ namespace eshopAPI.DataAccess
         }
         public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable()
         {
-            var query = _context.Items
+            var query = Context.Items
                 .Where(i => i.IsDeleted.Equals(false))
                 .Select(i => new ItemVM
                 {
