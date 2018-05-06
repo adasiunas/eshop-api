@@ -33,10 +33,15 @@ namespace eshopAPI.Controllers
 
         // GET: api/Cart
         [HttpGet]
-        public async Task<Cart> Get()
+        public async Task<IActionResult> Get()
         {
             Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
-            return cart;
+            if (cart == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(cart.GetCartVM());
         }
         
         // POST: api/Cart
@@ -106,8 +111,8 @@ namespace eshopAPI.Controllers
         }
         
         // DELETE: api/deletecartitem/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCartItem([FromQuery] int id)
+        [HttpDelete("deletecartitem/{id}")]
+        public async Task<IActionResult> DeleteCartItem(int id)
         {
             Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
             if (cart == null)
@@ -116,7 +121,7 @@ namespace eshopAPI.Controllers
                 return BadRequest("Cart does not exist");
             }
             CartItem itemToRemove = cart.Items.Where(c => c.ID == id).FirstOrDefault();
-            cart.Items.Remove(itemToRemove);
+            _cartRepository.RemoveCartItem(itemToRemove);
             await _cartRepository.SaveChanges();
 
             return Ok();
