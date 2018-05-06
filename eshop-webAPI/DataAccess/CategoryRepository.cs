@@ -14,6 +14,7 @@ namespace eshopAPI.DataAccess
         Task<List<Category>> GetAllParentCategoriesAsync();
         IEnumerable<SubCategory> GetChildrenOfParent(int parentId);
         Category FindByName(string name);
+        Task<SubCategory> FindSubCategoryByID(long ID);
         void Insert(Category category);
         void Update(Category category);
     }

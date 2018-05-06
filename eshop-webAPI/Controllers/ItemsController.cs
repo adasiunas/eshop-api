@@ -29,13 +29,22 @@ namespace eshopAPI.Controllers
         private readonly IImageCloudService _imageCloudService;
         private IItemRepository _itemRepository;
         private readonly IPaymentService _paymentService;
-        public ItemsController(ILogger<ItemsController> logger, IConfiguration configuration, IImageCloudService imageCloudService, IItemRepository itemRepository, IPaymentService paymentService)
+        private readonly ICategoryRepository _categoryRepository;
+
+        public ItemsController(
+            ILogger<ItemsController> logger,
+            IConfiguration configuration,
+            IImageCloudService imageCloudService,
+            IItemRepository itemRepository,
+            IPaymentService paymentService,
+            ICategoryRepository categoryRepository)
         {
             _configuration = configuration;
             _logger = logger;
             _imageCloudService = imageCloudService;
             _itemRepository = itemRepository;
             _paymentService = paymentService;
+            _categoryRepository = categoryRepository;
         }
         
         // GET: api/Items
@@ -80,7 +89,12 @@ namespace eshopAPI.Controllers
             if (item == null)
                 return BadRequest("Item not found");
 
-            return Ok(item.GetItemVM());
+            SubCategory subCat = await _categoryRepository.FindSubCategoryByID(item.SubCategoryID);
+            if (subCat == null)
+                return BadRequest("Item does not have subcategory.");
+
+
+            return Ok(item.GetItemVM(subCat));
         }
     }
 }
