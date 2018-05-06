@@ -89,7 +89,7 @@ namespace eshopAPI.Controllers
             if (item == null)
                 return BadRequest("Item not found");
 
-            SubCategory subCat = await _categoryRepository.FindSubCategoryByID(item.SubCategoryID);
+            SubCategory subCat = await _categoryRepository.FindSubCategoryByIDAsync(item.SubCategoryID);
             if (subCat == null)
                 return BadRequest("Item does not have subcategory.");
 

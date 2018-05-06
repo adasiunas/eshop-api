@@ -34,7 +34,7 @@ namespace eshopAPI.Controllers.Admin
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> GetChildren(int parentId)
         {
-            var children = _categoryRepository.GetChildrenOfParent(parentId);
+            var children = await _categoryRepository.GetChildrenOfParent(parentId);
 
             if(children == null)
             {
