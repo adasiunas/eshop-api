@@ -10,7 +10,7 @@ namespace eshopAPI.DataAccess
     public interface IItemRepository
     {
         Task<Item> FindByID(long itemID);
-        void Insert(Item item);
+        Task<Item> InsertAsync(Item item);
         IQueryable<AdminItemVM> GetAllAdminItemVMAsQueryable();
         void Update(Item item);
         void Save();
@@ -22,22 +22,23 @@ namespace eshopAPI.DataAccess
         private readonly ShopContext _context;
         public ItemRepository(ShopContext context) : base(context)
         {
+            _context = context;
         }
 
         public IQueryable<AdminItemVM> GetAllAdminItemVMAsQueryable()
         {
             var query =
-                from item in Context.Items
-                join category in Context.Categories on item.CategoryID equals category.ID
-                select new AdminItemVM()
+                Context.Items
+                .Include(x => x.SubCategory)
+                .Select(x => new AdminItemVM()
                 {
-                    Category = category.Name,
-                    Name = item.Name,
-                    ID = item.ID,
-                    Description = item.Description,
-                    Price = item.Price,
-                    SKU = item.SKU
-                };
+                    Category = x.SubCategory.Name,
+                    Name = x.Name,
+                    ID = x.ID,
+                    Description = x.Description,
+                    Price = x.Price,
+                    SKU = x.SKU
+                });
             return query;
         }
 
@@ -49,7 +50,7 @@ namespace eshopAPI.DataAccess
                 .FirstOrDefaultAsync();
         }
 
-        public void Insert(Item item)
+        public async Task<Item> InsertAsync(Item item)
         {
             Item insertedItem = (await Context.Items.AddAsync(item)).Entity;
             await Context.SaveChangesAsync();
