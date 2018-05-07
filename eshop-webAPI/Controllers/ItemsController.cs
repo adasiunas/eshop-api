@@ -91,15 +91,15 @@ namespace eshopAPI.Controllers
                     new ErrorResponse(ErrorReasons.NotFound, "Item was not found."));
             }
 
-            SubCategory subCat = await _categoryRepository.FindSubCategoryByID(item.SubCategoryID);
-            if (subCat == null)
+            SubCategory subcategory = await _categoryRepository.FindSubCategoryByID(item.SubCategoryID);
+            if (subcategory == null)
             {
                 _logger.LogError("Subcategory ID - " + item.SubCategoryID + " was not found for Item - " + item.ID);
                 return StatusCode((int)HttpStatusCode.NotFound,
                     new ErrorResponse(ErrorReasons.NotFound, "Item does not have subcategory."));
             }
 
-            return StatusCode((int) HttpStatusCode.OK, item.GetItemVM(subCat));
+            return StatusCode((int) HttpStatusCode.OK, item.GetItemVM(subcategory));
         }
     }
 }

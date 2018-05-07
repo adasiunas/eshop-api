@@ -22,10 +22,10 @@ namespace eshopAPI.Models
     {
         public string Name { get; set; }
         public long ID { get; set; }
-        public ItemSubcategoryVM Subcategory { get; set; }
+        public ItemSubCategoryVM SubCategory { get; set; }
     }
 
-    public class ItemSubcategoryVM
+    public class ItemSubCategoryVM
     {
         public string Name { get; set; }
         public long ID { get; set; }
