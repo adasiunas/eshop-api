@@ -40,7 +40,7 @@ namespace eshopAPI.DataAccess
 
         public Task<Item> FindByID(long itemID)
         {
-            return _context.Items.Where(i => i.ID == itemID)
+            return Context.Items.Where(i => i.ID == itemID)
                 .Include(i => i.Pictures)
                 .Include(i => i.Attributes).ThenInclude(a => a.Attribute)
                 .FirstOrDefaultAsync();
@@ -58,7 +58,6 @@ namespace eshopAPI.DataAccess
         public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable()
         {
             var query = Context.Items
-                .Where(i => i.IsDeleted.Equals(false))
                 .Select(i => new ItemVM
                 {
                     ID = i.ID,
@@ -70,9 +69,18 @@ namespace eshopAPI.DataAccess
                     {
                         Name = a.Attribute.Name,
                         Value = a.Value
-                    }).Take(2)
+                    }).Take(2),
+                    ItemCategory = new ItemCategoryVM
+                    {
+                        Name = i.SubCategory.Category.Name,
+                        ID = i.SubCategory.CategoryID,
+                        SubCategory = new ItemSubCategoryVM
+                        {
+                            ID = i.SubCategoryID,
+                            Name = i.SubCategory.Name
+                        }
+                    }
                 });
-
             return Task.FromResult(query);
         }
 
