@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,6 +26,7 @@ namespace eshopAPI.Models
         public DateTime ModifiedDate { get; set; }
         public DateTime? DeleteDate { get; set; }
         public bool IsDeleted { get; set; }
+        [ForeignKey("SubCategory")]
         public long SubCategoryID { get; set; }
         public SubCategory SubCategory { get; set; }
 
@@ -50,7 +52,7 @@ namespace eshopAPI.Models
                 {
                     Name = subCategory.Category.Name,
                     ID = subCategory.Category.ID,
-                    Subcategory = new ItemSubcategoryVM
+                    SubCategory = new ItemSubCategoryVM
                     {
                         Name = subCategory.Name,
                         ID = subCategory.ID

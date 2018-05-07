@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
+using eshopAPI.Models.ViewModels;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -28,9 +30,11 @@ namespace eshopAPI.Controllers
         [EnableQuery]
         [HttpGet]
         [AllowAnonymous]
-        public IEnumerable<Category> Get()
+        public async Task<IActionResult> Get()
         {
-            return _categoryRepository.GetAllCategories();
+            var categories = await _categoryRepository.GetCategoriesWithSubcategories();
+            var categoriesVM = categories.Select(c => c.GetCategoryVM());
+            return StatusCode((int)HttpStatusCode.OK, categoriesVM);
         }
     }
 }
