@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using eshopAPI.Services;
-using log4net.Core;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests;
-using eshopAPI.Response;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Net;
+using eshopAPI.Utils;
 
 namespace eshopAPI.Controllers
 {
@@ -27,24 +25,33 @@ namespace eshopAPI.Controllers
         private readonly ILogger<ItemsController> _logger;
         private readonly IConfiguration _configuration;
         private readonly IImageCloudService _imageCloudService;
-        private IItemRepository _itemRepository;
+        private readonly IItemRepository _itemRepository;
         private readonly IPaymentService _paymentService;
-        public ItemsController(ILogger<ItemsController> logger, IConfiguration configuration, IImageCloudService imageCloudService, IItemRepository itemRepository, IPaymentService paymentService)
+        private readonly ICategoryRepository _categoryRepository;
+
+        public ItemsController(
+            ILogger<ItemsController> logger,
+            IConfiguration configuration,
+            IImageCloudService imageCloudService,
+            IItemRepository itemRepository,
+            IPaymentService paymentService,
+            ICategoryRepository categoryRepository)
         {
             _configuration = configuration;
             _logger = logger;
             _imageCloudService = imageCloudService;
             _itemRepository = itemRepository;
             _paymentService = paymentService;
+            _categoryRepository = categoryRepository;
         }
         
         // GET: api/Items
         [EnableQuery]
         [HttpGet]
         [AllowAnonymous]
-        public IQueryable<ItemVM> Get()
+        public async Task<IQueryable<ItemVM>> Get()
         {
-            return _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            return await _itemRepository.GetAllItemsForFirstPageAsQueryable();
         }
 
         [HttpPost]
@@ -59,7 +66,7 @@ namespace eshopAPI.Controllers
             }
 
             var result = _imageCloudService.UploadImagesFromFiles(listOfImageStreams);
-            return Ok(result.ToArray());
+            return StatusCode((int) HttpStatusCode.OK, result.ToArray());
         }
 
         [HttpPost("testPaymentService")]
@@ -78,9 +85,21 @@ namespace eshopAPI.Controllers
         {
             Item item = await _itemRepository.FindByID(id);
             if (item == null)
-                return BadRequest("Item not found");
+            {
+                _logger.LogError("Item with ID - " + id + " was not found.");
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Item was not found."));
+            }
 
-            return Ok(item.GetItemVM());
+            SubCategory subCat = await _categoryRepository.FindSubCategoryByID(item.SubCategoryID);
+            if (subCat == null)
+            {
+                _logger.LogError("Subcategory ID - " + item.SubCategoryID + " was not found for Item - " + item.ID);
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Item does not have subcategory."));
+            }
+
+            return StatusCode((int) HttpStatusCode.OK, item.GetItemVM(subCat));
         }
     }
 }
