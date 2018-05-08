@@ -40,7 +40,7 @@ namespace eshopAPI.DataAccess
 
         public Task<Item> FindByID(long itemID)
         {
-            return _context.Items.Where(i => i.ID == itemID)
+            return Context.Items.Where(i => i.ID == itemID)
                 .Include(i => i.Pictures)
                 .Include(i => i.Attributes).ThenInclude(a => a.Attribute)
                 .FirstOrDefaultAsync();

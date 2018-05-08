@@ -12,7 +12,7 @@ namespace eshopAPI.DataAccess
         Task<Cart> FindByUser(string email);
         Task Insert(Cart cart);
         Task Update(Cart cart);
-        void RemoveCartItem(CartItem item);
+        Task RemoveCartItem(CartItem item);
     }
 
     public class CartRepository : BaseRepository, ICartRepository
@@ -42,9 +42,11 @@ namespace eshopAPI.DataAccess
             return Context.Carts.AddAsync(cart);
         }
 
-        public void RemoveCartItem(CartItem item)
+        public Task RemoveCartItem(CartItem item)
         {
             Context.CartItems.Remove(item);
+
+            return Task.CompletedTask;
         }
 
         public Task Update(Cart cart)

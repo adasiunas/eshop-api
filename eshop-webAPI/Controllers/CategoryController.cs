@@ -25,12 +25,12 @@ namespace eshopAPI.Controllers
             _categoryRepository = categoryRepository;
         }
 
-        [EnableQuery]
-        [HttpGet]
-        [AllowAnonymous]
-        public IEnumerable<Category> Get()
-        {
-            return _categoryRepository.GetAllCategories();
-        }
+        //[EnableQuery]
+        //[HttpGet]
+        //[AllowAnonymous]
+        //public IEnumerable<Category> Get()
+        //{
+        //    //return _categoryRepository.GetAllCategories();
+        //}
     }
 }

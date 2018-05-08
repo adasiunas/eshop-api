@@ -80,6 +80,28 @@ namespace eshopAPI.Controllers
                 new ErrorResponse(ErrorReasons.NotFound, "Item you want to add to cart does not exist."));
         }
 
+        // PUT: api/Cart/updatecartitems
+        [HttpPut("updatecartitems")]
+        public async Task<IActionResult> UpdateCartItems([FromBody]CartRequest cartRequest)
+        {
+            Cart cart = await GetUserCart();
+            if (cart == null)
+                return StatusCode((int)HttpStatusCode.NotFound, new ErrorResponse(ErrorReasons.NotFound, "Cart not found."));
+
+            foreach (var item in cartRequest.Items)
+            {
+                CartItem cartItem = cart.Items.FirstOrDefault(i => i.ID == item.ItemID);
+                if(cartItem == null)
+                    return StatusCode((int)HttpStatusCode.NotFound, new ErrorResponse(ErrorReasons.NotFound, "Item cannot be updateded because it is not found."));
+
+                cartItem.Count = item.Count;
+            }
+
+            await _cartRepository.SaveChanges();
+
+            return StatusCode((int)HttpStatusCode.NoContent);
+        }
+
         // DELETE: api/deletecartitem/{id}
         [HttpDelete("deletecartitem/{id}")]
         public async Task<IActionResult> DeleteCartItem(int id)
@@ -88,13 +110,14 @@ namespace eshopAPI.Controllers
             if (cart == null)
             {
                 _logger.LogError("Trying to remove item but cart does not exist");
-                return BadRequest("Cart does not exist");
+                return StatusCode((int) HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Cart does not exist"));
             }
             CartItem itemToRemove = cart.Items.Where(c => c.ID == id).FirstOrDefault();
-            _cartRepository.RemoveCartItem(itemToRemove);
+            await _cartRepository.RemoveCartItem(itemToRemove);
             await _cartRepository.SaveChanges();
 
-            return Ok();
+            return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         private async Task<Cart> GetUserCart()
@@ -134,8 +157,8 @@ namespace eshopAPI.Controllers
                 _logger.LogInformation("Item is already in cart, changing count from " + existingItem.Count + " to " + existingItem.Count + itemRequest.Count);
                 existingItem.Count += itemRequest.Count;
             }
-            await _cartRepository.SaveChanges();
-            return Ok();
+            
+            return true;
         }
        
     }
