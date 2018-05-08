@@ -17,12 +17,13 @@ using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Formatter;
 using Microsoft.Net.Http.Headers;
-using static eshopAPI.Controllers.UserController;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using eshopAPI.Utils;
+using eshopAPI.Models.ViewModels;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace eshopAPI
 {
@@ -54,12 +55,16 @@ namespace eshopAPI
                 options.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = 401;
-                    return Task.CompletedTask;
+                    context.Response.ContentType = "application/json";
+                    var errorResponse = JsonConvert.SerializeObject(new ErrorResponse(ErrorReasons.Unauthorized, "Unauthorized"));
+                    return context.Response.WriteAsync(errorResponse);
                 };
                 options.Events.OnRedirectToAccessDenied = context =>
                 {
                     context.Response.StatusCode = 403;
-                    return Task.CompletedTask;
+                    context.Response.ContentType = "application/json";
+                    var errorResponse = JsonConvert.SerializeObject(new ErrorResponse(ErrorReasons.Forbidden, "Access forbidden"));
+                    return context.Response.WriteAsync(errorResponse);
                 };
             });
             services.AddCors();
@@ -90,6 +95,8 @@ namespace eshopAPI
             services.AddScoped<IImageCloudService, ImageCloudService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IEmailSender, EmailSender>();
+
+            services.AddSingleton(typeof(AntiforgeryMiddleware));
 
             services.AddOData();
             
@@ -144,17 +151,8 @@ namespace eshopAPI
             loggerFactory.AddLog4Net();
 
             app.UseAuthentication();
+            app.UseAntiforgeryMiddleware();
             CreateRoles(serviceProvider).Wait();
-            app.Use(next => context =>
-            {
-                string path = context.Request.Path.Value;
-                if (path != null && path.StartsWith("/api"))
-                {
-                    var token = antiforgery.GetAndStoreTokens(context);
-                    context.Response.Headers["X-CSRF-COOKIE"] = token.RequestToken;
-                }
-                return next(context);
-            });
             app.UseMvc();
 
             ODataModelBuilder builder = new ODataConventionModelBuilder();
@@ -164,6 +162,12 @@ namespace eshopAPI
 
             var itemEntitySet = builder.EntitySet<ItemVM>("Items");
             itemEntitySet.EntityType.HasKey(e => e.ID);
+
+            var adminItemEntitySet = builder.EntitySet<AdminItemVM>("AdminItems");
+            adminItemEntitySet.EntityType.HasKey(e => e.ID);
+
+            var orderEntitySet = builder.EntitySet<OrderVM>("Orders");
+            orderEntitySet.EntityType.HasKey(e => e.ID);
 
             app.UseMvc(routeBuilder =>
             {
@@ -211,7 +215,6 @@ namespace eshopAPI
                 {
                     //here we tie the new user to the role
                     await UserManager.AddToRoleAsync(poweruser, UserRole.Admin.ToString());
-
                 }
             }
         }

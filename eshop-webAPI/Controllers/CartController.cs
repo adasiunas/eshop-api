@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests.Cart;
+using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -38,78 +38,48 @@ namespace eshopAPI.Controllers
             Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
             if (cart == null)
             {
-                return BadRequest();
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Cart not found."));
             }
-
-            return Ok(cart.GetCartVM());
+            return StatusCode((int)HttpStatusCode.OK, cart.GetCartVM());
         }
         
         // POST: api/Cart
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]CartRequest request)
         {
-            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
-            ShopUser user = await _userRepository.GetUserWithEmail(User.Identity.Name);
-            if (cart == null)
-            {
-                _logger.LogInformation("Creating new cart for user - " + User.Identity.Name);
-                cart = new Cart { User = user };
-                _cartRepository.Insert(cart);
-            }
+            Cart cart = await GetUserCart();
 
-            cart.Items = new List<CartItem>();
+            int notFoundCount = 0;
             foreach(var itemRequest in request.Items)
             {
-                Item item = await _itemRepository.FindByID(itemRequest.ItemID);
-                if (item == null)
-                {
-                    _logger.LogError("Item with ID - " + itemRequest.ItemID + " was not found.");
-                    return BadRequest("Attempting to add non-existing item to cart.");
-                }
-
-                CartItem cartItem = new CartItem { Item = item, Count = itemRequest.Count };
-                cart.Items.Add(cartItem);
+                bool added = await AddItemToCart(cart, itemRequest);
+                if (!added)
+                    notFoundCount++;
             }
             await _cartRepository.SaveChanges();
 
-            _logger.LogInformation("New cart was created.");
-            return Ok();
+            _logger.LogInformation(notFoundCount + " items was not found and could not be added to cart");
+            return StatusCode((int) HttpStatusCode.OK, notFoundCount);
         }
         
         // PUT: api/Cart
         [HttpPut]
         public async Task<IActionResult> Put([FromBody]CartItemRequest itemRequest)
         {
-            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
-            if (cart == null)
+            Cart cart = await GetUserCart();
+
+            bool itemAdded = await AddItemToCart(cart, itemRequest);
+            if (itemAdded)
             {
-                _logger.LogInformation("Creating new cart for user - " + User.Identity.Name);
-                ShopUser user = await _userRepository.GetUserWithEmail(User.Identity.Name);
-                cart = new Cart { User = user, Items = new List<CartItem>() };
-                _cartRepository.Insert(cart);
+                await _cartRepository.SaveChanges();
+                return StatusCode((int) HttpStatusCode.NoContent);
             }
 
-            Item item = await _itemRepository.FindByID(itemRequest.ItemID);
-            if (item == null)
-            {
-                _logger.LogError("Item with ID - " + itemRequest.ItemID + " was not found.");
-                return BadRequest("Attempting to add non-existing item to cart.");
-            }
-            CartItem existingItem = cart.Items.Where(i => i.ItemID == item.ID).FirstOrDefault();
-            if (existingItem == null)
-            {
-                _logger.LogInformation("Adding new item to cart.");
-                cart.Items.Add(new CartItem { Item = item, Count = itemRequest.Count });
-            }
-            else
-            {
-                _logger.LogInformation("Item is already in cart, changing count from " + existingItem.Count + " to " + existingItem.Count + itemRequest.Count);
-                existingItem.Count += itemRequest.Count;
-            }
-            await _cartRepository.SaveChanges();
-            return Ok();
+            return StatusCode((int)HttpStatusCode.NotFound,
+                new ErrorResponse(ErrorReasons.NotFound, "Item you want to add to cart does not exist."));
         }
-        
+
         // DELETE: api/deletecartitem/{id}
         [HttpDelete("deletecartitem/{id}")]
         public async Task<IActionResult> DeleteCartItem(int id)
@@ -126,5 +96,47 @@ namespace eshopAPI.Controllers
 
             return Ok();
         }
+
+        private async Task<Cart> GetUserCart()
+        {
+            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
+            if (cart == null)
+            {
+                _logger.LogInformation("Creating new cart for user - " + User.Identity.Name);
+                ShopUser user = await _userRepository.GetUserWithEmail(User.Identity.Name);
+                cart = new Cart
+                {
+                    User = user,
+                    Items = new List<CartItem>()
+                };
+                await _cartRepository.Insert(cart);
+            }
+            return cart;
+        }
+
+        private async Task<bool> AddItemToCart(Cart cart, CartItemRequest itemRequest)
+        {
+            Item item = await _itemRepository.FindByID(itemRequest.ItemID);
+            if (item == null)
+            {
+                _logger.LogError("Item with ID - " + itemRequest.ItemID + " was not found.");
+                return false;
+            }
+
+            CartItem existingItem = cart.Items.Where(i => i.ItemID == item.ID).FirstOrDefault();
+            if (existingItem == null)
+            {
+                _logger.LogInformation("Adding new item to cart.");
+                cart.Items.Add(new CartItem { Item = item, Count = itemRequest.Count });
+            }
+            else
+            {
+                _logger.LogInformation("Item is already in cart, changing count from " + existingItem.Count + " to " + existingItem.Count + itemRequest.Count);
+                existingItem.Count += itemRequest.Count;
+            }
+            await _cartRepository.SaveChanges();
+            return Ok();
+        }
+       
     }
 }
