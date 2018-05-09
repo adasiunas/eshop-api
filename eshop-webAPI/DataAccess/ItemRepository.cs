@@ -1,4 +1,5 @@
 ﻿using eshopAPI.Models;
+using eshopAPI.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -58,21 +59,32 @@ namespace eshopAPI.DataAccess
         public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable()
         {
             var query = Context.Items
-                .Where(i => i.IsDeleted.Equals(false))
                 .Select(i => new ItemVM
                 {
                     ID = i.ID,
                     SKU = i.SKU,
                     Name = i.Name,
                     Price = i.Price,
-                    MainPicture = i.Pictures.Select(p => p.URL).FirstOrDefault(),
+                    Description = i.Description,
+                    Pictures = i.Pictures.Select(p => new ItemPictureVM { ID = p.ID, URL = p.URL }),
                     Attributes = i.Attributes.Select(a => new ItemAttributesVM
                     {
+                        ID = a.ID,
+                        AttributeID = a.AttributeID,
                         Name = a.Attribute.Name,
                         Value = a.Value
-                    }).Take(2)
+                    }),
+                    ItemCategory = new ItemCategoryVM
+                    {
+                        Name = i.SubCategory.Category.Name,
+                        ID = i.SubCategory.CategoryID,
+                        SubCategory = new ItemSubCategoryVM
+                        {
+                            ID = i.SubCategoryID,
+                            Name = i.SubCategory.Name
+                        }
+                    }
                 });
-
             return Task.FromResult(query);
         }
 

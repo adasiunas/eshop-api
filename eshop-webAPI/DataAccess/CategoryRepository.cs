@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
 
 namespace eshopAPI.DataAccess
 {
@@ -17,6 +16,7 @@ namespace eshopAPI.DataAccess
         Task<Category> FindByName(string name);
         Task Insert(Category category);
         Task Update(Category category);
+        Task<List<Category>> GetCategoriesWithSubcategories();
     }
 
     public class CategoryRepository : BaseRepository, ICategoryRepository
@@ -53,6 +53,11 @@ namespace eshopAPI.DataAccess
                 .FirstOrDefaultAsync())?.SubCategories;
 
             return categoryList;
+        }
+
+        public Task<List<Category>> GetCategoriesWithSubcategories()
+        {
+            return Context.Categories.Include(c => c.SubCategories).ToListAsync();
         }
 
         public Task Insert(Category category)
