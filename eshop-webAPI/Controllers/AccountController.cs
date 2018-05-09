@@ -76,6 +76,7 @@ namespace eshop_webAPI.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Login([FromBody]LoginRequest loginRequest)
         {
             _logger.LogInformation("Call to login from " + loginRequest.Email);
@@ -113,6 +114,7 @@ namespace eshop_webAPI.Controllers
         }
 
         [HttpPost("logout")]
+        [AllowAnonymous]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Logout()
         {
