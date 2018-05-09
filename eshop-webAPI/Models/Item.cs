@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace eshopAPI.Models
 {
@@ -32,33 +30,5 @@ namespace eshopAPI.Models
 
         public virtual ICollection<AttributeValue> Attributes { get; set; }
         public virtual ICollection<ItemPicture> Pictures { get; set; }
-    }
-
-    public static class ItemExtensions
-    {
-        public static ItemVM GetItemVM(this Item item, SubCategory subCategory)
-        {
-            return new ItemVM
-            {
-                ID = item.ID,
-                Name = item.Name,
-                SKU = item.SKU,
-                Description = item.Description,
-                Pictures = item.Pictures,
-                Attributes = item.Attributes?.Select(i => new ItemAttributesVM { ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value }),
-                Price = item.Price,
-                MainPicture = item.Pictures?.Select(p => p.URL).FirstOrDefault(),
-                ItemCategory = new ItemCategoryVM
-                {
-                    Name = subCategory.Category.Name,
-                    ID = subCategory.Category.ID,
-                    SubCategory = new ItemSubCategoryVM
-                    {
-                        Name = subCategory.Name,
-                        ID = subCategory.ID
-                    }
-                }
-            };
-        }
     }
 }
