@@ -78,28 +78,5 @@ namespace eshopAPI.Controllers
             
             return StatusCode(paymentResponse.ResponseCode, paymentResponse);
         }
-
-        [HttpGet("itemdetails/{id}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> ItemDetails([FromRoute] long id)
-        {
-            Item item = await _itemRepository.FindByID(id);
-            if (item == null)
-            {
-                _logger.LogError("Item with ID - " + id + " was not found.");
-                return StatusCode((int) HttpStatusCode.NotFound,
-                    new ErrorResponse(ErrorReasons.NotFound, "Item was not found."));
-            }
-
-            SubCategory subCat = await _categoryRepository.FindSubCategoryByID(item.SubCategoryID);
-            if (subCat == null)
-            {
-                _logger.LogError("Subcategory ID - " + item.SubCategoryID + " was not found for Item - " + item.ID);
-                return StatusCode((int)HttpStatusCode.NotFound,
-                    new ErrorResponse(ErrorReasons.NotFound, "Item does not have subcategory."));
-            }
-
-            return StatusCode((int) HttpStatusCode.OK, item.GetItemVM(subCat));
-        }
     }
 }

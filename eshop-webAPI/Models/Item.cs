@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace eshopAPI.Models
 {
@@ -25,38 +24,11 @@ namespace eshopAPI.Models
         public DateTime ModifiedDate { get; set; }
         public DateTime? DeleteDate { get; set; }
         public bool IsDeleted { get; set; }
+        [ForeignKey("SubCategory")]
         public long SubCategoryID { get; set; }
         public SubCategory SubCategory { get; set; }
 
         public virtual ICollection<AttributeValue> Attributes { get; set; }
         public virtual ICollection<ItemPicture> Pictures { get; set; }
-    }
-
-    public static class ItemExtensions
-    {
-        public static ItemVM GetItemVM(this Item item, SubCategory subCategory)
-        {
-            return new ItemVM
-            {
-                ID = item.ID,
-                Name = item.Name,
-                SKU = item.SKU,
-                Description = item.Description,
-                Pictures = item.Pictures,
-                Attributes = item.Attributes?.Select(i => new ItemAttributesVM { ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value }),
-                Price = item.Price,
-                MainPicture = item.Pictures?.Select(p => p.URL).FirstOrDefault(),
-                ItemCategory = new ItemCategoryVM
-                {
-                    Name = subCategory.Category.Name,
-                    ID = subCategory.Category.ID,
-                    Subcategory = new ItemSubcategoryVM
-                    {
-                        Name = subCategory.Name,
-                        ID = subCategory.ID
-                    }
-                }
-            };
-        }
     }
 }
