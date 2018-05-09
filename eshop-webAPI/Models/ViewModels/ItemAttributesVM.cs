@@ -11,6 +11,5 @@ namespace eshopAPI.Models
         public long AttributeID { get; set; }
         public string Name { get; set; }
         public string Value { get; set; }
-
     }
 }
