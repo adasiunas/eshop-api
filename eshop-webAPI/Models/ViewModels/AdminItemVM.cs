@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Models
 {
-    public class ItemAttributesVM
+    public class AdminItemVM
     {
         public long ID { get; set; }
-        public long AttributeID { get; set; }
         public string Name { get; set; }
-        public string Value { get; set; }
-
+        public string SKU { get; set; }
+        public string Description { get; set; }
+        public decimal Price { get; set; }
+        public string Category { get; set; }
     }
 }

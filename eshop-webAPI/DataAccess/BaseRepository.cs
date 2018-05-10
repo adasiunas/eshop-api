@@ -1,12 +1,13 @@
-﻿using eshopAPI.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
-    public class BaseRepository
+    public interface IBaseRepository
+    {
+        Task<int> SaveChanges();
+    }
+
+    public class BaseRepository : IBaseRepository
     {
         public BaseRepository(ShopContext context)
         {
@@ -14,5 +15,10 @@ namespace eshopAPI.DataAccess
         }
 
         protected ShopContext Context { get; }
+
+        public Task<int> SaveChanges()
+        {
+           return Context.SaveChangesAsync();
+        }
     }
 }

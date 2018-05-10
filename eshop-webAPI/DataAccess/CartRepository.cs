@@ -1,19 +1,18 @@
 ﻿using eshopAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
 {
-    public interface ICartRepository
+    public interface ICartRepository : IBaseRepository
     {
-        Cart FindByID(long cartID);
+        Task<Cart> FindByID(long cartID);
         Task<Cart> FindByUser(string email);
-        void Insert(Cart cart);
-        void Update(Cart cart);
-        Task<int> Save();
+        Task Insert(Cart cart);
+        Task Update(Cart cart);
+        Task RemoveCartItem(CartItem item);
     }
 
     public class CartRepository : BaseRepository, ICartRepository
@@ -22,27 +21,35 @@ namespace eshopAPI.DataAccess
         {
         }
 
-        public Cart FindByID(long cartID)
+        public Task<Cart> FindByID(long cartID)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Cart> FindByUser(string email)
+        public Task<Cart> FindByUser(string email)
         {
-            return await Context.Carts.Include(c => c.User).Include(c => c.Items).Where(c => c.User.NormalizedEmail.Equals(email.Normalize())).FirstOrDefaultAsync();
+
+            return Context.Carts.Include(c => c.User)
+                .Include(c => c.Items).ThenInclude(i => i.Item).ThenInclude(p => p.Pictures)
+                .Include(c => c.Items).ThenInclude(i => i.Item).ThenInclude(a => a.Attributes).ThenInclude(a => a.Attribute)
+                .Where(c => c.User.NormalizedEmail
+                    .Equals(email.Normalize()))
+                .FirstOrDefaultAsync();
         }
 
-        public void Insert(Cart cart)
+        public Task Insert(Cart cart)
         {
-            Context.Carts.Add(cart);
+            return Context.Carts.AddAsync(cart);
         }
 
-        public async Task<int> Save()
+        public Task RemoveCartItem(CartItem item)
         {
-            return await Context.SaveChangesAsync();
+            Context.CartItems.Remove(item);
+
+            return Task.CompletedTask;
         }
 
-        public void Update(Cart cart)
+        public Task Update(Cart cart)
         {
             throw new NotImplementedException();
         }
