@@ -95,6 +95,13 @@ namespace eshopAPI.Controllers.Admin
         public async Task<IActionResult> UpdateSubcategoryName([FromBody] CategoryUpdateRequest request)
         {
             SubCategory subCategory = await _categoryRepository.FindSubCategoryByID(request.ID);
+
+            if (subCategory == null)
+            {
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Subcategory with such ID not found"));
+            }
+
             subCategory.Name = request.Name;
 
             await _categoryRepository.SaveChanges();
@@ -106,6 +113,13 @@ namespace eshopAPI.Controllers.Admin
         public async Task<IActionResult> UpdateCategoryName([FromBody] CategoryUpdateRequest request)
         {
             Category category = await _categoryRepository.FindByID(request.ID);
+
+            if (category == null)
+            {
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Category with such ID not found"));
+            }
+
             category.Name = request.Name;
 
             await _categoryRepository.SaveChanges();
@@ -117,6 +131,13 @@ namespace eshopAPI.Controllers.Admin
         public async Task<IActionResult> DeleteSubcategory([FromQuery] int id)
         {
             SubCategory subCategory = await _categoryRepository.FindSubCategoryByID(id);
+
+            if (subCategory == null)
+            {
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Subcategory with such ID not found"));
+            }
+
             subCategory = await _categoryRepository.DeleteSubcategory(subCategory);
 
             await _categoryRepository.SaveChanges();
@@ -128,6 +149,13 @@ namespace eshopAPI.Controllers.Admin
         public async Task<IActionResult> DeleteCategory([FromQuery] int id)
         {
             Category category = await _categoryRepository.FindByID(id);
+
+            if(category == null)
+            {
+                return StatusCode((int)HttpStatusCode.NotFound, 
+                    new ErrorResponse(ErrorReasons.NotFound, "Category with such ID not found"));
+            }
+
             category = await _categoryRepository.DeleteCategory(category);
 
             await _categoryRepository.SaveChanges();

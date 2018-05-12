@@ -7,18 +7,17 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Validators.Request
 {
-    public class CategoryUpdateValidator : AbstractValidator<SubcategoryCreateRequest>
+    public class CategoryUpdateValidator : AbstractValidator<CategoryUpdateRequest>
     {
         public CategoryUpdateValidator()
         {
+            RuleFor(r => r.ID)
+                .NotEmpty();
+
             RuleFor(r => r.Name)
                 .NotEmpty()
                 .MinimumLength(10)
                 .MaximumLength(50);
-
-            RuleFor(r => r.ParentID)
-                .NotEmpty()
-                .GreaterThan(0);
         }
     }
 }
