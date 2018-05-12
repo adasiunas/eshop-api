@@ -12,11 +12,13 @@ namespace eshopAPI.DataAccess
         Task<SubCategory> FindSubCategoryByID(long categoryId);
         Task<Category> FindByID(long categoryID);
         Task<List<Category>> GetAllParentCategories();
-        Task<IEnumerable<SubCategory>> GetChildrenOfParent(int parentId);
+        Task<List<SubCategory>> GetChildrenOfParent(int parentId);
         Task<Category> FindByName(string name);
-        Task Insert(Category category);
-        Task Update(Category category);
+        Task<Category> InsertCategory(Category category);
+        Task<SubCategory> InsertSubcategory(SubCategory subCategory);
         Task<List<Category>> GetCategoriesWithSubcategories();
+        Task<Category> DeleteCategory(Category category);
+        Task<SubCategory> DeleteSubcategory(SubCategory subCategory);
     }
 
     public class CategoryRepository : BaseRepository, ICategoryRepository
@@ -42,17 +44,18 @@ namespace eshopAPI.DataAccess
 
         public Task<List<Category>> GetAllParentCategories()
         {
-            return Context.Categories.ToListAsync();
+            return Context.Categories.Include(x => x.SubCategories).ToListAsync();
         }
 
-        public async Task<IEnumerable<SubCategory>> GetChildrenOfParent(int parentId)
+        public async Task<List<SubCategory>> GetChildrenOfParent(int parentId)
         {
             var categoryList = (await Context.Categories
                 .Where(x => x.ID == parentId)
                 .Include(x => x.SubCategories)
+                .ThenInclude(x => x.Items)
                 .FirstOrDefaultAsync())?.SubCategories;
 
-            return categoryList;
+            return categoryList.ToList();
         }
 
         public Task<List<Category>> GetCategoriesWithSubcategories()
@@ -60,14 +63,24 @@ namespace eshopAPI.DataAccess
             return Context.Categories.Include(c => c.SubCategories).ToListAsync();
         }
 
-        public Task Insert(Category category)
+        public async Task<Category> InsertCategory(Category category)
         {
-            throw new NotImplementedException();
+            return (await Context.Categories.AddAsync(category)).Entity;
         }
 
-        public Task Update(Category category)
+        public async Task<SubCategory> InsertSubcategory(SubCategory subCategory)
         {
-            throw new NotImplementedException();
+            return (await Context.SubCategories.AddAsync(subCategory)).Entity;
+        }
+
+        public Task<Category> DeleteCategory(Category category)
+        {
+            return Task.FromResult(Context.Categories.Remove(category).Entity);
+        }
+
+        public Task<SubCategory> DeleteSubcategory(SubCategory subCategory)
+        {
+            return Task.FromResult(Context.SubCategories.Remove(subCategory).Entity);
         }
     }
 }
