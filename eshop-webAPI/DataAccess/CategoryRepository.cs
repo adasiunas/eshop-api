@@ -52,7 +52,7 @@ namespace eshopAPI.DataAccess
             var categoryList = (await Context.Categories
                 .Where(x => x.ID == parentId)
                 .Include(x => x.SubCategories)
-                .Include("SubCategories.Items")
+                .ThenInclude(x => x.Items)
                 .FirstOrDefaultAsync())?.SubCategories;
 
             return categoryList.ToList();
