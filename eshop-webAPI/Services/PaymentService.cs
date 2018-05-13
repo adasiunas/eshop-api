@@ -19,7 +19,7 @@ namespace eshopAPI.Services
             _configuration = configuration;
         }
         
-        public async Task<PaymentResponse> ProcessPaymentAsync(PaymentRequest request)
+        public async Task<PaymentResponse> ProcessPaymentAsync(CheckoutRequest request)
         {
             var jsonContent = JsonConvert.SerializeObject(request);
             var stringContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -40,6 +40,6 @@ namespace eshopAPI.Services
 
     public interface IPaymentService
     {
-        Task<PaymentResponse> ProcessPaymentAsync(PaymentRequest request);
+        Task<PaymentResponse> ProcessPaymentAsync(CheckoutRequest request);
     }
 }
