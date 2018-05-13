@@ -13,7 +13,7 @@ namespace eshopAPI.DataAccess
     {
         Task<Order> FindByID(long orderID);
         Task<Order> FindByOrderNumber(Guid orderNumber);
-        Task Insert(Order order);
+        Task<Order> Insert(Order order);
         Task<IQueryable<OrderVM>> GetAllOrdersAsQueryable(string email);
     }
 
@@ -39,9 +39,9 @@ namespace eshopAPI.DataAccess
                     .ThenInclude(item => item.Item).FirstOrDefaultAsync();
         }
 
-        public Task Insert(Order order)
+        public async Task<Order> Insert(Order order)
         {
-            throw new NotImplementedException();
+            return (await Context.Orders.AddAsync(order)).Entity;
         }
 
         public Task<IQueryable<OrderVM>> GetAllOrdersAsQueryable(string email)

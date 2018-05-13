@@ -13,6 +13,7 @@ namespace eshopAPI.Services
       Task SendEmailAsync(string to, string subject, string message);
       Task SendConfirmationEmailAsync(string to, string confirmationLink);
       Task SendResetPasswordEmailAsync(string to, string resetPasswordLink);
+      Task SendOrderCreationEmailAsync(string to, string orderId);
     }
 
     public class EmailSender : IEmailSender
@@ -63,6 +64,16 @@ namespace eshopAPI.Services
         mailMessage.Subject = "Goals diggers reset password confirmation";
         mailMessage.IsBodyHtml = true;
         mailMessage.Body = FormatEmailBody($"Please click the following link to confirm that <strong> { to }</strong> wants to reset Goal diggers shop password.", resetPasswordLink);
+        await SendMailMessageAsync(mailMessage);
+      }
+
+      public async Task SendOrderCreationEmailAsync(string to, string orderId)
+      {
+        var mailMessage = new MailMessage();
+        mailMessage.To.Add(to);
+        mailMessage.Subject = "Goal diggers shop order";
+        mailMessage.IsBodyHtml = true;
+        mailMessage.Body = $"Your order with ID: {orderId} was successfuly created.";
         await SendMailMessageAsync(mailMessage);
       }
 
