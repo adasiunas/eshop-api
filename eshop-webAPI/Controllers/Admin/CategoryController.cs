@@ -65,19 +65,20 @@ namespace eshopAPI.Controllers.Admin
 
         [HttpPost("parent")]
         [IgnoreAntiforgeryToken]
+        [Transaction]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateRequest request)
         {
             Category category = await _categoryRepository.InsertCategory(new Category()
             {
                 Name = request.Name
             });
-
-            await _categoryRepository.SaveChanges();
+            
             return StatusCode((int)HttpStatusCode.OK, category);
         }
 
         [HttpPost]
         [IgnoreAntiforgeryToken]
+        [Transaction]
         public async Task<IActionResult> CreateSubcategory([FromBody] SubcategoryCreateRequest request)
         {
             SubCategory subCategory = await _categoryRepository.InsertSubcategory(new SubCategory()
@@ -85,13 +86,13 @@ namespace eshopAPI.Controllers.Admin
                 CategoryID = request.ParentID,
                 Name = request.Name
             });
-
-            await _categoryRepository.SaveChanges();
+            
             return StatusCode((int)HttpStatusCode.OK, subCategory);
         }
 
         [HttpPut]
         [IgnoreAntiforgeryToken]
+        [Transaction]
         public async Task<IActionResult> UpdateSubcategoryName([FromBody] CategoryUpdateRequest request)
         {
             SubCategory subCategory = await _categoryRepository.FindSubCategoryByID(request.ID);
@@ -103,13 +104,13 @@ namespace eshopAPI.Controllers.Admin
             }
 
             subCategory.Name = request.Name;
-
-            await _categoryRepository.SaveChanges();
+            
             return StatusCode((int)HttpStatusCode.OK, subCategory);
         }
 
         [HttpPut("parent")]
         [IgnoreAntiforgeryToken]
+        [Transaction]
         public async Task<IActionResult> UpdateCategoryName([FromBody] CategoryUpdateRequest request)
         {
             Category category = await _categoryRepository.FindByID(request.ID);
@@ -121,13 +122,13 @@ namespace eshopAPI.Controllers.Admin
             }
 
             category.Name = request.Name;
-
-            await _categoryRepository.SaveChanges();
+            
             return StatusCode((int)HttpStatusCode.OK, category);
         }
 
         [HttpDelete]
         [IgnoreAntiforgeryToken]
+        [Transaction]
         public async Task<IActionResult> DeleteSubcategory([FromQuery] int id)
         {
             SubCategory subCategory = await _categoryRepository.FindSubCategoryByID(id);
@@ -139,13 +140,13 @@ namespace eshopAPI.Controllers.Admin
             }
 
             subCategory = await _categoryRepository.DeleteSubcategory(subCategory);
-
-            await _categoryRepository.SaveChanges();
+            
             return StatusCode((int)HttpStatusCode.OK, subCategory);
         }
 
         [HttpDelete("parent")]
         [IgnoreAntiforgeryToken]
+        [Transaction]
         public async Task<IActionResult> DeleteCategory([FromQuery] int id)
         {
             Category category = await _categoryRepository.FindByID(id);
@@ -157,8 +158,7 @@ namespace eshopAPI.Controllers.Admin
             }
 
             category = await _categoryRepository.DeleteCategory(category);
-
-            await _categoryRepository.SaveChanges();
+            
             return StatusCode((int)HttpStatusCode.OK, category);
         }
     }

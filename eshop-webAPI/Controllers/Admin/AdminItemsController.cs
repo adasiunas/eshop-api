@@ -39,6 +39,7 @@ namespace eshopAPI.Controllers.Admin
 
         [HttpPost("create")]
         [IgnoreAntiforgeryToken]
+        [Transaction]
         public async Task<IActionResult> Create([FromBody]ItemCreateRequest request)
         {
             SubCategory category = await _categoryRepository.FindSubCategoryByID(request.CategoryID);
@@ -58,9 +59,7 @@ namespace eshopAPI.Controllers.Admin
                 SKU = request.SKU,
                 SubCategoryID = request.CategoryID
             });
-
-            await _itemRepository.SaveChanges();
-
+            
             return StatusCode((int) HttpStatusCode.NoContent);
         }
 
