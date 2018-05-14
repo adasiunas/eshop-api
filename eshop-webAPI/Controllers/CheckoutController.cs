@@ -39,7 +39,6 @@ namespace eshopAPI.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
         {
-            request.Number = request.Number.Replace(" ", string.Empty);
             Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
             if (cart == null)
             {
@@ -47,10 +46,12 @@ namespace eshopAPI.Controllers
                     new ErrorResponse(ErrorReasons.NotFound, "Cart not found."));
             }
 
-            request.Amount= Convert.ToInt32(cart.Items.Sum(i => i.Item.Price * i.Count));
+            request.Amount= Convert.ToInt32(cart.Items.Sum(i => i.Item.Price * i.Count * 100));
             var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            
             var order = new Order
             {
+                OrderNumber = Guid.NewGuid(),
                 User = user,
                 Items = cart.Items.Select(i => new OrderItem()
                 {
@@ -66,12 +67,13 @@ namespace eshopAPI.Controllers
 
             order = await _orderRepository.Insert(order);
             
+            request.Number = request.Number.Replace(" ", string.Empty);
             var paymentResponse = await _paymentService.ProcessPaymentAsync(request);
 
             if (paymentResponse.IsSuccessfullResponse)
             {
                 await _orderRepository.SaveChanges();
-                await _emailSender.SendOrderCreationEmailAsync(user.Email, order.ID.ToString());
+                await _emailSender.SendOrderCreationEmailAsync(user.Email, order.OrderNumber.ToString());
                 return StatusCode((int)HttpStatusCode.OK, "Email sent");
             }
             
