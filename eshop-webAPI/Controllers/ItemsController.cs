@@ -72,7 +72,7 @@ namespace eshopAPI.Controllers
         [HttpPost("testPaymentService")]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> TestPayment([FromBody] PaymentRequest request)
+        public async Task<IActionResult> TestPayment([FromBody] CheckoutRequest request)
         {
             var paymentResponse = await _paymentService.ProcessPaymentAsync(request);
             

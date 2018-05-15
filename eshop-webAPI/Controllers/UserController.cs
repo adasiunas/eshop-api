@@ -36,6 +36,7 @@ namespace eshopAPI.Controllers
         }
 
         [HttpPut("updateUser")]
+        [Transaction]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest updatedUser)
         {
             _logger.LogInformation($"Attempt to update profile of user with email ${User.Identity.Name}");
@@ -49,8 +50,6 @@ namespace eshopAPI.Controllers
             }
 
             await _shopUserRepository.UpdateUserProfile(user, updatedUser);
-
-            await _shopUserRepository.SaveChanges();
             
             _logger.LogInformation("User profile successfully updated");
             return StatusCode((int) HttpStatusCode.NoContent);
