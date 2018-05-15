@@ -36,7 +36,6 @@ namespace eshopAPI.Controllers
         }
         
         [HttpPost]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
         {
             Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
@@ -60,7 +59,6 @@ namespace eshopAPI.Controllers
                     Item = i.Item,
                     ItemID = i.ItemID
                 }).ToList(),
-                CreateDate = DateTime.UtcNow,
                 DeliveryAddress = JsonConvert.SerializeObject(request.Address),
                 Status = OrderStatus.Accepted
             };
