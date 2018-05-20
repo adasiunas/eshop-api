@@ -155,7 +155,8 @@ namespace eshopAPI
             CreateRoles(serviceProvider).Wait();
             app.UseMvc();
 
-            ODataModelBuilder builder = new ODataConventionModelBuilder();
+            var builder = new ODataConventionModelBuilder();
+            builder.EnableLowerCamelCase();
 
             builder.EntitySet<UserVM>("Users").EntityType.HasKey(e => e.Id);
             builder.EntitySet<ItemVM>("Items").EntityType.HasKey(e => e.ID);
