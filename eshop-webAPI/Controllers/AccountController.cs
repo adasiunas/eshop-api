@@ -203,6 +203,13 @@ namespace eshop_webAPI.Controllers
                     new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
 
+            if (!user.EmailConfirmed)
+            {
+                _logger.LogInformation($"User {user.Email} is not confirmed");
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.AccountIsNotConfirmed, "Account is not confirmed"));
+            }
+
             var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
 
             if(result.Succeeded)

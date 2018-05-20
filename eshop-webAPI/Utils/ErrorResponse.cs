@@ -35,7 +35,7 @@
         public const string InvalidEmailOrPassword = nameof(InvalidEmailOrPassword);
         public const string InvalidPassword = nameof(InvalidPassword);
         public const string EmailNotConfirmed = nameof(EmailNotConfirmed);
-        public const string AccountIsLocked = nameof(AccountIsLocked);
+        public const string AccountIsNotConfirmed = nameof(AccountIsNotConfirmed);
         public const string FailedToChangeUserRole = nameof(FailedToChangeUserRole);
 
         // Server Errors 5**
