@@ -45,7 +45,7 @@ namespace eshopAPI.Controllers
                     new ErrorResponse(ErrorReasons.NotFound, "Cart not found."));
             }
 
-            request.Amount= Convert.ToInt32(cart.Items.Sum(i => i.Item.Price * i.Count * 100));
+            request.Amount= Convert.ToInt64(cart.Items.Sum(i => i.Item.Price * i.Count * 100));
             var user = await _userManager.FindByNameAsync(User.Identity.Name);
             
             var order = new Order
