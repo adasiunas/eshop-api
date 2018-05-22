@@ -15,7 +15,7 @@ namespace eshopAPI.Controllers
 {
     [Produces("application/json")]
     [Route("api/feedback")]
-//    [IgnoreAntiforgeryToken]
+    [AutoValidateAntiforgeryToken]
     [Authorize]
     public class UserFeedbackController:Controller
     {
