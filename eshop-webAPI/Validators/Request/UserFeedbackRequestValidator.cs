@@ -7,7 +7,6 @@ namespace eshopAPI.Validators.Request
     {
         public UserFeedbackRequestValidator()
         {
-            RuleFor(r => r.UserId).NotEmpty();
             RuleFor(r => r.Message).NotEmpty();
             RuleFor(r => r.Rating).NotEmpty();
         }

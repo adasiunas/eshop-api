@@ -15,8 +15,8 @@ namespace eshopAPI.Controllers
 {
     [Produces("application/json")]
     [Route("api/feedback")]
-    [IgnoreAntiforgeryToken]
-//    [Authorize]
+//    [IgnoreAntiforgeryToken]
+    [Authorize]
     public class UserFeedbackController:Controller
     {
         private IUserFeedbackRepository _repository;
@@ -35,11 +35,11 @@ namespace eshopAPI.Controllers
         [Transaction]
         public async Task<IActionResult> Post([FromBody]UserFeedbackRequest request)
         {
-            var user = await _userManager.FindByIdAsync(request.UserId);
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
 
             if (user == null)
             {
-                _logger.LogInformation($"User with id: {request.UserId} was not found.");
+                _logger.LogInformation($"User with name: {User.Identity.Name} was not found.");
                 return StatusCode((int) HttpStatusCode.NotFound,
                     new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
             }
