@@ -17,8 +17,8 @@ namespace eshopAPI.Validators.Request
                 .WithMessage("Surname can only contain letters.");
             RuleFor(r => r.Phone)
                 .NotEmpty()
-                .Matches(@"^[0-9]+$")
-                .WithMessage("Phone can only contain digits.");
+                .Matches(@"^[+]?[0-9]+$")
+                .WithMessage("Phone number is not valid.");
             RuleFor(r => r.Address).SetValidator(new AddressValidator());
         }
     }

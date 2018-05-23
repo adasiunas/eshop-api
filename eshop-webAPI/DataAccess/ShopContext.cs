@@ -22,5 +22,6 @@ namespace eshopAPI.DataAccess
         public DbSet<SubCategory> SubCategories { get; set; }
         public DbSet<Attribute> Attributes { get; set; }
         public DbSet<ItemPicture> ItemPictures { get; set; }
+        public DbSet<UserFeedbackEntry> UserFeedbacks { get; set; }
     }
 }
