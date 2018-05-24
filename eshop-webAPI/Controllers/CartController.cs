@@ -100,7 +100,7 @@ namespace eshopAPI.Controllers
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
-        // DELETE: api/deletecartitem/{id}
+        // DELETE: api/Cart/deletecartitem/{id}
         [HttpDelete("deletecartitem/{id}")]
         [Transaction]
         public async Task<IActionResult> DeleteCartItem(int id)
@@ -133,6 +133,19 @@ namespace eshopAPI.Controllers
                 await _cartRepository.Insert(cart);
             }
             return cart;
+        }
+        // GET: api/Cart/itemsCount
+        [HttpGet("itemsCount")]
+        public async Task<IActionResult> GetCartItemsCount()
+        {
+            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
+            if (cart == null)
+            {
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Cart not found."));
+            }
+            int count = cart.Items.Select(c => c.Count).Sum();
+            return StatusCode((int)HttpStatusCode.OK, count);
         }
 
         private async Task<bool> AddItemToCart(Cart cart, CartItemRequest itemRequest)
