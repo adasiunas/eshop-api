@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -7,7 +9,9 @@ using eshopAPI.Models;
 using eshopAPI.Requests.Cart;
 using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace eshopAPI.Controllers
@@ -22,13 +26,18 @@ namespace eshopAPI.Controllers
         private readonly IShopUserRepository _userRepository;
         private readonly IItemRepository _itemRepository;
         private readonly ILogger<CartController> _logger;
+        //TODO :remove these
+        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IConfiguration _configuration;
 
-        public CartController(ICartRepository cartRepository, IShopUserRepository userRepository, IItemRepository itemRepository, ILogger<CartController> logger)
+        public CartController(ICartRepository cartRepository, IShopUserRepository userRepository, IItemRepository itemRepository, ILogger<CartController> logger, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
             _cartRepository = cartRepository;
             _userRepository = userRepository;
             _itemRepository = itemRepository;
             _logger = logger;
+            _hostingEnvironment = hostingEnvironment;
+            _configuration = configuration;
         }
 
         // GET: api/Cart
@@ -171,6 +180,40 @@ namespace eshopAPI.Controllers
             
             return true;
         }
+        
+        [HttpGet("testExport")]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Export()
+        {
+            var exportService = new ExportService();
+            var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            var fileName = GenerateFileName();
+            var exportFileDirectory = !string.IsNullOrEmpty(_configuration["ExportedFilesDirectory"]) ? Path.Combine(_configuration["ExportedFilesDirectory"], fileName) : Path.Combine(_hostingEnvironment.ContentRootPath, "ExportedFiles", fileName);
+            await exportService.Export(items.AsEnumerable(), exportFileDirectory);
+            byte[] bytes;
+            using (var fileStream = new FileStream(exportFileDirectory, FileMode.Open, FileAccess.Read))
+            {
+                bytes = new byte[fileStream.Length];
+                int numBytesToRead = (int) fileStream.Length;
+                int numBytesRead = 0;
+                while (numBytesToRead > 0)
+                {
+                    int n = await fileStream.ReadAsync(bytes, numBytesRead, numBytesToRead);
+                    if (n == 0) break;
+                    numBytesRead += n;
+                    numBytesToRead -= n;
+                }
+
+            }
+            return File(bytes, "application/octet-stream", fileName);
+        }
+        
+        public string GenerateFileName()
+        {
+            return DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm") + "_ItemsExport.xlsx";
+        }
+
        
     }
 }
