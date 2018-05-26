@@ -96,6 +96,7 @@ namespace eshopAPI
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddScoped<IUserFeedbackRepository, UserFeedbackRepository>();
+            services.AddScoped<IExportService, ExportService>();
 
             services.AddSingleton(typeof(AntiforgeryMiddleware));
 

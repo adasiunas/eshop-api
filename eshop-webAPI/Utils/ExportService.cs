@@ -63,6 +63,7 @@ namespace eshopAPI.Utils
             {
                 worksheet.Cells[1, i + 1].Value = header[i];
             }
+            worksheet.Cells[1, header.Length, 1, header.Length + 1].Merge = true;
             return worksheet;
         }
     }
