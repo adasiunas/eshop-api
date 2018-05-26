@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
@@ -46,10 +47,10 @@ namespace eshopAPI.Controllers.Admin
         }
 
         [HttpPost("unarchive")]
+        [Transaction]
         public async Task<IActionResult> Unarchive([FromBody] List<long> ids)
         {
             await _itemRepository.UnarchiveByIDs(ids);
-            await _itemRepository.SaveChanges();
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
