@@ -64,8 +64,10 @@ namespace eshopAPI.DataAccess
                 {
                     Id = user.Id,
                     Email = user.Email,
-                    FullName = $"{user.Name} {user.Surname}",
-                    Role = role.Name
+                    Role = role.Name,
+                    MoneySpent = user.Orders.SelectMany(x => x.Items).Select(x => x.Price * x.Count).Sum(),
+                    OrderCount = user.Orders.Count,
+                    AverageMoneySpent = user.Orders.Count > 0 ? user.Orders.SelectMany(x => x.Items).Select(x => x.Price * x.Count).Sum() / user.Orders.Count : 0
                 };
 
             return Task.FromResult(query);
