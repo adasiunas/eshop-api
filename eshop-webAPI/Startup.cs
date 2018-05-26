@@ -163,6 +163,7 @@ namespace eshopAPI
             builder.EntitySet<ItemVM>("Items").EntityType.HasKey(e => e.ID);
             builder.EntitySet<AdminItemVM>("AdminItems").EntityType.HasKey(e => e.ID);
             builder.EntitySet<OrderVM>("Orders").EntityType.HasKey(e => e.ID);
+            builder.EntitySet<UserFeedbackVM>("AdminFeedback").EntityType.HasKey(e => e.ID);
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapODataServiceRoute("api/odata", "api/odata", builder.GetEdmModel());
