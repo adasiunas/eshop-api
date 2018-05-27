@@ -16,11 +16,12 @@ namespace eshopAPI.Utils
             using (var excelPackage = new ExcelPackage(fileInfo))
             {
                 var workSheet = excelPackage.Workbook.Worksheets.Add("Sheet1");
-                var totalRows = items.Sum(i => i.Attributes.Count());
+                // totalRows -> basically rows are counted for each item attribute, if it does have any it means item takes exactly onle line in the worksheet
+                var totalRows = items.Sum(i => i.Attributes.Any() ? i.Attributes.Count() : 1) + 1;// plus is needed because of header row
                 int colCount;
                 workSheet = AddWorksheetHeader(workSheet, out colCount);
                 int itemIndex = 0;                
-                for (int rowIndex = 2; rowIndex < totalRows; rowIndex++)
+                for (int rowIndex = 2; rowIndex <= totalRows; rowIndex++)
                 {
                     var item = items.ElementAt(itemIndex);
                     var startingRowIndex = rowIndex;

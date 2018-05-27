@@ -262,3 +262,4 @@ __pycache__/
 .vscode/tasks.json
 .vscode/launch.json
 eshop-webAPI/log4net.config
+ExportedFiles/
