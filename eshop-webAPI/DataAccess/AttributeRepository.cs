@@ -12,7 +12,7 @@ namespace eshopAPI.DataAccess
         Task<List<AttributeValue>> FindAttributeValuesById(int id);
         Task<Attribute> FindByID(long attributeID);
         Task<Attribute> FindByName(string name);
-        Task Insert(Attribute attribute);
+        Task<Attribute> Insert(Attribute attribute);
         Task Update(Attribute attribute);
     }
 
@@ -39,9 +39,9 @@ namespace eshopAPI.DataAccess
                 .ToListAsync();
         }
 
-        public Task Insert(Attribute attribute)
+        public async Task<Attribute> Insert(Attribute attribute)
         {
-            throw new System.NotImplementedException();
+            return (await Context.Attributes.AddAsync(attribute)).Entity;
         }
 
         public Task Update(Attribute attribute)

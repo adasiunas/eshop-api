@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
+using eshopAPI.Models.ViewModels.Admin;
 using eshopAPI.Requests;
 using eshopAPI.Services;
 using eshopAPI.Utils;
@@ -22,17 +23,23 @@ namespace eshopAPI.Controllers.Admin
         private ILogger<ItemsController> _logger;
         private ICategoryRepository _categoryRepository;
         private IImageCloudService _imageCloudService;
+        private IAttributeRepository _attributeRepository;
+        private ShopContext _shopContext;
 
         public AdminItemsController(
             ILogger<ItemsController> logger,
             IItemRepository itemRepository,
             ICategoryRepository categoryRepository,
-            IImageCloudService imageCloudService)
+            IAttributeRepository attributeRepository,
+            IImageCloudService imageCloudService,
+            ShopContext shopContext)
         {
             _logger = logger;
             _itemRepository = itemRepository;
             _categoryRepository = categoryRepository;
             _imageCloudService = imageCloudService;
+            _attributeRepository = attributeRepository;
+            _shopContext = shopContext;
         }
 
         // GET: api/Items
@@ -72,21 +79,37 @@ namespace eshopAPI.Controllers.Admin
                 pictureURLs.AddRange(uris.Select(x => x.ToString()));
             }
 
-            await _itemRepository.Insert(new Item()
+            using (var transaction = await _attributeRepository.Context.Database.BeginTransactionAsync())
             {
-                Description = request.Description,
-                Name = request.Name,
-                Price = request.Price,
-                SKU = request.SKU,
-                SubCategoryID = request.CategoryID,
-                Pictures = pictureURLs.Select(x => new ItemPicture() { URL = x }).ToList(),
-                Attributes = request.Attributes
-                    .Select(x => new AttributeValue() { AttributeID = x.AttributeID, Value = x.Value })
-                    .ToList()
-            });
+                foreach (AdminAttributeVM vm in request.Attributes.Where(x => x.AttributeID < 0).ToList())
+                {
+                    Models.Attribute currentAttribute = await _attributeRepository.Insert(new Models.Attribute()
+                    {
+                        Name = vm.Key
+                    });
 
-            await _itemRepository.SaveChanges();
+                    await _attributeRepository.SaveChanges();
 
+                    vm.AttributeID = currentAttribute.ID;
+                }
+
+                await _itemRepository.Insert(new Item()
+                {
+                    Description = request.Description,
+                    Name = request.Name,
+                    Price = request.Price,
+                    SKU = request.SKU,
+                    SubCategoryID = request.CategoryID,
+                    Pictures = pictureURLs.Select(x => new ItemPicture() { URL = x }).ToList(),
+                    Attributes = request.Attributes
+                        .Select(x => new AttributeValue() { AttributeID = x.AttributeID, Value = x.Value })
+                        .ToList()
+                });
+
+                await _itemRepository.SaveChanges();
+
+                transaction.Commit();
+            }
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
