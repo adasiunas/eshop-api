@@ -14,6 +14,7 @@ namespace eshopAPI.DataAccess
         Task Insert(Cart cart);
         Task Update(Cart cart);
         Task RemoveCartItem(CartItem item);
+        Task ClearCart(Cart cart);
     }
 
     public class CartRepository : BaseRepository, ICartRepository
@@ -53,6 +54,16 @@ namespace eshopAPI.DataAccess
         {
             Context.CartItems.Remove(item);
 
+            return Task.CompletedTask;
+        }
+
+        public Task ClearCart(Cart cart)
+        {
+            foreach (var cartItem in cart.Items)
+            {
+                RemoveCartItem(cartItem);
+            }
+            Context.Carts.Remove(cart);
             return Task.CompletedTask;
         }
 
