@@ -102,8 +102,8 @@ namespace eshopAPI.Controllers.Admin
                     SubCategoryID = request.CategoryID,
                     Pictures = pictureURLs.Select(x => new ItemPicture() { URL = x }).ToList(),
                     Attributes = request.Attributes
-                        .Select(x => new AttributeValue() { AttributeID = x.AttributeID, Value = x.Value })
-                        .ToList()
+                        ?.Select(x => new AttributeValue() { AttributeID = x.AttributeID, Value = x.Value })
+                        ?.ToList()
                 });
 
                 await _itemRepository.SaveChanges();
