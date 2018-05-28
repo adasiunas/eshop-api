@@ -14,13 +14,14 @@ namespace eshopAPI.Models
         [Key]
         public long ID { get; set; } // Primary key
         [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int OrderNumber { get; set; } // Bussiness key
         [Required]
-        [ForeignKey("UserId")]
         public ShopUser User { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime CreateDate { get; set; }
         [Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public OrderStatus Status { get; set; }
         [Required]
         public virtual ICollection<OrderItem> Items { get; set; }
