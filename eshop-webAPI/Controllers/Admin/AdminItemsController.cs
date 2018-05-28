@@ -76,8 +76,6 @@ namespace eshopAPI.Controllers.Admin
         }
         
         [HttpGet("export/{categoryId}")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Export(int categoryId)
         {
             var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
@@ -91,8 +89,6 @@ namespace eshopAPI.Controllers.Admin
         }
 
         [HttpGet("exportAll")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ExportAll()
         {
             
@@ -106,8 +102,6 @@ namespace eshopAPI.Controllers.Admin
         
         
         [HttpGet("export/subcategory/{subcategoryId}")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ExportSubcategory(int subcategoryId)
         {
             var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
