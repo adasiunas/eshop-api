@@ -185,6 +185,7 @@ namespace eshopAPI.Controllers.Admin
             _importErrorLogger = new ImportErrorLogger(_logger);
             _importService.SetFileName("items");
             _importService.ImportErrorLogger = _importErrorLogger;
+            await Task.Delay(5000);
 
             var importedItems = await _importService.ImportItems();
 
@@ -200,11 +201,29 @@ namespace eshopAPI.Controllers.Admin
             {
                 var item = importedItems.ElementAt(i);
                 var row = i + 2;
-                long subcategoryId = 1;
+                // long subcategoryId = 1;
+
+                Category category = await _categoryRepository.FindByName(item.ItemCategory.Name);
+                if (category == null)
+                {
+                    _importErrorLogger.LogError(row, $"Category {item.ItemCategory.Name} does not exist");
+                    //return false;
+                    continue;
+                }
+
+                var subcategories = await _categoryRepository.GetChildrenOfParent(category.ID);
+                long subcategoryId = subcategories.Where(x => x.Name.Equals(item.ItemCategory.SubCategory.Name)).Select(x => x.ID).First();
+
+                if (subcategoryId == 0)
+                {
+                    _importErrorLogger.LogError(row, $"Subcategory {item.ItemCategory.SubCategory.Name} does not exist");
+                    //return false;
+                    continue;
+                }
 
                 // subcategoryId must be returned from validation ir retrieved here
 
-                if (await isValidItem(skuCodes, item, row))
+                if (isValidItem(skuCodes, item, row))
                 {
                     // TODO: validate attributes
 
@@ -244,7 +263,7 @@ namespace eshopAPI.Controllers.Admin
             });
         }
 
-        private async Task<bool> isValidItem(List<string> skuCodes, ItemVM item, int row)
+        private bool isValidItem(List<string> skuCodes, ItemVM item, int row)
         {
             if (skuCodes.Contains(item.SKU))
             {
@@ -252,21 +271,7 @@ namespace eshopAPI.Controllers.Admin
                 return false;
             }
 
-            Category category = await _categoryRepository.FindByName(item.ItemCategory.Name);
-            if (category == null)
-            {
-                _importErrorLogger.LogError(row, $"Category {item.ItemCategory.Name} does not exist");
-                return false;
-            }
-
-            var subcategories = await _categoryRepository.GetChildrenOfParent(category.ID);
-            long subcategoryId = subcategories.Where(x => x.Name.Equals(item.ItemCategory.SubCategory.Name)).Select(x => x.ID).First();
-
-            if (subcategoryId == 0)
-            {
-                _importErrorLogger.LogError(row, $"Subcategory {item.ItemCategory.SubCategory.Name} does not exist");
-                return false;
-            }
+            
             return true;
         }
     }
