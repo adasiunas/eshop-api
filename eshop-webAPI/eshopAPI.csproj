@@ -4,7 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="ExportedFiles" />
-    <Folder Include="ExportFiles" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>
