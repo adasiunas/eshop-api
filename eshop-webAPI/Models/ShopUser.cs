@@ -18,7 +18,7 @@ namespace eshopAPI.Models
         [MaxLength(20)]
         public string Phone { get; set; }
         public Address Address { get; set; }
-        public List<Order> Orders { get; set; }
+        public ICollection<Order> Orders { get; set; }
     }
 
     public class ShopUserProfile
