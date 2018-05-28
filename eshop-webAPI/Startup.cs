@@ -25,6 +25,7 @@ using eshopAPI.Models.ViewModels;
 using eshopAPI.Utils.Export;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using eshopAPI.Utils.Import;
 
 namespace eshopAPI
 {
@@ -97,6 +98,7 @@ namespace eshopAPI
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddScoped<IUserFeedbackRepository, UserFeedbackRepository>();
+            services.AddScoped<IImportService, ExcelImportService>();
 
             if (Configuration["ExportFile"] == "CSV")
             {
