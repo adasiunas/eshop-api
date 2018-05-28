@@ -13,7 +13,7 @@ namespace eshopAPI.DataAccess
     public interface IOrderRepository : IBaseRepository
     {
         Task<Order> FindByID(long orderID);
-        Task<Order> FindByOrderNumber(Guid orderNumber);
+        Task<Order> FindByOrderNumber(long orderNumber);
         Task<Order> Insert(Order order);
         Task<IQueryable<OrderVM>> GetAllOrdersAsQueryable(string email);
         Task<IQueryable<AdminOrderVM>> GetAllAdminOrdersAsQueryable();
@@ -34,7 +34,7 @@ namespace eshopAPI.DataAccess
                     .ThenInclude(item => item.Item).FirstOrDefaultAsync();
         }
 
-        public Task<Order> FindByOrderNumber(Guid orderNumber)
+        public Task<Order> FindByOrderNumber(long orderNumber)
         {
             return Context.Orders.Where(o => o.OrderNumber == orderNumber)
                 .Include(o => o.Items)
@@ -51,7 +51,7 @@ namespace eshopAPI.DataAccess
                 .Select(o => new AdminOrderVM()
                 {
                     ID = o.ID,
-                    OrderNumber = o.OrderNumber.ToString(),
+                    OrderNumber = o.OrderNumber,
                     Status = o.Status.GetDescription(),
                     TotalPrice = o.Items.Select(i => i.Price * i.Count).Sum(),
                     UserEmail = o.User.NormalizedEmail,
@@ -64,7 +64,6 @@ namespace eshopAPI.DataAccess
         public Task<IQueryable<OrderVM>> GetAllOrdersAsQueryable(string email)
         {
             var query = Context.Orders
-                .Where(q => q.User.NormalizedUserName.Equals(email))
                 .Select(o =>
                     new OrderVM
                     {
@@ -83,6 +82,8 @@ namespace eshopAPI.DataAccess
                         }),
                         DeliveryAddress = o.DeliveryAddress
                     });
+
+            var tt = query.ToList();
             return Task.FromResult(query);
         }
     }
