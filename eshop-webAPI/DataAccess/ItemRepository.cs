@@ -14,6 +14,7 @@ namespace eshopAPI.DataAccess
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
         Task Update(Item item);
         Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
+        Task<IQueryable<string>> GetAllItemsSkuCodes();
     }
 
     public class ItemRepository : BaseRepository, IItemRepository
@@ -86,6 +87,12 @@ namespace eshopAPI.DataAccess
                     }
                 });
             return Task.FromResult(query);
+        }
+
+        public Task<IQueryable<string>> GetAllItemsSkuCodes()
+        {
+            return Task.FromResult(Context.Items
+                .Select(i => i.SKU));
         }
 
     }
