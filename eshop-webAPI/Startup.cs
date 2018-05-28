@@ -24,6 +24,7 @@ using eshopAPI.Utils;
 using eshopAPI.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using eshopAPI.Utils.Import;
 
 namespace eshopAPI
 {
@@ -97,6 +98,7 @@ namespace eshopAPI
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddScoped<IUserFeedbackRepository, UserFeedbackRepository>();
             services.AddScoped<IExportService, ExportService>();
+            services.AddScoped<IImportService, ExcelImportService>();
 
             services.AddSingleton(typeof(AntiforgeryMiddleware));
 
