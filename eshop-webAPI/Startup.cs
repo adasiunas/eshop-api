@@ -24,6 +24,7 @@ using eshopAPI.Utils;
 using eshopAPI.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using eshopAPI.Models.ViewModels.Admin;
 
 namespace eshopAPI
 {
@@ -162,6 +163,7 @@ namespace eshopAPI
             builder.EntitySet<UserVM>("Users").EntityType.HasKey(e => e.Id);
             builder.EntitySet<ItemVM>("Items").EntityType.HasKey(e => e.ID);
             builder.EntitySet<AdminItemVM>("AdminItems").EntityType.HasKey(e => e.ID);
+            builder.EntitySet<AdminOrderVM>("AdminOrders").EntityType.HasKey(e => e.ID);
             builder.EntitySet<OrderVM>("Orders").EntityType.HasKey(e => e.ID);
             builder.EntitySet<UserFeedbackVM>("AdminFeedback").EntityType.HasKey(e => e.ID);
             app.UseMvc(routeBuilder =>

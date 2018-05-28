@@ -29,8 +29,8 @@ namespace eshopAPI.Models
     {
         [Description("Accepted")]
         Accepted,
-        [Description("In progress")]
-        InProgress, // maybe something different
+        [Description("Processing")]
+        Processing, // maybe something different
         [Description("Sent")]
         Sent,
         [Description("Delivered")]
