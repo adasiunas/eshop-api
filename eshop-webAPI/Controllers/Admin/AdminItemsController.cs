@@ -90,20 +90,58 @@ namespace eshopAPI.Controllers.Admin
         [HttpGet("export/{categoryId}")]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Export(int? categoryId)
+        public async Task<IActionResult> Export(int categoryId)
         {
             var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
-            if (categoryId != null)
+            items = items.Where(i => i.ItemCategory.ID == categoryId);
+            if (!items.Any())
             {
-                items = items.Where(i => i.ItemCategory.ID == categoryId);
-                if (!items.Any())
-                {
-                    return StatusCode((int)HttpStatusCode.BadRequest, "No items for this category was found.");
-                }
+                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items for this category was found."));
             }
+
+            return await PerformExport(items);
+        }
+
+        [HttpGet("exportAll")]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ExportAll()
+        {
+            
+            var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            if (!items.Any())
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items was found."));
+            }
+            return await PerformExport(items);
+        }
+        
+        
+        [HttpGet("export/subcategory/{subcategoryId}")]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ExportSubcategory(int subcategoryId)
+        {
+            var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            items = items.Where(i => i.ItemCategory.SubCategory.ID == subcategoryId);
+            if (!items.Any())
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items for this subcategory was found."));
+            }
+
+            return await PerformExport(items);
+        }
+        
+        private string GenerateFileName()
+        {
+            return DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss") + "_ItemsExport.xlsx";
+        }
+
+        private async Task<FileContentResult> PerformExport(IEnumerable<ItemVM> items)
+        {
             var fileName = GenerateFileName();
             var exportFileDirectory = !string.IsNullOrEmpty(_configuration["ExportedFilesDirectory"]) ? Path.Combine(_configuration["ExportedFilesDirectory"], fileName) : Path.Combine(_hostingEnvironment.ContentRootPath, "ExportedFiles", fileName);
-            await _exportService.Export(items.AsEnumerable(), exportFileDirectory);
+            await _exportService.Export(items, exportFileDirectory);
             byte[] bytes;
             using (var fileStream = new FileStream(exportFileDirectory, FileMode.Open, FileAccess.Read))
             {
@@ -122,18 +160,7 @@ namespace eshopAPI.Controllers.Admin
             return File(bytes, "application/octet-stream", fileName);
         }
 
-        [HttpGet("exportAll")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> ExportAll()
-        {
-            return await Export(categoryId: null);
-        }
 
-        public string GenerateFileName()
-        {
-            return DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss") + "_ItemsExport.xlsx";
-        }
 
         [HttpGet("import")]
         [AllowAnonymous]
