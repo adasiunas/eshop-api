@@ -4,9 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using eshopAPI.Models;
 using OfficeOpenXml;
-using OfficeOpenXml.Style;
 
-namespace eshopAPI.Utils
+namespace eshopAPI.Utils.Export
 {
     public class ExportService : IExportService
     {

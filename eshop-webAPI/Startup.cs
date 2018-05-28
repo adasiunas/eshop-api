@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using eshopAPI.Utils;
 using eshopAPI.Models.ViewModels;
+using eshopAPI.Utils.Export;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 
@@ -96,7 +97,15 @@ namespace eshopAPI
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddScoped<IUserFeedbackRepository, UserFeedbackRepository>();
-            services.AddScoped<IExportService, ExportService>();
+
+            if (Configuration["ExportFile"] == "CSV")
+            {
+                services.AddScoped<IExportService, CsvExportService>();
+            }
+            else
+            {
+                services.AddScoped<IExportService, ExportService>();
+            }
 
             services.AddSingleton(typeof(AntiforgeryMiddleware));
 

@@ -8,6 +8,7 @@ using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Requests;
 using eshopAPI.Utils;
+using eshopAPI.Utils.Export;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -116,7 +117,11 @@ namespace eshopAPI.Controllers.Admin
         
         private string GenerateFileName()
         {
-            return DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss") + "_ItemsExport.xlsx";
+            if (_configuration["ExportFile"] == "CSV")
+            {
+                return DateTime.UtcNow.ToString("yyyy-MM-dd hh-mm-ss") + "_ItemsExport.csv";
+            }
+            return DateTime.UtcNow.ToString("yyyy-MM-dd hh-mm-ss") + "_ItemsExport.xlsx";
         }
 
         private async Task<FileContentResult> PerformExport(IEnumerable<ItemVM> items)
