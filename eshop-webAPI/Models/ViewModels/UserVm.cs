@@ -10,6 +10,8 @@ namespace eshopAPI.Models
         public string Id { get; set; }
         public string Email { get; set; }
         public string Role { get; set; }
-        public string FullName { get; set; }
+        public int OrderCount { get; set; }
+        public decimal MoneySpent { get; set; }
+        public decimal AverageMoneySpent { get; set; }
     }
 }
