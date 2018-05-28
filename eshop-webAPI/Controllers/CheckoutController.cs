@@ -51,7 +51,6 @@ namespace eshopAPI.Controllers
             
             var order = new Order
             {
-                OrderNumber = Guid.NewGuid(),
                 User = user,
                 Items = cart.Items.Select(i => new OrderItem()
                 {

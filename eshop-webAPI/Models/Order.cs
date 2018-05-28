@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -13,8 +14,10 @@ namespace eshopAPI.Models
         [Key]
         public long ID { get; set; } // Primary key
         [Required]
-        public Guid OrderNumber { get; set; } // Bussiness key
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int OrderNumber { get; set; } // Bussiness key
         [Required]
+        [ForeignKey("UserId")]
         public ShopUser User { get; set; }
         public DateTime CreateDate { get; set; }
         [Required]
