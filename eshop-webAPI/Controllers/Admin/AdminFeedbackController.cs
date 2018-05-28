@@ -1,6 +1,7 @@
 ﻿using eshopAPI.DataAccess;
 using eshopAPI.Models.ViewModels;
 using Microsoft.AspNet.OData;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     public class AdminFeedbackController:ODataController
     {
         private IUserFeedbackRepository _feedbackRepository;
