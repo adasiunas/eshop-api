@@ -17,9 +17,9 @@ namespace eshopAPI.DataAccess
         {
         }
         
-        public async Task<UserFeedbackEntry> Insert(UserFeedbackEntry item)
+        public Task<UserFeedbackEntry> Insert(UserFeedbackEntry item)
         {
-            return (await Context.UserFeedbacks.AddAsync(item)).Entity;
+            return Task.FromResult(Context.UserFeedbacks.Add(item).Entity);
         }
 
         public Task<IQueryable<UserFeedbackVM>> GetAllFeedbacksAsQueryable()
