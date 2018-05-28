@@ -4,6 +4,7 @@ using eshopAPI.Models.ViewModels.Admin;
 using eshopAPI.Requests.Order;
 using eshopAPI.Utils;
 using Microsoft.AspNet.OData;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/admin/orders")]
     public class AdminOrdersController : ODataController
     {

@@ -1,6 +1,7 @@
 ﻿using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/admin/orders")]
     public class OrdersController : Controller
     {
