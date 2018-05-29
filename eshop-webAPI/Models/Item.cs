@@ -20,7 +20,9 @@ namespace eshopAPI.Models
         public string Description { get; set; }
         [Required]
         public decimal Price { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime CreateDate { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime ModifiedDate { get; set; }
         public DateTime? DeleteDate { get; set; }
         public bool IsDeleted { get; set; }
