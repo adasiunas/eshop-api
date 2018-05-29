@@ -107,9 +107,11 @@ namespace eshop_webAPI.Controllers
             if (!result.Succeeded)
                 return StatusCode((int) HttpStatusCode.BadRequest,
                     new ErrorResponse(ErrorReasons.BadRequest, "Failed to log in. Please make sure you have entered correct credentials."));
-            
+
+            string userRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
+
             _logger.LogInformation("User logged in.");
-            return StatusCode((int) HttpStatusCode.NoContent);
+            return StatusCode((int) HttpStatusCode.OK, userRole);
 
         }
 
@@ -201,6 +203,13 @@ namespace eshop_webAPI.Controllers
                 _logger.LogInformation("User with such email not found");
                 return StatusCode((int) HttpStatusCode.NotFound,
                     new ErrorResponse(ErrorReasons.NotFound, "User was not found."));
+            }
+
+            if (!user.EmailConfirmed)
+            {
+                _logger.LogInformation($"User {user.Email} is not confirmed");
+                return StatusCode((int) HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.AccountIsNotConfirmed, "Account is not confirmed"));
             }
 
             var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);

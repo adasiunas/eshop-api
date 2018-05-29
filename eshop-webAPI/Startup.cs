@@ -24,6 +24,7 @@ using eshopAPI.Utils;
 using eshopAPI.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using eshopAPI.Models.ViewModels.Admin;
 
 namespace eshopAPI
 {
@@ -39,7 +40,7 @@ namespace eshopAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ShopContext>(options =>
+            services.AddDbContext<ShopContext>(options => 
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
             services.AddIdentity<ShopUser, IdentityRole>(opt => { opt.SignIn.RequireConfirmedEmail = true;})
@@ -95,6 +96,7 @@ namespace eshopAPI
             services.AddScoped<IImageCloudService, ImageCloudService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IEmailSender, EmailSender>();
+            services.AddScoped<IUserFeedbackRepository, UserFeedbackRepository>();
 
             services.AddSingleton(typeof(AntiforgeryMiddleware));
 
@@ -155,12 +157,15 @@ namespace eshopAPI
             CreateRoles(serviceProvider).Wait();
             app.UseMvc();
 
-            ODataModelBuilder builder = new ODataConventionModelBuilder();
+            var builder = new ODataConventionModelBuilder();
+            builder.EnableLowerCamelCase();
 
             builder.EntitySet<UserVM>("Users").EntityType.HasKey(e => e.Id);
             builder.EntitySet<ItemVM>("Items").EntityType.HasKey(e => e.ID);
             builder.EntitySet<AdminItemVM>("AdminItems").EntityType.HasKey(e => e.ID);
+            builder.EntitySet<AdminOrderVM>("AdminOrders").EntityType.HasKey(e => e.ID);
             builder.EntitySet<OrderVM>("Orders").EntityType.HasKey(e => e.ID);
+            builder.EntitySet<UserFeedbackVM>("AdminFeedback").EntityType.HasKey(e => e.ID);
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapODataServiceRoute("api/odata", "api/odata", builder.GetEdmModel());

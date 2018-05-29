@@ -10,11 +10,13 @@ using eshopAPI.Requests;
 using eshopAPI.Services;
 using eshopAPI.Utils;
 using Microsoft.AspNet.OData;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace eshopAPI.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/admin/Items")]
     [AutoValidateAntiforgeryToken]
     public class AdminItemsController : ODataController

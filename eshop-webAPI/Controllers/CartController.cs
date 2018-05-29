@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
+using eshopAPI.Models.ViewModels;
 using eshopAPI.Requests.Cart;
 using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -46,6 +47,7 @@ namespace eshopAPI.Controllers
         
         // POST: api/Cart
         [HttpPost]
+        [Transaction]
         public async Task<IActionResult> Post([FromBody]CartRequest request)
         {
             Cart cart = await GetUserCart();
@@ -57,7 +59,6 @@ namespace eshopAPI.Controllers
                 if (!added)
                     notFoundCount++;
             }
-            await _cartRepository.SaveChanges();
 
             _logger.LogInformation(notFoundCount + " items was not found and could not be added to cart");
             return StatusCode((int) HttpStatusCode.OK, notFoundCount);
@@ -65,6 +66,7 @@ namespace eshopAPI.Controllers
         
         // PUT: api/Cart
         [HttpPut]
+        [Transaction]
         public async Task<IActionResult> Put([FromBody]CartItemRequest itemRequest)
         {
             Cart cart = await GetUserCart();
@@ -72,7 +74,6 @@ namespace eshopAPI.Controllers
             bool itemAdded = await AddItemToCart(cart, itemRequest);
             if (itemAdded)
             {
-                await _cartRepository.SaveChanges();
                 return StatusCode((int) HttpStatusCode.NoContent);
             }
 
@@ -82,6 +83,7 @@ namespace eshopAPI.Controllers
 
         // PUT: api/Cart/updatecartitems
         [HttpPut("updatecartitems")]
+        [Transaction]
         public async Task<IActionResult> UpdateCartItems([FromBody]CartRequest cartRequest)
         {
             Cart cart = await GetUserCart();
@@ -96,17 +98,15 @@ namespace eshopAPI.Controllers
 
                 cartItem.Count = item.Count;
             }
-
-            await _cartRepository.SaveChanges();
-
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
-        // DELETE: api/deletecartitem/{id}
+        // DELETE: api/Cart/deletecartitem/{id}
         [HttpDelete("deletecartitem/{id}")]
+        [Transaction]
         public async Task<IActionResult> DeleteCartItem(int id)
         {
-            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
+            Cart cart = await _cartRepository.FindByUserWithoutItemsData(User.Identity.Name);
             if (cart == null)
             {
                 _logger.LogError("Trying to remove item but cart does not exist");
@@ -115,14 +115,13 @@ namespace eshopAPI.Controllers
             }
             CartItem itemToRemove = cart.Items.Where(c => c.ID == id).FirstOrDefault();
             await _cartRepository.RemoveCartItem(itemToRemove);
-            await _cartRepository.SaveChanges();
 
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         private async Task<Cart> GetUserCart()
         {
-            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
+            Cart cart = await _cartRepository.FindByUserWithoutItemsData(User.Identity.Name);
             if (cart == null)
             {
                 _logger.LogInformation("Creating new cart for user - " + User.Identity.Name);
@@ -135,6 +134,19 @@ namespace eshopAPI.Controllers
                 await _cartRepository.Insert(cart);
             }
             return cart;
+        }
+        // GET: api/Cart/itemsCount
+        [HttpGet("itemsCount")]
+        public async Task<IActionResult> GetCartItemsCount()
+        {
+            Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
+            if (cart == null)
+            {
+                return StatusCode((int)HttpStatusCode.NotFound,
+                    new ErrorResponse(ErrorReasons.NotFound, "Cart not found."));
+            }
+            int count = cart.Items.Select(c => c.Count).Sum();
+            return StatusCode((int)HttpStatusCode.OK, count);
         }
 
         private async Task<bool> AddItemToCart(Cart cart, CartItemRequest itemRequest)

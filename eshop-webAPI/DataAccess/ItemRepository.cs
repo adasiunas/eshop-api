@@ -12,7 +12,6 @@ namespace eshopAPI.DataAccess
         Task<Item> FindByID(long itemID);
         Task<Item> Insert(Item item);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
-        Task Update(Item item);
         Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
     }
 
@@ -47,15 +46,11 @@ namespace eshopAPI.DataAccess
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<Item> Insert(Item item)
+        public Task<Item> Insert(Item item)
         {
-            return (await Context.Items.AddAsync(item)).Entity;
+            return Task.FromResult(Context.Items.Add(item).Entity);
         }
-
-        public Task Update(Item item)
-        {
-            throw new NotImplementedException();
-        }
+        
         public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable()
         {
             var query = Context.Items
