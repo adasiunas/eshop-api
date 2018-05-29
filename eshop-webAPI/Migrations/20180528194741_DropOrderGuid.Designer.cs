@@ -12,14 +12,14 @@ using System;
 namespace eshopAPI.Migrations
 {
     [DbContext(typeof(ShopContext))]
-    partial class ShopContextModelSnapshot : ModelSnapshot
+    [Migration("20180528194741_DropOrderGuid")]
+    partial class DropOrderGuid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "2.0.2-rtm-10011")
-                .HasAnnotation("Relational:Sequence:shared.OrderNumbers", "'OrderNumbers', 'shared', '100000', '1', '', '', 'Int32', 'False'")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("eshopAPI.Models.Address", b =>
@@ -135,45 +135,12 @@ namespace eshopAPI.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("eshopAPI.Models.Discount", b =>
-                {
-                    b.Property<long>("ID")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<long?>("CategoryID");
-
-                    b.Property<bool>("IsPercentages");
-
-                    b.Property<long?>("ItemID");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100);
-
-                    b.Property<long?>("SubCategoryID");
-
-                    b.Property<DateTime>("To");
-
-                    b.Property<int>("Value");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("CategoryID");
-
-                    b.HasIndex("ItemID");
-
-                    b.HasIndex("SubCategoryID");
-
-                    b.ToTable("Discounts");
-                });
-
             modelBuilder.Entity("eshopAPI.Models.Item", b =>
                 {
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreateDate")
-                        .ValueGeneratedOnAdd();
+                    b.Property<DateTime>("CreateDate");
 
                     b.Property<DateTime?>("DeleteDate");
 
@@ -183,8 +150,7 @@ namespace eshopAPI.Migrations
 
                     b.Property<bool>("IsDeleted");
 
-                    b.Property<DateTime>("ModifiedDate")
-                        .ValueGeneratedOnAdd();
+                    b.Property<DateTime>("ModifiedDate");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -197,10 +163,6 @@ namespace eshopAPI.Migrations
                         .HasMaxLength(10);
 
                     b.Property<long>("SubCategoryID");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("ID");
 
@@ -232,18 +194,12 @@ namespace eshopAPI.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreateDate")
-                        .ValueGeneratedOnAdd();
+                    b.Property<DateTime>("CreateDate");
 
                     b.Property<string>("DeliveryAddress")
                         .IsRequired();
 
-                    b.Property<int>("OrderNumber")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("NEXT VALUE FOR shared.OrderNumbers");
-
-                    b.Property<int>("Status")
-                        .ValueGeneratedOnAdd();
+                    b.Property<int>("Status");
 
                     b.Property<string>("UserId")
                         .IsRequired();
@@ -515,21 +471,6 @@ namespace eshopAPI.Migrations
                         .WithMany()
                         .HasForeignKey("ItemID")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("eshopAPI.Models.Discount", b =>
-                {
-                    b.HasOne("eshopAPI.Models.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryID");
-
-                    b.HasOne("eshopAPI.Models.Item", "Item")
-                        .WithMany()
-                        .HasForeignKey("ItemID");
-
-                    b.HasOne("eshopAPI.Models.SubCategory", "SubCategory")
-                        .WithMany()
-                        .HasForeignKey("SubCategoryID");
                 });
 
             modelBuilder.Entity("eshopAPI.Models.Item", b =>

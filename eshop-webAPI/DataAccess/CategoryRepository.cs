@@ -14,6 +14,7 @@ namespace eshopAPI.DataAccess
         Task<List<Category>> GetAllParentCategories();
         Task<List<SubCategory>> GetChildrenOfParent(long parentId);
         Task<Category> FindByName(string name);
+        Task<List<SubCategory>> GetChildrenOfParent(int parentId);
         Task<Category> InsertCategory(Category category);
         Task<SubCategory> InsertSubcategory(SubCategory subCategory);
         Task<List<Category>> GetCategoriesWithSubcategories();
@@ -36,6 +37,18 @@ namespace eshopAPI.DataAccess
         {
             return Context.Categories.FirstOrDefaultAsync(x => x.Name.Equals(name));
         }
+
+        public async Task<List<SubCategory>> GetChildrenOfParent(int parentId)
+        {
+            var categoryList = (await Context.Categories
+                .Where(x => x.ID == parentId)
+                .Include(x => x.SubCategories)
+                .ThenInclude(x => x.Items)
+                .FirstOrDefaultAsync())?.SubCategories;
+
+            return categoryList.ToList();
+        }
+
 
         public Task<SubCategory> FindSubCategoryByID(long categoryId)
         {
@@ -63,14 +76,14 @@ namespace eshopAPI.DataAccess
             return Context.Categories.Include(c => c.SubCategories).ToListAsync();
         }
 
-        public async Task<Category> InsertCategory(Category category)
+        public Task<Category> InsertCategory(Category category)
         {
-            return (await Context.Categories.AddAsync(category)).Entity;
+            return Task.FromResult(Context.Categories.Add(category).Entity);
         }
 
-        public async Task<SubCategory> InsertSubcategory(SubCategory subCategory)
+        public Task<SubCategory> InsertSubcategory(SubCategory subCategory)
         {
-            return (await Context.SubCategories.AddAsync(subCategory)).Entity;
+            return Task.FromResult(Context.SubCategories.Add(subCategory).Entity);
         }
 
         public Task<Category> DeleteCategory(Category category)

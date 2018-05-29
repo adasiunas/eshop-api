@@ -8,8 +8,10 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
+using eshopAPI.Models.ViewModels.Admin;
 using eshopAPI.Requests;
 using eshopAPI.Response;
+using eshopAPI.Services;
 using eshopAPI.Utils;
 using eshopAPI.Utils.Export;
 using eshopAPI.Utils.Import;
@@ -23,6 +25,7 @@ using Microsoft.Extensions.Logging;
 
 namespace eshopAPI.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/admin/Items")]
     [AutoValidateAntiforgeryToken]
     public class AdminItemsController : ODataController
@@ -35,15 +38,21 @@ namespace eshopAPI.Controllers.Admin
         private readonly IConfiguration _configuration;
         private readonly IExportService _exportService;
         private readonly IImportService _importService;
+        private IImageCloudService _imageCloudService;
+        private IAttributeRepository _attributeRepository;
+        private ShopContext _shopContext;
 
         public AdminItemsController(
             ILogger<ItemsController> logger,
-            IItemRepository itemRepository,
-            ICategoryRepository categoryRepository, 
+            IItemRepository itemRepository, 
             IHostingEnvironment hostingEnvironment, 
             IConfiguration configuration, 
             IExportService exportService,
-            IImportService importService)
+            IImportService importService,
+            ICategoryRepository categoryRepository,
+            IAttributeRepository attributeRepository,
+            IImageCloudService imageCloudService,
+            ShopContext shopContext)
         {
             _logger = logger;
             _itemRepository = itemRepository;
@@ -52,6 +61,9 @@ namespace eshopAPI.Controllers.Admin
             _configuration = configuration;
             _exportService = exportService;
             _importService = importService;
+            _imageCloudService = imageCloudService;
+            _attributeRepository = attributeRepository;
+            _shopContext = shopContext;
         }
 
         // GET: api/Items
@@ -62,13 +74,29 @@ namespace eshopAPI.Controllers.Admin
             return await _itemRepository.GetAllAdminItemVMAsQueryable();
         }
 
+        [HttpPost("archive")]
+        public async Task<IActionResult> Archive([FromBody] List<long> ids)
+        {
+            await _itemRepository.ArchiveByIDs(ids);
+            await _itemRepository.SaveChanges();
+            return StatusCode((int)HttpStatusCode.NoContent);
+        }
+
+        [HttpPost("unarchive")]
+        [Transaction]
+        public async Task<IActionResult> Unarchive([FromBody] List<long> ids)
+        {
+            await _itemRepository.UnarchiveByIDs(ids);
+            return StatusCode((int)HttpStatusCode.NoContent);
+        }
+
         [HttpPost("create")]
         [IgnoreAntiforgeryToken]
-        [Transaction]
-        public async Task<IActionResult> Create([FromBody]ItemCreateRequest request)
+       public async Task<IActionResult> Create([FromForm]ItemCreateRequest request)
         {
-            SubCategory category = await _categoryRepository.FindSubCategoryByID(request.CategoryID);
+            _logger.LogInformation($"Creating a new item with SKU: {request.SKU}");
 
+            SubCategory category = await _categoryRepository.FindSubCategoryByID(request.CategoryID);
             if (category == null)
             {
                 _logger.LogInformation($"No category found with id {request.CategoryID}");
@@ -76,15 +104,55 @@ namespace eshopAPI.Controllers.Admin
                     new ErrorResponse(ErrorReasons.NotFound, "Category was not found"));
             }
 
-            await _itemRepository.Insert(new Item()
-            {
-                Description = request.Description,
-                Name = request.Name,
-                Price = request.Price,
-                SKU = request.SKU,
-                SubCategoryID = request.CategoryID
-            });
+            List<string> pictureURLs = new List<string>();
 
+            if (request.PictureURLs != null)
+                pictureURLs.AddRange(request.PictureURLs);
+
+            if (request.PictureFiles != null && request.PictureFiles.Count > 0)
+            {
+                List<Uri> uris = _imageCloudService.UploadImagesFromFiles(
+                    request.PictureFiles
+                        .Select(x => x.OpenReadStream())
+                        .ToList()
+                );
+                pictureURLs.AddRange(uris.Select(x => x.ToString()));
+            }
+
+            using (var transaction = await _attributeRepository.Context.Database.BeginTransactionAsync())
+            {
+                if (request.Attributes != null)
+                {
+                    foreach (AdminAttributeVM vm in request.Attributes.Where(x => x.AttributeID < 0).ToList())
+                    {
+                        Models.Attribute currentAttribute = await _attributeRepository.Insert(new Models.Attribute()
+                        {
+                            Name = vm.Key
+                        });
+
+                        await _attributeRepository.SaveChanges();
+
+                        vm.AttributeID = currentAttribute.ID;
+                    }
+                }
+
+                await _itemRepository.Insert(new Item()
+                {
+                    Description = request.Description,
+                    Name = request.Name,
+                    Price = request.Price,
+                    SKU = request.SKU,
+                    SubCategoryID = request.CategoryID,
+                    Pictures = pictureURLs.Select(x => new ItemPicture() { URL = x }).ToList(),
+                    Attributes = request.Attributes
+                        ?.Select(x => new AttributeValue() { AttributeID = x.AttributeID, Value = x.Value })
+                        ?.ToList()
+                });
+
+                await _itemRepository.SaveChanges();
+
+                transaction.Commit();
+            }
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
@@ -111,6 +179,7 @@ namespace eshopAPI.Controllers.Admin
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items was found."));
             }
             return await PerformExport(items);
+                
         }
         
         

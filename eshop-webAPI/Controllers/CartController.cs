@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
+using eshopAPI.Models.ViewModels;
 using eshopAPI.Requests.Cart;
 using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
