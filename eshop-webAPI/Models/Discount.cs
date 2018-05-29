@@ -20,15 +20,12 @@ namespace eshopAPI.Models
 
         public DateTime To { get; set; }
 
-        [Required]
-        public long CategoryID { get; set; }
+        public bool IsPercentages { get; set; }
 
-        [Required]
+        public Item Item { get; set; }
+
         public Category Category { get; set; }
 
-        public long? SubCategoryID { get; set; }
-
         public SubCategory SubCategory { get; set; }
-
     }
 }
