@@ -2,6 +2,8 @@
 using eshopAPI.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,9 +12,10 @@ namespace eshopAPI.DataAccess
     public interface IItemRepository : IBaseRepository
     {
         Task<Item> FindByID(long itemID);
+        Task ArchiveByIDs(List<long> ids);
+        Task UnarchiveByIDs(List<long> ids);
         Task<Item> Insert(Item item);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
-        Task Update(Item item);
         Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
         Task<IQueryable<string>> GetAllItemsSkuCodes();
     }
@@ -35,7 +38,8 @@ namespace eshopAPI.DataAccess
                     ID = x.ID,
                     Description = x.Description,
                     Price = x.Price,
-                    SKU = x.SKU
+                    SKU = x.SKU,
+                    IsDeleted = x.IsDeleted
                 });
             return Task.FromResult(query);
         }
@@ -48,15 +52,11 @@ namespace eshopAPI.DataAccess
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<Item> Insert(Item item)
+        public Task<Item> Insert(Item item)
         {
-            return (await Context.Items.AddAsync(item)).Entity;
+            return Task.FromResult(Context.Items.Add(item).Entity);
         }
-
-        public Task Update(Item item)
-        {
-            throw new NotImplementedException();
-        }
+        
         public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable()
         {
             var query = Context.Items
@@ -75,15 +75,16 @@ namespace eshopAPI.DataAccess
                         Name = a.Attribute.Name,
                         Value = a.Value
                     }),
-                    ItemCategory = new ItemCategoryVM
+                    Category = new ItemCategoryVM
                     {
-                        Name = i.SubCategory.Category.Name,
-                        ID = i.SubCategory.CategoryID,
-                        SubCategory = new ItemSubCategoryVM
-                        {
-                            ID = i.SubCategoryID,
-                            Name = i.SubCategory.Name
-                        }
+                        Name = i.Category.Name,
+                        ID = i.CategoryID,
+ 
+                    },
+                    SubCategory = i.SubCategory == null ? null : new ItemSubCategoryVM
+                    {
+                        Name = i.SubCategory.Name,
+                        ID = i.SubCategoryID.Value
                     }
                 });
             return Task.FromResult(query);
@@ -95,5 +96,25 @@ namespace eshopAPI.DataAccess
                 .Select(i => i.SKU));
         }
 
+        public async Task ArchiveByIDs(List<long> ids)
+        {
+            await Context.Items
+                .Where(x => ids.Contains(x.ID))
+                .ForEachAsync(x =>
+                {
+                    x.IsDeleted = true;
+                    x.DeleteDate = DateTime.Now;
+                });
+        }
+
+        public async Task UnarchiveByIDs(List<long> ids)
+        {
+            await Context.Items
+                .Where(x => ids.Contains(x.ID))
+                .ForEachAsync(x =>
+                {
+                    x.IsDeleted = false;
+                });
+        }
     }
 }

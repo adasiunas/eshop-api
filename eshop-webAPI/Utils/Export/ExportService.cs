@@ -4,9 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using eshopAPI.Models;
 using OfficeOpenXml;
-using OfficeOpenXml.Style;
 
-namespace eshopAPI.Utils
+namespace eshopAPI.Utils.Export
 {
     public class ExportService : IExportService
     {
@@ -30,7 +29,7 @@ namespace eshopAPI.Utils
                     workSheet.Cells[rowIndex, 3].Value = string.Join(",", item.Pictures.Select(p => p.URL));
                     workSheet.Cells[rowIndex, 4].Value = item.SKU;
                     workSheet.Cells[rowIndex, 5].Value = item.Description;
-                    workSheet.Cells[rowIndex, 6].Value = string.Join("/", item.ItemCategory.Name, item.ItemCategory.SubCategory.Name);                       
+                    workSheet.Cells[rowIndex, 6].Value = string.Join("/", item.Category.Name, item.SubCategory?.Name);                       
 
                     for (int atributeIndex = 0; atributeIndex < item.Attributes.Count(); atributeIndex++)
                     {
@@ -48,7 +47,6 @@ namespace eshopAPI.Utils
                     }
                     itemIndex++;
                 }
-                
                 
                 excelPackage.Save();
             }

@@ -21,7 +21,23 @@ namespace eshopAPI.DataAccess
         public DbSet<Category> Categories { get; set; }
         public DbSet<SubCategory> SubCategories { get; set; }
         public DbSet<Attribute> Attributes { get; set; }
+        public DbSet<AttributeValue> AttributeValue { get; set; }
         public DbSet<ItemPicture> ItemPictures { get; set; }
         public DbSet<UserFeedbackEntry> UserFeedbacks { get; set; }
+        public DbSet<Discount> Discounts { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.HasSequence<int>("OrderNumbers", schema: "shared")
+                .StartsAt(100000)
+                .IncrementsBy(1);
+
+            //Once a sequence is introduced, you can use it to generate values for properties in your model. For example, you can use Default Values to insert the next value from the sequence.
+            modelBuilder.Entity<Order>()
+                .Property(o => o.OrderNumber)
+                .HasDefaultValueSql("NEXT VALUE FOR shared.OrderNumbers");
+        }
     }
 }
