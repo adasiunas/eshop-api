@@ -95,6 +95,7 @@ namespace eshopAPI
             services.AddScoped<IShopUserRepository, ShopUserRepository>();
             services.AddScoped<IImageCloudService, ImageCloudService>();
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IDiscountRepository, DiscountRepository>();
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddScoped<IUserFeedbackRepository, UserFeedbackRepository>();
 
@@ -154,7 +155,7 @@ namespace eshopAPI
 
             app.UseAuthentication();
             app.UseAntiforgeryMiddleware();
-            CreateRoles(serviceProvider).Wait();
+            //CreateRoles(serviceProvider).Wait();
             app.UseMvc();
 
             var builder = new ODataConventionModelBuilder();
@@ -165,7 +166,9 @@ namespace eshopAPI
             builder.EntitySet<AdminItemVM>("AdminItems").EntityType.HasKey(e => e.ID);
             builder.EntitySet<AdminOrderVM>("AdminOrders").EntityType.HasKey(e => e.ID);
             builder.EntitySet<OrderVM>("Orders").EntityType.HasKey(e => e.ID);
+            builder.EntitySet<AdminDiscountVM>("Discount").EntityType.HasKey(e => e.ID);
             builder.EntitySet<UserFeedbackVM>("AdminFeedback").EntityType.HasKey(e => e.ID);
+            
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapODataServiceRoute("api/odata", "api/odata", builder.GetEdmModel());
