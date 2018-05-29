@@ -32,10 +32,11 @@ namespace eshopAPI.DataAccess
         {
             var query =
                 Context.Items
+                .Include(x => x.Category)
                 .Include(x => x.SubCategory)
                 .Select(x => new AdminItemVM()
                 {
-                    Category = x.SubCategory.Name,
+                    Category = $"{x.Category.Name}/{x.SubCategory.Name}".Trim(new char[] { '/' }),
                     Name = x.Name,
                     ID = x.ID,
                     Description = x.Description,
@@ -124,33 +125,13 @@ namespace eshopAPI.DataAccess
         {
             return Task.FromResult(Context.Items
                 .Where(x => x.ID == itemID)
-                .Select(i => new ItemVM
-                {
-                    ID = i.ID,
-                    SKU = i.SKU,
-                    Name = i.Name,
-                    Price = i.Price,
-                    Description = i.Description,
-                    Pictures = i.Pictures.Select(p => new ItemPictureVM { ID = p.ID, URL = p.URL }),
-                    Attributes = i.Attributes.Select(a => new ItemAttributesVM
-                    {
-                        ID = a.ID,
-                        AttributeID = a.AttributeID,
-                        Name = a.Attribute.Name,
-                        Value = a.Value
-                    }),
-                    ItemCategory = new ItemCategoryVM
-                    {
-                        Name = i.SubCategory.Category.Name,
-                        ID = i.SubCategory.CategoryID,
-                        SubCategory = new ItemSubCategoryVM
-                        {
-                            ID = i.SubCategoryID,
-                            Name = i.SubCategory.Name
-                        }
-                    },
-                    OptLockVersion = i.Timestamp
-                }).FirstOrDefault());
+                .Include(x => x.Category)
+                .Include(x => x.SubCategory)
+                .Include(x => x.Pictures)
+                .Include(x => x.Attributes)
+                    .ThenInclude(x => x.Attribute)
+                .Select(i => i.GetItemVM())
+                .FirstOrDefault());
         }
 
         public Task<Item> Update(Item itemToUpdateFrom, Item itemToUpdateTo)
