@@ -1,5 +1,6 @@
 ﻿using eshopAPI.Models;
 using eshopAPI.Models.ViewModels;
+using eshopAPI.Models.ViewModels.Admin;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
@@ -16,7 +17,7 @@ namespace eshopAPI.DataAccess
         Task UnarchiveByIDs(List<long> ids);
         Task<Item> Insert(Item item);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
-        Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
+        Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable(List<AdminDiscountVM> discounts = null);
         Task<IQueryable<string>> GetAllItemsSkuCodes();
     }
 
@@ -57,7 +58,7 @@ namespace eshopAPI.DataAccess
             return Task.FromResult(Context.Items.Add(item).Entity);
         }
         
-        public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable()
+        public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable(List<AdminDiscountVM> discounts = null)
         {
             var query = Context.Items
                 .Select(i => new ItemVM
@@ -85,7 +86,8 @@ namespace eshopAPI.DataAccess
                     {
                         Name = i.SubCategory.Name,
                         ID = i.SubCategoryID.Value
-                    }
+                    },
+                    Discount = i.GetItemDiscount(discounts)
                 });
             return Task.FromResult(query);
         }
