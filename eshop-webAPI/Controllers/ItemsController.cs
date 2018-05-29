@@ -52,9 +52,9 @@ namespace eshopAPI.Controllers
         [EnableQuery]
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IQueryable<ItemVM>> Get()
+        public async Task<IEnumerable<ItemVM>> Get()
         {
-            return await _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            return await _itemRepository.GetAllItemsForFirstPage();
         }
 
         [HttpPost]
