@@ -20,7 +20,7 @@ namespace eshopAPI.Utils.Export
                 {
                     item.Description = item.Description.Replace("\r", String.Empty).Replace("\n", String.Empty).Replace(",", String.Empty);
                     var line =
-                        $"\"{ClearNewLines(item.Name.Replace(",", String.Empty))}\",\"{item.Price}\",\"{string.Join("|", item.Pictures.Select(p => p.URL))}\",\"{item.SKU}\",\"{ClearNewLines(item.Description.Replace(@",", String.Empty))}\",\"{string.Join("/", item.ItemCategory.Name, item.ItemCategory.SubCategory.Name)}\",\"[{string.Join(",", item.Attributes.Select(a => string.Join(":", a.Name, a.Value)))}]\"";
+                        $"\"{ClearNewLines(item.Name.Replace(",", String.Empty))}\",\"{item.Price}\",\"{string.Join("|", item.Pictures.Select(p => p.URL))}\",\"{item.SKU}\",\"{ClearNewLines(item.Description.Replace(@",", String.Empty))}\",\"{string.Join("/", item.Category.Name, item.SubCategory?.Name)}\",\"[{string.Join(",", item.Attributes.Select(a => string.Join(":", a.Name, a.Value)))}]\"";
                     await writter.WriteLineAsync(line);
                 }
             }
