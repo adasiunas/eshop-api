@@ -160,7 +160,7 @@ namespace eshopAPI.Controllers.Admin
         public async Task<IActionResult> Export(int categoryId)
         {
             var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
-            items = items.Where(i => i.ItemCategory.ID == categoryId);
+            items = items.Where(i => i.Category.ID == categoryId);
             if (!items.Any())
             {
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items for this category was found."));
@@ -187,7 +187,7 @@ namespace eshopAPI.Controllers.Admin
         public async Task<IActionResult> ExportSubcategory(int subcategoryId)
         {
             var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
-            items = items.Where(i => i.ItemCategory.SubCategory.ID == subcategoryId);
+            items = items.Where(i => i.SubCategory != null && i.SubCategory.ID == subcategoryId);
             if (!items.Any())
             {
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items for this subcategory was found."));
@@ -313,19 +313,19 @@ namespace eshopAPI.Controllers.Admin
                 return false;
             }
 
-            Category category = await _categoryRepository.FindByName(item.ItemCategory.Name);
+            Category category = await _categoryRepository.FindByName(item.Category.Name);
             if (category == null)
             {
-                _importErrorLogger.LogError(row, $"Category {item.ItemCategory.Name} does not exist");
+                _importErrorLogger.LogError(row, $"Category {item.Category.Name} does not exist");
                 return false;
             }
 
             var subcategories = await _categoryRepository.GetChildrenOfParent(category.ID);
-            long subcategoryId = subcategories.Where(x => x.Name.Equals(item.ItemCategory.SubCategory.Name)).Select(x => x.ID).First();
+            long subcategoryId = subcategories.Where(x => x.Name.Equals(item.SubCategory.Name)).Select(x => x.ID).First();
 
             if (subcategoryId == 0)
             {
-                _importErrorLogger.LogError(row, $"Subcategory {item.ItemCategory.SubCategory.Name} does not exist");
+                _importErrorLogger.LogError(row, $"Subcategory {item.SubCategory.Name} does not exist");
                 return false;
             }
             return true;

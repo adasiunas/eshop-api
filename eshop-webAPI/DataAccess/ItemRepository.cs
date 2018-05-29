@@ -75,15 +75,16 @@ namespace eshopAPI.DataAccess
                         Name = a.Attribute.Name,
                         Value = a.Value
                     }),
-                    ItemCategory = new ItemCategoryVM
+                    Category = new ItemCategoryVM
                     {
-                        Name = i.SubCategory.Category.Name,
-                        ID = i.SubCategory.CategoryID,
-                        SubCategory = new ItemSubCategoryVM
-                        {
-                            ID = i.SubCategoryID.Value,
-                            Name = i.SubCategory.Name
-                        }
+                        Name = i.Category.Name,
+                        ID = i.CategoryID,
+ 
+                    },
+                    SubCategory = i.SubCategory == null ? null : new ItemSubCategoryVM
+                    {
+                        Name = i.SubCategory.Name,
+                        ID = i.SubCategoryID.Value
                     }
                 });
             return Task.FromResult(query);
