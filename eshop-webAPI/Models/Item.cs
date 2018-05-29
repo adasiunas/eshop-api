@@ -26,9 +26,16 @@ namespace eshopAPI.Models
         public DateTime ModifiedDate { get; set; }
         public DateTime? DeleteDate { get; set; }
         public bool IsDeleted { get; set; }
-        [ForeignKey("SubCategory")]
-        public long SubCategoryID { get; set; }
+
+        [Required]
+        public long CategoryID { get; set; }
+        public Category Category { get; set; }
+
+        public long? SubCategoryID { get; set; }
         public SubCategory SubCategory { get; set; }
+        [Timestamp]
+        public byte[] Timestamp { get; set; }
+
         [Timestamp]
         public byte[] Timestamp { get; set; }
 

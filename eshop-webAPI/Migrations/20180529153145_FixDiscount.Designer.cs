@@ -12,9 +12,10 @@ using System;
 namespace eshopAPI.Migrations
 {
     [DbContext(typeof(ShopContext))]
-    partial class ShopContextModelSnapshot : ModelSnapshot
+    [Migration("20180529153145_FixDiscount")]
+    partial class FixDiscount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -172,8 +173,6 @@ namespace eshopAPI.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long>("CategoryID");
-
                     b.Property<DateTime>("CreateDate")
                         .ValueGeneratedOnAdd();
 
@@ -198,15 +197,13 @@ namespace eshopAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(10);
 
-                    b.Property<long?>("SubCategoryID");
+                    b.Property<long>("SubCategoryID");
 
                     b.Property<byte[]>("Timestamp")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("ID");
-
-                    b.HasIndex("CategoryID");
 
                     b.HasIndex("SubCategoryID");
 
@@ -538,14 +535,10 @@ namespace eshopAPI.Migrations
 
             modelBuilder.Entity("eshopAPI.Models.Item", b =>
                 {
-                    b.HasOne("eshopAPI.Models.Category", "Category")
-                        .WithMany("Items")
-                        .HasForeignKey("CategoryID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("eshopAPI.Models.SubCategory", "SubCategory")
                         .WithMany("Items")
-                        .HasForeignKey("SubCategoryID");
+                        .HasForeignKey("SubCategoryID")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("eshopAPI.Models.ItemPicture", b =>

@@ -14,5 +14,6 @@ namespace eshopAPI.Models
         [MaxLength(50)]
         public string Name { get; set; } // Bussiness key
         public virtual ICollection<SubCategory> SubCategories { get; set; }
+        public virtual ICollection<Item> Items { get; set; }
     }
 }
