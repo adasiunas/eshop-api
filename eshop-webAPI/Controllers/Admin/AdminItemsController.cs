@@ -40,8 +40,7 @@ namespace eshopAPI.Controllers.Admin
         private readonly IExportService _exportService;
         private readonly IImportService _importService;
         private IImageCloudService _imageCloudService;
-        private IAttributeRepository _attributeRepository;
-        private ShopContext _shopContext;
+        private readonly ShopContext _shopContext;
 
         public AdminItemsController(
             ILogger<ItemsController> logger,
@@ -52,7 +51,6 @@ namespace eshopAPI.Controllers.Admin
             IConfiguration configuration, 
             IExportService exportService,
             IImportService importService,
-            IAttributeRepository attributeRepository,
             IImageCloudService imageCloudService,
             ShopContext shopContext)
         {
@@ -226,8 +224,6 @@ namespace eshopAPI.Controllers.Admin
         }
 
         [HttpGet("import")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Import()
         {
             //var files = Request.Form.Files;
@@ -264,26 +260,26 @@ namespace eshopAPI.Controllers.Admin
                 var item = importedItems.ElementAt(i);
                 var row = i + 2;
 
-                Category category = await _categoryRepository.FindByName(item.ItemCategory.Name);
+                Category category = await _categoryRepository.FindByName(item.Category.Name);
                 if (category == null)
                 {
-                    _importErrorLogger.LogError(row, $"Category {item.ItemCategory.Name} does not exist");
+                    _importErrorLogger.LogError(row, $"Category {item.Category.Name} does not exist");
                     continue;
                 }
 
                 var subcategories = await _categoryRepository.GetChildrenOfParent(category.ID);
-                long subcategoryId = subcategories.Where(x => x.Name.Equals(item.ItemCategory.SubCategory.Name)).Select(x => x.ID).First();
+                long subcategoryId = subcategories.Where(x => x.Name.Equals(item.SubCategory.Name)).Select(x => x.ID).First();
 
                 if (subcategoryId == 0)
                 {
-                    _importErrorLogger.LogError(row, $"Subcategory {item.ItemCategory.SubCategory.Name} does not exist");
+                    _importErrorLogger.LogError(row, $"Subcategory {item.SubCategory.Name} does not exist");
                     continue;
                 }
 
                 if (IsValidItem(skuCodes, item, row))
                 {
                     item.Attributes = await GetValidAttributes(item);
-                    var newItem = await CreateItem(item, subcategoryId);
+                    var newItem = await CreateItem(item, subcategoryId, category.ID);
                     savedItems.Add(newItem.GetItemVM());
                     skuCodes.Add(newItem.SKU);  
                 }
@@ -298,7 +294,7 @@ namespace eshopAPI.Controllers.Admin
             });
         }
 
-        private async Task<Item> CreateItem(ItemVM item, long subcategoryId)
+        private async Task<Item> CreateItem(ItemVM item, long subcategoryId, long categoryID)
         {
             return await _itemRepository.Insert(new Item
             {
@@ -307,6 +303,7 @@ namespace eshopAPI.Controllers.Admin
                 Description = item.Description,
                 Price = item.Price,
                 SubCategoryID = subcategoryId,
+                CategoryID = categoryID,
                 Pictures = item.Pictures?.Select(q => new ItemPicture
                 {
                     URL = q.URL
@@ -353,17 +350,6 @@ namespace eshopAPI.Controllers.Admin
             }
 
             return validAttributes;
-        }
-
-            var subcategories = await _categoryRepository.GetChildrenOfParent(category.ID);
-            long subcategoryId = subcategories.Where(x => x.Name.Equals(item.ItemCategory.SubCategory.Name)).Select(x => x.ID).First();
-
-            if (subcategoryId == 0)
-            {
-                _importErrorLogger.LogError(row, $"Subcategory {item.ItemCategory.SubCategory.Name} does not exist");
-                return false;
-            }
-            return File(bytes, "application/octet-stream", fileName);
         }
         
         private string GenerateFileName()
