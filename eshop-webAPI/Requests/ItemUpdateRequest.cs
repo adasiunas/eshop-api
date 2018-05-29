@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Requests
 {
-    public class ItemCreateRequest
+    public class ItemUpdateRequest
     {
         public int CategoryID { get; set; }
         public long? SubcategoryID { get; set; }
@@ -18,5 +18,8 @@ namespace eshopAPI.Requests
         public List<string> PictureURLs { get; set; }
         public List<IFormFile> PictureFiles { get; set; }
         public List<AdminAttributeVM> Attributes { get; set; }
+        public bool Force { get; set; }
+        public int ItemID { get; set; }
+        public byte[] OptLockVersion { get; set; }
     }
 }
