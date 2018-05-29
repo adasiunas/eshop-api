@@ -11,6 +11,10 @@
     <Compile Remove="Migrations\20180528203651_AddDiscount.Designer.cs" />
     <Compile Remove="Migrations\20180528221422_FixDiscountTableName.cs" />
     <Compile Remove="Migrations\20180528221422_FixDiscountTableName.Designer.cs" />
+    <Compile Remove="Migrations\20180529141510_FixDiscount.cs" />
+    <Compile Remove="Migrations\20180529141510_FixDiscount.Designer.cs" />
+    <Compile Remove="Migrations\20180529142026_FixDiscount.cs" />
+    <Compile Remove="Migrations\20180529142026_FixDiscount.Designer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\" />
