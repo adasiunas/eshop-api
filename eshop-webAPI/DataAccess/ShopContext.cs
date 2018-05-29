@@ -21,8 +21,11 @@ namespace eshopAPI.DataAccess
         public DbSet<Category> Categories { get; set; }
         public DbSet<SubCategory> SubCategories { get; set; }
         public DbSet<Attribute> Attributes { get; set; }
+        public DbSet<AttributeValue> AttributeValue { get; set; }
         public DbSet<ItemPicture> ItemPictures { get; set; }
         public DbSet<UserFeedbackEntry> UserFeedbacks { get; set; }
+        public DbSet<Discount> Discounts { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
