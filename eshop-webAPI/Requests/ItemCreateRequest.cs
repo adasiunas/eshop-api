@@ -10,6 +10,7 @@ namespace eshopAPI.Requests
     public class ItemCreateRequest
     {
         public int CategoryID { get; set; }
+        public long? SubcategoryID { get; set; }
         public string Description { get; set; }
         public string Name { get; set; }
         public decimal Price { get; set; }

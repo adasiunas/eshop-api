@@ -36,9 +36,6 @@ namespace eshopAPI.Models
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
-        [Timestamp]
-        public byte[] Timestamp { get; set; }
-
         public virtual ICollection<AttributeValue> Attributes { get; set; }
         public virtual ICollection<ItemPicture> Pictures { get; set; }
     }

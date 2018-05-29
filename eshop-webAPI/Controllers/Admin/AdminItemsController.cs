@@ -100,12 +100,23 @@ namespace eshopAPI.Controllers.Admin
                     new ErrorResponse(ErrorReasons.NotFound, "Item with such ID was not found"));
             }
 
-            SubCategory category = await _categoryRepository.FindSubCategoryByID(request.CategoryID);
+            Category category = await _categoryRepository.FindByID(request.CategoryID);
             if (category == null)
             {
                 _logger.LogInformation($"No category found with id {request.CategoryID}");
                 return StatusCode((int)HttpStatusCode.NotFound,
                     new ErrorResponse(ErrorReasons.NotFound, "Category was not found"));
+            }
+
+            if (request.SubcategoryID.HasValue)
+            {
+                SubCategory subCategory = await _categoryRepository.FindSubCategoryByID(request.SubcategoryID.Value);
+                if (subCategory == null)
+                {
+                    _logger.LogInformation($"No subcategory found with id {request.SubcategoryID.Value}");
+                    return StatusCode((int)HttpStatusCode.NotFound,
+                        new ErrorResponse(ErrorReasons.NotFound, "Subcategory was not found"));
+                }
             }
 
             List<string> pictureURLs = buildPictureUrlList(request.PictureURLs, request.PictureFiles);
@@ -120,7 +131,8 @@ namespace eshopAPI.Controllers.Admin
                     Name = request.Name,
                     Price = request.Price,
                     SKU = request.SKU,
-                    SubCategoryID = request.CategoryID,
+                    CategoryID = request.CategoryID,
+                    SubCategoryID = request.SubcategoryID,
                     Pictures = pictureURLs.Select(x => new ItemPicture() { URL = x }).ToList(),
                     Attributes = request.Attributes
                         ?.Select(x => new AttributeValue() { AttributeID = x.AttributeID, Value = x.Value })
@@ -167,12 +179,23 @@ namespace eshopAPI.Controllers.Admin
         {
             _logger.LogInformation($"Creating a new item with SKU: {request.SKU}");
 
-            SubCategory category = await _categoryRepository.FindSubCategoryByID(request.CategoryID);
+            Category category = await _categoryRepository.FindByID(request.CategoryID);
             if (category == null)
             {
                 _logger.LogInformation($"No category found with id {request.CategoryID}");
                 return StatusCode((int)HttpStatusCode.NotFound,
                     new ErrorResponse(ErrorReasons.NotFound, "Category was not found"));
+            }
+
+            if (request.SubcategoryID.HasValue)
+            {
+                SubCategory subCategory = await _categoryRepository.FindSubCategoryByID(request.SubcategoryID.Value);
+                if (subCategory == null)
+                {
+                    _logger.LogInformation($"No subcategory found with id {request.SubcategoryID.Value}");
+                    return StatusCode((int)HttpStatusCode.NotFound,
+                        new ErrorResponse(ErrorReasons.NotFound, "Subcategory was not found"));
+                }
             }
             
             List<string> pictureURLs = buildPictureUrlList(request.PictureURLs, request.PictureFiles);
@@ -187,7 +210,8 @@ namespace eshopAPI.Controllers.Admin
                     Name = request.Name,
                     Price = request.Price,
                     SKU = request.SKU,
-                    SubCategoryID = request.CategoryID,
+                    CategoryID = request.CategoryID,
+                    SubCategoryID = request.SubcategoryID,
                     Pictures = pictureURLs.Select(x => new ItemPicture() { URL = x }).ToList(),
                     Attributes = request.Attributes
                         ?.Select(x => new AttributeValue() { AttributeID = x.AttributeID, Value = x.Value })
@@ -399,5 +423,44 @@ namespace eshopAPI.Controllers.Admin
             
             return Ok(obj);
         }
+
+        private List<string> buildPictureUrlList(List<string> pictureUrls, List<IFormFile> pictureFiles)
+        {
+            List<string> tempList = new List<string>();
+
+            if (pictureUrls != null)
+                tempList.AddRange(pictureUrls);
+
+            if (pictureFiles != null && pictureFiles.Count > 0)
+            {
+                List<Uri> uris = _imageCloudService.UploadImagesFromFiles(
+                    pictureFiles
+                        .Select(x => x.OpenReadStream())
+                        .ToList()
+                );
+                tempList.AddRange(uris.Select(x => x.ToString()));
+            }
+
+            return tempList;
+        }
+
+        private async void createNewAttributes(List<AdminAttributeVM> attributes)
+        {
+            if (attributes == null)
+                return;
+
+            foreach (AdminAttributeVM vm in attributes.Where(x => x.AttributeID < 0).ToList())
+            {
+                Models.Attribute currentAttribute = await _attributeRepository.Insert(new Models.Attribute()
+                {
+                    Name = vm.Key
+                });
+
+                await _attributeRepository.SaveChanges();
+
+                vm.AttributeID = currentAttribute.ID;
+            }
+        }
+
     }
 }
