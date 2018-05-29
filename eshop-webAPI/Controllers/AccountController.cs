@@ -95,6 +95,12 @@ namespace eshop_webAPI.Controllers
                     new ErrorResponse(ErrorReasons.InvalidEmailOrPassword, "Invalid email or password."));
             }
 
+            if(await _userManager.IsInRoleAsync(user, UserRole.Blocked.ToString()))
+            {
+                return StatusCode((int) HttpStatusCode.Forbidden,
+                    new ErrorResponse(ErrorReasons.UserIsBlocked, "Account is blocked."));
+            }
+
             if (!user.EmailConfirmed)
             {
                 return StatusCode((int) HttpStatusCode.BadRequest,

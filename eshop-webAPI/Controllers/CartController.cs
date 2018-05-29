@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -8,7 +10,9 @@ using eshopAPI.Models.ViewModels;
 using eshopAPI.Requests.Cart;
 using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace eshopAPI.Controllers
@@ -172,6 +176,7 @@ namespace eshopAPI.Controllers
             
             return true;
         }
-       
+        
+           
     }
 }
