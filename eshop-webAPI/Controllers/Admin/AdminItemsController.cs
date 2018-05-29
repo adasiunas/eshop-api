@@ -158,7 +158,6 @@ namespace eshopAPI.Controllers.Admin
             _importErrorLogger = new ImportErrorLogger(_logger);
             _importService.SetFileName("items");
             _importService.ImportErrorLogger = _importErrorLogger;
-            await Task.Delay(5000);
 
             var importedItems = await _importService.ImportItems();
 
