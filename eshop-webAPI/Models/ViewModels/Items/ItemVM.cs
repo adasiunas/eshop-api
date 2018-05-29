@@ -41,8 +41,8 @@ namespace eshopAPI.Models
                 Name = item.Name,
                 SKU = item.SKU,
                 Description = item.Description,
-                Pictures = item.Pictures.Select(p => new ItemPictureVM { ID = p.ID, URL = p.URL }),
-                Attributes = item.Attributes.Select(i => new ItemAttributesVM { ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value }),
+                Pictures = item.Pictures?.Select(p => new ItemPictureVM { ID = p.ID, URL = p.URL }),
+                Attributes = item.Attributes?.Select(i => new ItemAttributesVM { ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value }),
                 Price = item.Price,
                 ItemCategory = new ItemCategoryVM
                 {

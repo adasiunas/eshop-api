@@ -2,25 +2,13 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Migrations\20180528203409_AddDiscount.cs" />
-    <Compile Remove="Migrations\20180528203409_AddDiscount.Designer.cs" />
-    <Compile Remove="Migrations\20180528203523_AddDiscount.cs" />
-    <Compile Remove="Migrations\20180528203523_AddDiscount.Designer.cs" />
-    <Compile Remove="Migrations\20180528203651_AddDiscount.cs" />
-    <Compile Remove="Migrations\20180528203651_AddDiscount.Designer.cs" />
-    <Compile Remove="Migrations\20180528221422_FixDiscountTableName.cs" />
-    <Compile Remove="Migrations\20180528221422_FixDiscountTableName.Designer.cs" />
-    <Compile Remove="Migrations\20180529141510_FixDiscount.cs" />
-    <Compile Remove="Migrations\20180529141510_FixDiscount.Designer.cs" />
-    <Compile Remove="Migrations\20180529142026_FixDiscount.cs" />
-    <Compile Remove="Migrations\20180529142026_FixDiscount.Designer.cs" />
-  </ItemGroup>
+
   <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.2.0" />
+    <PackageReference Include="EPPlus.Core" Version="1.5.4" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="7.5.2" />
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
