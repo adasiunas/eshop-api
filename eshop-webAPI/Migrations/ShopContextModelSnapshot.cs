@@ -18,7 +18,8 @@ namespace eshopAPI.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.0.1-rtm-125")
+                .HasAnnotation("ProductVersion", "2.0.2-rtm-10011")
+                .HasAnnotation("Relational:Sequence:shared.OrderNumbers", "'OrderNumbers', 'shared', '100000', '1', '', '', 'Int32', 'False'")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("eshopAPI.Models.Address", b =>
@@ -134,14 +135,47 @@ namespace eshopAPI.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("eshopAPI.Models.Discount", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<long?>("CategoryID");
+
+                    b.Property<bool>("IsPercentages");
+
+                    b.Property<long?>("ItemID");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100);
+
+                    b.Property<long?>("SubCategoryID");
+
+                    b.Property<DateTime>("To");
+
+                    b.Property<int>("Value");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CategoryID");
+
+                    b.HasIndex("ItemID");
+
+                    b.HasIndex("SubCategoryID");
+
+                    b.ToTable("Discounts");
+                });
+
             modelBuilder.Entity("eshopAPI.Models.Item", b =>
                 {
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreateDate");
+                    b.Property<DateTime>("CreateDate")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("DeleteDate");
+                    b.Property<DateTime?>("DeleteDate");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -149,7 +183,8 @@ namespace eshopAPI.Migrations
 
                     b.Property<bool>("IsDeleted");
 
-                    b.Property<DateTime>("ModifiedDate");
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -161,7 +196,11 @@ namespace eshopAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(10);
 
-                    b.Property<long?>("SubCategoryID");
+                    b.Property<long>("SubCategoryID");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("ID");
 
@@ -193,14 +232,18 @@ namespace eshopAPI.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreateDate");
+                    b.Property<DateTime>("CreateDate")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("DeliveryAddress")
                         .IsRequired();
 
-                    b.Property<Guid>("OrderNumber");
+                    b.Property<int>("OrderNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("NEXT VALUE FOR shared.OrderNumbers");
 
-                    b.Property<int>("Status");
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("UserId")
                         .IsRequired();
@@ -303,7 +346,7 @@ namespace eshopAPI.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long?>("CategoryID");
+                    b.Property<long>("CategoryID");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -314,6 +357,24 @@ namespace eshopAPI.Migrations
                     b.HasIndex("CategoryID");
 
                     b.ToTable("SubCategories");
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.UserFeedbackEntry", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Message");
+
+                    b.Property<int>("Rating");
+
+                    b.Property<string>("UserId");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserFeedbacks");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -456,11 +517,27 @@ namespace eshopAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("eshopAPI.Models.Discount", b =>
+                {
+                    b.HasOne("eshopAPI.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryID");
+
+                    b.HasOne("eshopAPI.Models.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemID");
+
+                    b.HasOne("eshopAPI.Models.SubCategory", "SubCategory")
+                        .WithMany()
+                        .HasForeignKey("SubCategoryID");
+                });
+
             modelBuilder.Entity("eshopAPI.Models.Item", b =>
                 {
-                    b.HasOne("eshopAPI.Models.SubCategory")
+                    b.HasOne("eshopAPI.Models.SubCategory", "SubCategory")
                         .WithMany("Items")
-                        .HasForeignKey("SubCategoryID");
+                        .HasForeignKey("SubCategoryID")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("eshopAPI.Models.ItemPicture", b =>
@@ -473,7 +550,7 @@ namespace eshopAPI.Migrations
             modelBuilder.Entity("eshopAPI.Models.Order", b =>
                 {
                     b.HasOne("eshopAPI.Models.ShopUser", "User")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
@@ -499,9 +576,17 @@ namespace eshopAPI.Migrations
 
             modelBuilder.Entity("eshopAPI.Models.SubCategory", b =>
                 {
-                    b.HasOne("eshopAPI.Models.Category")
+                    b.HasOne("eshopAPI.Models.Category", "Category")
                         .WithMany("SubCategories")
-                        .HasForeignKey("CategoryID");
+                        .HasForeignKey("CategoryID")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("eshopAPI.Models.UserFeedbackEntry", b =>
+                {
+                    b.HasOne("eshopAPI.Models.ShopUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

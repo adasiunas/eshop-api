@@ -95,6 +95,12 @@ namespace eshop_webAPI.Controllers
                     new ErrorResponse(ErrorReasons.InvalidEmailOrPassword, "Invalid email or password."));
             }
 
+            if(await _userManager.IsInRoleAsync(user, UserRole.Blocked.ToString()))
+            {
+                return StatusCode((int) HttpStatusCode.Forbidden,
+                    new ErrorResponse(ErrorReasons.UserIsBlocked, "Account is blocked."));
+            }
+
             if (!user.EmailConfirmed)
             {
                 return StatusCode((int) HttpStatusCode.BadRequest,
@@ -107,9 +113,11 @@ namespace eshop_webAPI.Controllers
             if (!result.Succeeded)
                 return StatusCode((int) HttpStatusCode.BadRequest,
                     new ErrorResponse(ErrorReasons.BadRequest, "Failed to log in. Please make sure you have entered correct credentials."));
-            
+
+            string userRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
+
             _logger.LogInformation("User logged in.");
-            return StatusCode((int) HttpStatusCode.NoContent);
+            return StatusCode((int) HttpStatusCode.OK, userRole);
 
         }
 

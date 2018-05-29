@@ -11,9 +11,11 @@ using Microsoft.Extensions.Logging;
 using eshopAPI.DataAccess;
 using System.Net;
 using eshopAPI.Utils;
+using Microsoft.AspNetCore.Authorization;
 
 namespace eshopAPI.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     [Produces("application/json")]
     [Route("api/admin/users")]
     public class UsersController : ODataController
