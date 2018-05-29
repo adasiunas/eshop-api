@@ -56,11 +56,11 @@ namespace eshopAPI.Utils.Import
                                 URL = p
                             }),
                             Attributes = null,
-                            ItemCategory = new ItemCategoryVM
+                            Category = new ItemCategoryVM
                             {
                                 Name = categories[0],
-                                SubCategory = new ItemSubCategoryVM { Name = categories[1] }
-                            }
+                            },
+                            SubCategory = new ItemSubCategoryVM { Name = categories[1] }
                         };
                         ret.Add(importedRecord);
                     }
