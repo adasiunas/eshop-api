@@ -1,4 +1,4 @@
-﻿using eshopAPI.DataAccess;
+﻿
 using eshopAPI.Models;
 using eshopAPI.Models.ViewModels;
 using OfficeOpenXml;
@@ -15,6 +15,15 @@ namespace eshopAPI.Utils.Import
         private string FileName { get; set; }
         public ImportErrorLogger ImportErrorLogger { get; set; }
 
+        private int skuColumn = 4;
+        private int nameColumn = 1;
+        private int picturesColumn = 3;
+        private int attributeKeyColumn = 7;
+        private int attributeValueColumn = 8;
+        private int descriptionColumn = 5;
+        private int priceColumn = 2;
+        private int categoriesColumn = 6;
+
         public void SetFileName(string fileName)
         {
             this.FileName = @"C:\Users\greta\Desktop\" + fileName + ".xlsx";
@@ -27,7 +36,7 @@ namespace eshopAPI.Utils.Import
 
         public IEnumerable<ItemVM> ImportRecords()
         {
-            var ret = new List<ItemVM>();
+            var importedItems = new List<ItemVM>();
             var fInfo = new FileInfo(FileName);
             try
             {
@@ -35,34 +44,39 @@ namespace eshopAPI.Utils.Import
                 {
                     var wks = excel.Workbook.Worksheets["items"];
                     var lastRow = wks.Dimension.End.Row;
+                    List<ItemAttributesVM> attributes = new List<ItemAttributesVM>();
 
                     for (int i = 2; i <= lastRow; i++)
                     {
-                        string picturesString = wks.Cells[i, 5].Value.ToString();
-                        string[] pictures = picturesString.Replace(" ", "").Split(",");
+                        var sku = GetCellValueFromPossiblyMergedCell(wks, i, skuColumn);
 
-                        string categoriesString = wks.Cells[i, 6].Value.ToString();
-                        string[] categories = categoriesString.Split("/");
+                        string attributeKey = GetCellValueFromPossiblyMergedCell(wks, i, attributeKeyColumn);
+                        string attributeValue = GetCellValueFromPossiblyMergedCell(wks, i, attributeValueColumn);
 
+                        if(!string.IsNullOrEmpty(attributeKey) && !string.IsNullOrEmpty(attributeValue))
+                        {
+
+                            attributes.Add(new ItemAttributesVM { Name = attributeKey, Value = attributeValue });
+                        }
+
+                        if (GetCellValueFromPossiblyMergedCell(wks, i + 1, skuColumn) == sku)
+                        {
+                            continue;
+                        }
 
                         var importedRecord = new ItemVM
                         {
-                            SKU = wks.Cells[i, 1].Value.ToString(),
-                            Name = wks.Cells[i, 2].Value.ToString(),
-                            Price = Convert.ToDecimal(wks.Cells[i, 3].Value),
-                            Description = wks.Cells[i, 4].Value.ToString(),
-                            Pictures = pictures.Select(p => new ItemPictureVM
-                            {
-                                URL = p
-                            }),
-                            Attributes = null,
-                            ItemCategory = new ItemCategoryVM
-                            {
-                                Name = categories[0],
-                                SubCategory = new ItemSubCategoryVM { Name = categories[1] }
-                            }
+                            SKU = sku,
+                            Name = GetCellValueFromPossiblyMergedCell(wks, i, nameColumn),
+                            Price = Convert.ToDecimal(GetCellValueFromPossiblyMergedCell(wks, i, priceColumn)),
+                            Description = GetCellValueFromPossiblyMergedCell(wks, i, descriptionColumn),
+                            Pictures = PreparePictures(GetCellValueFromPossiblyMergedCell(wks, i, picturesColumn)),
+                            Attributes = attributes,
+                            ItemCategory = PrepareCategory(GetCellValueFromPossiblyMergedCell(wks, i, categoriesColumn))
                         };
-                        ret.Add(importedRecord);
+
+                        importedItems.Add(importedRecord);
+                        attributes = new List<ItemAttributesVM>();
                     }
                 }
             }
@@ -70,12 +84,43 @@ namespace eshopAPI.Utils.Import
             {
                 ImportErrorLogger.LogError(e.Message);
             }
-            return ret;
+
+            return importedItems;
         }
 
-        private List<ItemPictureVM> ImportPictures(int columnIndex)
+        private IEnumerable<ItemPictureVM> PreparePictures(string picturesCell)
         {
-            return null;
+            if(string.IsNullOrEmpty(picturesCell))
+            {
+                return null;
+            }
+            string[] pictures = picturesCell.Replace(" ", "").Split(",");
+            return pictures.Select(p => new ItemPictureVM { URL = p }).ToList();
+        }
+
+        private ItemCategoryVM PrepareCategory(string categoriesCell)
+        {
+            string[] categories = categoriesCell.Split("/");
+
+            return new ItemCategoryVM
+                {
+                    Name = categories[0],
+                    SubCategory = new ItemSubCategoryVM { Name = categories[1] }
+                };
+        }
+
+        private string GetCellValueFromPossiblyMergedCell(ExcelWorksheet wks, int row, int col)
+        {
+            var cell = wks.Cells[row, col];
+            if (cell.Merge)
+            {
+                var mergedId = wks.MergedCells[row, col];
+                return wks.Cells[mergedId].First().Value != null ? wks.Cells[mergedId].First().Value.ToString() : string.Empty;
+            }
+            else
+            {
+                return cell.Value != null ? cell.Value.ToString() : string.Empty;
+            }
         }
 
     }

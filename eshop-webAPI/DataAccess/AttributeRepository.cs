@@ -1,4 +1,6 @@
 ﻿using eshopAPI.Models;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace eshopAPI.DataAccess
@@ -9,6 +11,7 @@ namespace eshopAPI.DataAccess
         Task<Attribute> FindByName(string name);
         Task Insert(Attribute attribute);
         Task Update(Attribute attribute);
+        Task<List<Attribute>> GetAll();
     }
 
     public class AttributeRepository : BaseRepository, IAttributeRepository
@@ -24,7 +27,12 @@ namespace eshopAPI.DataAccess
 
         public Task<Attribute> FindByName(string name)
         {
-            throw new System.NotImplementedException();
+            return  Task.FromResult(Context.Attributes.Where(a => a.Name.Equals(name)).First());
+        }
+
+        public Task<List<Attribute>> GetAll()
+        {
+            return Task.FromResult(Context.Attributes.ToList());
         }
 
         public Task Insert(Attribute attribute)
