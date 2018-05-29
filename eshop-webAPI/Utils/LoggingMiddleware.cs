@@ -12,24 +12,22 @@ namespace eshopAPI.Utils
     {
         private readonly ILogger _logger;
 
-        public LoggingMiddleware(ILogger logger)
+        public LoggingMiddleware(ILoggerFactory loggerFactory)
         {
-            _logger = logger;
+            _logger = loggerFactory.CreateLogger("LoggingMiddleware");
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            _logger.LogInformation("Request started invoking method: " + next.Method.Name);
             try
             {
                 await next(context);
             }
             catch(Exception ex)
             {
-                _logger.LogCritical("Exeption was caught invoking method: " + next.Method.Name);
+                _logger.LogCritical("Exeption was caught invoking: " + next.Target.ToString());
                 _logger.LogCritical("Stack trace:\n" + ex.StackTrace);
             }
-            _logger.LogInformation("Method: " + next.Method.Name + " finished");
         }
     }
 

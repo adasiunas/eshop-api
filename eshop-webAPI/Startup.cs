@@ -99,6 +99,7 @@ namespace eshopAPI
             services.AddScoped<IUserFeedbackRepository, UserFeedbackRepository>();
 
             services.AddSingleton(typeof(AntiforgeryMiddleware));
+            services.AddSingleton(typeof(LoggingMiddleware));
 
             services.AddOData();
             
@@ -150,7 +151,7 @@ namespace eshopAPI
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "eshop-api V1");
             });
             
-            loggerFactory.AddLog4Net(x => x.StartsWith());
+            loggerFactory.AddLog4Net(x => !x.StartsWith("Microsoft.EntityFrameworkCore"));
 
             app.UseAuthentication();
             app.UseAntiforgeryMiddleware();

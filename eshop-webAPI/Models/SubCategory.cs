@@ -14,7 +14,6 @@ namespace eshopAPI.Models
         [Required]
         [MaxLength(50)]
         public string Name { get; set; } // Bussiness key
-        [ForeignKey("SubCategory")]
         public long CategoryID { get; set; }
         public Category Category { get; set; }
         public virtual ICollection<Item> Items { get; set; }
