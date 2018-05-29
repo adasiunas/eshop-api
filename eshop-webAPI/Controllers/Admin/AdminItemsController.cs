@@ -52,6 +52,22 @@ namespace eshopAPI.Controllers.Admin
             return await _itemRepository.GetAllAdminItemVMAsQueryable();
         }
 
+        [HttpPost("archive")]
+        public async Task<IActionResult> Archive([FromBody] List<long> ids)
+        {
+            await _itemRepository.ArchiveByIDs(ids);
+            await _itemRepository.SaveChanges();
+            return StatusCode((int)HttpStatusCode.NoContent);
+        }
+
+        [HttpPost("unarchive")]
+        [Transaction]
+        public async Task<IActionResult> Unarchive([FromBody] List<long> ids)
+        {
+            await _itemRepository.UnarchiveByIDs(ids);
+            return StatusCode((int)HttpStatusCode.NoContent);
+        }
+
         [HttpPost("create")]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Create([FromForm]ItemCreateRequest request)

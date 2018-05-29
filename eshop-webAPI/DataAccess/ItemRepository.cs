@@ -2,6 +2,8 @@
 using eshopAPI.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,6 +12,8 @@ namespace eshopAPI.DataAccess
     public interface IItemRepository : IBaseRepository
     {
         Task<Item> FindByID(long itemID);
+        Task ArchiveByIDs(List<long> ids);
+        Task UnarchiveByIDs(List<long> ids);
         Task<Item> Insert(Item item);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
         Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
@@ -33,7 +37,8 @@ namespace eshopAPI.DataAccess
                     ID = x.ID,
                     Description = x.Description,
                     Price = x.Price,
-                    SKU = x.SKU
+                    SKU = x.SKU,
+                    IsDeleted = x.IsDeleted
                 });
             return Task.FromResult(query);
         }
@@ -83,5 +88,25 @@ namespace eshopAPI.DataAccess
             return Task.FromResult(query);
         }
 
+        public async Task ArchiveByIDs(List<long> ids)
+        {
+            await Context.Items
+                .Where(x => ids.Contains(x.ID))
+                .ForEachAsync(x =>
+                {
+                    x.IsDeleted = true;
+                    x.DeleteDate = DateTime.Now;
+                });
+        }
+
+        public async Task UnarchiveByIDs(List<long> ids)
+        {
+            await Context.Items
+                .Where(x => ids.Contains(x.ID))
+                .ForEachAsync(x =>
+                {
+                    x.IsDeleted = false;
+                });
+        }
     }
 }
