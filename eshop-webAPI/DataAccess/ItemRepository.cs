@@ -17,6 +17,7 @@ namespace eshopAPI.DataAccess
         Task<Item> Insert(Item item);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
         Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
+        Task<IQueryable<string>> GetAllItemsSkuCodes();
     }
 
     public class ItemRepository : BaseRepository, IItemRepository
@@ -74,18 +75,25 @@ namespace eshopAPI.DataAccess
                         Name = a.Attribute.Name,
                         Value = a.Value
                     }),
-                    ItemCategory = new ItemCategoryVM
+                    Category = new ItemCategoryVM
                     {
-                        Name = i.SubCategory.Category.Name,
-                        ID = i.SubCategory.CategoryID,
-                        SubCategory = new ItemSubCategoryVM
-                        {
-                            ID = i.SubCategoryID,
-                            Name = i.SubCategory.Name
-                        }
+                        Name = i.Category.Name,
+                        ID = i.CategoryID,
+ 
+                    },
+                    SubCategory = i.SubCategory == null ? null : new ItemSubCategoryVM
+                    {
+                        Name = i.SubCategory.Name,
+                        ID = i.SubCategoryID.Value
                     }
                 });
             return Task.FromResult(query);
+        }
+
+        public Task<IQueryable<string>> GetAllItemsSkuCodes()
+        {
+            return Task.FromResult(Context.Items
+                .Select(i => i.SKU));
         }
 
         public async Task ArchiveByIDs(List<long> ids)
