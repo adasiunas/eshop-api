@@ -12,9 +12,10 @@ using System;
 namespace eshopAPI.Migrations
 {
     [DbContext(typeof(ShopContext))]
-    partial class ShopContextModelSnapshot : ModelSnapshot
+    [Migration("20180529130925_AddDiscount")]
+    partial class AddDiscount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,11 +141,7 @@ namespace eshopAPI.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long?>("CategoryID");
-
-                    b.Property<bool>("IsPercentages");
-
-                    b.Property<long?>("ItemID");
+                    b.Property<long>("CategoryID");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -160,8 +157,6 @@ namespace eshopAPI.Migrations
 
                     b.HasIndex("CategoryID");
 
-                    b.HasIndex("ItemID");
-
                     b.HasIndex("SubCategoryID");
 
                     b.ToTable("Discounts");
@@ -172,8 +167,7 @@ namespace eshopAPI.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreateDate")
-                        .ValueGeneratedOnAdd();
+                    b.Property<DateTime>("CreateDate");
 
                     b.Property<DateTime?>("DeleteDate");
 
@@ -183,8 +177,7 @@ namespace eshopAPI.Migrations
 
                     b.Property<bool>("IsDeleted");
 
-                    b.Property<DateTime>("ModifiedDate")
-                        .ValueGeneratedOnAdd();
+                    b.Property<DateTime>("ModifiedDate");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -232,18 +225,15 @@ namespace eshopAPI.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreateDate")
-                        .ValueGeneratedOnAdd();
+                    b.Property<DateTime>("CreateDate");
 
                     b.Property<string>("DeliveryAddress")
                         .IsRequired();
 
                     b.Property<int>("OrderNumber")
-                        .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("NEXT VALUE FOR shared.OrderNumbers");
 
-                    b.Property<int>("Status")
-                        .ValueGeneratedOnAdd();
+                    b.Property<int>("Status");
 
                     b.Property<string>("UserId")
                         .IsRequired();
@@ -521,11 +511,8 @@ namespace eshopAPI.Migrations
                 {
                     b.HasOne("eshopAPI.Models.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryID");
-
-                    b.HasOne("eshopAPI.Models.Item", "Item")
-                        .WithMany()
-                        .HasForeignKey("ItemID");
+                        .HasForeignKey("CategoryID")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("eshopAPI.Models.SubCategory", "SubCategory")
                         .WithMany()

@@ -48,7 +48,6 @@ namespace eshopAPI.Utils.Export
                     itemIndex++;
                 }
                 
-                
                 excelPackage.Save();
             }
 

@@ -36,6 +36,7 @@ namespace eshopAPI.Controllers
         }
         
         [HttpPost]
+        [Transaction]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
         {
             Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
@@ -50,7 +51,6 @@ namespace eshopAPI.Controllers
             
             var order = new Order
             {
-                OrderNumber = Guid.NewGuid(),
                 User = user,
                 Items = cart.Items.Select(i => new OrderItem()
                 {
@@ -70,8 +70,8 @@ namespace eshopAPI.Controllers
 
             if (paymentResponse.IsSuccessfullResponse)
             {
-                await _orderRepository.SaveChanges();
                 await _emailSender.SendOrderCreationEmailAsync(user.Email, order.OrderNumber.ToString());
+                await _cartRepository.ClearCart(cart);
                 return StatusCode((int)HttpStatusCode.OK, "Email sent");
             }
             

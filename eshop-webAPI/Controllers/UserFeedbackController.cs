@@ -55,11 +55,5 @@ namespace eshopAPI.Controllers
             
             return StatusCode((int) HttpStatusCode.NoContent);
         }
-
-        [HttpGet]
-        public async Task<IActionResult> GetFeedbacks()
-        {
-            return StatusCode((int) HttpStatusCode.OK, await _repository.GetAllFeedbacks());
-        }
     }
 }

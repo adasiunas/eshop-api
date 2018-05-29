@@ -4,6 +4,7 @@ using eshopAPI.Models.ViewModels;
 using eshopAPI.Models.ViewModels.Admin;
 using eshopAPI.Requests.Categories;
 using eshopAPI.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace eshopAPI.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/admin/categories")]
     public class CategoryController : Controller
     {

@@ -2,6 +2,7 @@
 using eshopAPI.Models;
 using eshopAPI.Models.ViewModels;
 using Microsoft.AspNet.OData;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -14,21 +15,19 @@ namespace eshopAPI.Controllers
 {
     [Produces("application/json")]
     [Route("api/orders")]
+    [Authorize]
     [AutoValidateAntiforgeryToken]
     public class OrdersController : ODataController
     {
         private readonly ILogger<ItemsController> _logger;
         private IOrderRepository _orderRepository;
-        private IShopUserRepository _shopUserRepository;
 
         public OrdersController(
             ILogger<ItemsController> logger, 
-            IOrderRepository orderRepository,
-            IShopUserRepository shopUserRepository)
+            IOrderRepository orderRepository)
         {
             _logger = logger;
             _orderRepository = orderRepository;
-            _shopUserRepository = shopUserRepository;
         }
 
         [EnableQuery]

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace eshopAPI.Models
+namespace eshopAPI.Models.ViewModels
 {
     public class CartItemVM
     {
@@ -12,7 +12,7 @@ namespace eshopAPI.Models
         public string Name { get; set; }
         public string MainPicture { get; set; }
         public decimal Price { get; set; }
-        public virtual ICollection<ItemAttributesVM> Attributes { get; set; }
+        public IEnumerable<ItemAttributesVM> Attributes { get; set; }
         public int Count { get; set; }
     }
 
