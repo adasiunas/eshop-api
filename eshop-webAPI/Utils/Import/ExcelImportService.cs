@@ -15,14 +15,14 @@ namespace eshopAPI.Utils.Import
         private string FileName { get; set; }
         public ImportErrorLogger ImportErrorLogger { get; set; }
 
-        private int skuColumn = 4;
-        private int nameColumn = 1;
-        private int picturesColumn = 3;
-        private int attributeKeyColumn = 7;
-        private int attributeValueColumn = 8;
-        private int descriptionColumn = 5;
-        private int priceColumn = 2;
-        private int categoriesColumn = 6;
+        private readonly int nameColumn = 1;
+        private readonly int priceColumn = 2;
+        private readonly int PicturesColumn = 3;
+        private readonly int skuColumn = 4;
+        private readonly int descriptionColumn = 5;
+        private readonly int categoriesColumn = 6;
+        private readonly int attributeKeyColumn = 7;
+        private readonly int attributeValueColumn = 8;      
 
         public void SetFileName(string fileName)
         {
@@ -70,9 +70,10 @@ namespace eshopAPI.Utils.Import
                             Name = GetCellValueFromPossiblyMergedCell(wks, i, nameColumn),
                             Price = Convert.ToDecimal(GetCellValueFromPossiblyMergedCell(wks, i, priceColumn)),
                             Description = GetCellValueFromPossiblyMergedCell(wks, i, descriptionColumn),
-                            Pictures = PreparePictures(GetCellValueFromPossiblyMergedCell(wks, i, picturesColumn)),
+                            Pictures = PreparePictures(GetCellValueFromPossiblyMergedCell(wks, i, PicturesColumn)),
                             Attributes = attributes,
-                            ItemCategory = PrepareCategory(GetCellValueFromPossiblyMergedCell(wks, i, categoriesColumn))
+                            Category = PrepareCategory(GetCellValueFromPossiblyMergedCell(wks, i, categoriesColumn)),
+                            SubCategory = PrepareSubCategory(GetCellValueFromPossiblyMergedCell(wks, i, categoriesColumn))
                         };
 
                         importedItems.Add(importedRecord);
@@ -104,9 +105,18 @@ namespace eshopAPI.Utils.Import
 
             return new ItemCategoryVM
                 {
-                    Name = categories[0],
-                    SubCategory = new ItemSubCategoryVM { Name = categories[1] }
+                    Name = categories[0]
                 };
+        }
+
+        private ItemSubCategoryVM PrepareSubCategory(string categoriesCell)
+        {
+            string[] categories = categoriesCell.Split("/");
+
+            return new ItemSubCategoryVM
+            {
+                Name = categories[1]
+            };
         }
 
         private string GetCellValueFromPossiblyMergedCell(ExcelWorksheet wks, int row, int col)

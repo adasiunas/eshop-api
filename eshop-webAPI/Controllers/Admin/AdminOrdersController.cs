@@ -70,7 +70,7 @@ namespace eshopAPI.Controllers.Admin
                 OrderStatus status = (OrderStatus) Enum.Parse(typeof(OrderStatus), request.Status);
                 order.Status = status;
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException)
             {
                 _logger.LogInformation($"Failed to match status {request.Status} to enum");
                 return StatusCode((int)HttpStatusCode.BadRequest,
