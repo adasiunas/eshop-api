@@ -16,7 +16,7 @@ namespace eshopAPI.DataAccess
         Task UnarchiveByIDs(List<long> ids);
         Task<Item> Insert(Item item);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
-        Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
+        Task<List<ItemVM>> GetAllItemsForFirstPage();
         Task<IQueryable<string>> GetAllItemsSkuCodes();
     }
 
@@ -57,7 +57,7 @@ namespace eshopAPI.DataAccess
             return Task.FromResult(Context.Items.Add(item).Entity);
         }
         
-        public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable()
+        public Task<List<ItemVM>> GetAllItemsForFirstPage()
         {
             var query = Context.Items
                 .Select(i => new ItemVM
@@ -87,7 +87,7 @@ namespace eshopAPI.DataAccess
                         ID = i.SubCategoryID.Value
                     }
                 });
-            return Task.FromResult(query);
+            return query.ToListAsync();
         }
 
         public Task<IQueryable<string>> GetAllItemsSkuCodes()

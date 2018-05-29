@@ -159,7 +159,7 @@ namespace eshopAPI.Controllers.Admin
         [HttpGet("export/{categoryId}")]
         public async Task<IActionResult> Export(int categoryId)
         {
-            var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            IEnumerable<ItemVM> items = await _itemRepository.GetAllItemsForFirstPage();
             items = items.Where(i => i.Category.ID == categoryId);
             if (!items.Any())
             {
@@ -173,7 +173,7 @@ namespace eshopAPI.Controllers.Admin
         public async Task<IActionResult> ExportAll()
         {
             
-            var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            IEnumerable<ItemVM> items = await _itemRepository.GetAllItemsForFirstPage();
             if (!items.Any())
             {
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items was found."));
@@ -186,7 +186,7 @@ namespace eshopAPI.Controllers.Admin
         [HttpGet("export/subcategory/{subcategoryId}")]
         public async Task<IActionResult> ExportSubcategory(int subcategoryId)
         {
-            var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            IEnumerable<ItemVM> items = await _itemRepository.GetAllItemsForFirstPage();
             items = items.Where(i => i.SubCategory != null && i.SubCategory.ID == subcategoryId);
             if (!items.Any())
             {
