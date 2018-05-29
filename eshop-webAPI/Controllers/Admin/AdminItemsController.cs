@@ -8,9 +8,12 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using eshopAPI.DataAccess;
 using eshopAPI.Models;
+using eshopAPI.Models.ViewModels.Admin;
 using eshopAPI.Requests;
 using eshopAPI.Response;
+using eshopAPI.Services;
 using eshopAPI.Utils;
+using eshopAPI.Utils.Export;
 using eshopAPI.Utils.Import;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
@@ -22,6 +25,7 @@ using Microsoft.Extensions.Logging;
 
 namespace eshopAPI.Controllers.Admin
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/admin/Items")]
     [AutoValidateAntiforgeryToken]
     public class AdminItemsController : ODataController
@@ -35,6 +39,9 @@ namespace eshopAPI.Controllers.Admin
         private readonly IConfiguration _configuration;
         private readonly IExportService _exportService;
         private readonly IImportService _importService;
+        private IImageCloudService _imageCloudService;
+        private IAttributeRepository _attributeRepository;
+        private ShopContext _shopContext;
 
         public AdminItemsController(
             ILogger<ItemsController> logger,
@@ -44,7 +51,10 @@ namespace eshopAPI.Controllers.Admin
             IHostingEnvironment hostingEnvironment, 
             IConfiguration configuration, 
             IExportService exportService,
-            IImportService importService)
+            IImportService importService,
+            IAttributeRepository attributeRepository,
+            IImageCloudService imageCloudService,
+            ShopContext shopContext)
         {
             _logger = logger;
             _itemRepository = itemRepository;
@@ -53,7 +63,9 @@ namespace eshopAPI.Controllers.Admin
             _configuration = configuration;
             _exportService = exportService;
             _importService = importService;
+            _imageCloudService = imageCloudService;
             _attributeRepository = attributeRepository;
+            _shopContext = shopContext;
         }
 
         // GET: api/Items
@@ -64,13 +76,29 @@ namespace eshopAPI.Controllers.Admin
             return await _itemRepository.GetAllAdminItemVMAsQueryable();
         }
 
+        [HttpPost("archive")]
+        public async Task<IActionResult> Archive([FromBody] List<long> ids)
+        {
+            await _itemRepository.ArchiveByIDs(ids);
+            await _itemRepository.SaveChanges();
+            return StatusCode((int)HttpStatusCode.NoContent);
+        }
+
+        [HttpPost("unarchive")]
+        [Transaction]
+        public async Task<IActionResult> Unarchive([FromBody] List<long> ids)
+        {
+            await _itemRepository.UnarchiveByIDs(ids);
+            return StatusCode((int)HttpStatusCode.NoContent);
+        }
+
         [HttpPost("create")]
         [IgnoreAntiforgeryToken]
-        [Transaction]
-        public async Task<IActionResult> Create([FromBody]ItemCreateRequest request)
+       public async Task<IActionResult> Create([FromForm]ItemCreateRequest request)
         {
-            SubCategory category = await _categoryRepository.FindSubCategoryByID(request.CategoryID);
+            _logger.LogInformation($"Creating a new item with SKU: {request.SKU}");
 
+            SubCategory category = await _categoryRepository.FindSubCategoryByID(request.CategoryID);
             if (category == null)
             {
                 _logger.LogInformation($"No category found with id {request.CategoryID}");
@@ -78,25 +106,63 @@ namespace eshopAPI.Controllers.Admin
                     new ErrorResponse(ErrorReasons.NotFound, "Category was not found"));
             }
 
-            await _itemRepository.Insert(new Item()
-            {
-                Description = request.Description,
-                Name = request.Name,
-                Price = request.Price,
-                SKU = request.SKU,
-                SubCategoryID = request.CategoryID
-            });
+            List<string> pictureURLs = new List<string>();
 
+            if (request.PictureURLs != null)
+                pictureURLs.AddRange(request.PictureURLs);
+
+            if (request.PictureFiles != null && request.PictureFiles.Count > 0)
+            {
+                List<Uri> uris = _imageCloudService.UploadImagesFromFiles(
+                    request.PictureFiles
+                        .Select(x => x.OpenReadStream())
+                        .ToList()
+                );
+                pictureURLs.AddRange(uris.Select(x => x.ToString()));
+            }
+
+            using (var transaction = await _attributeRepository.Context.Database.BeginTransactionAsync())
+            {
+                if (request.Attributes != null)
+                {
+                    foreach (AdminAttributeVM vm in request.Attributes.Where(x => x.AttributeID < 0).ToList())
+                    {
+                        Models.Attribute currentAttribute = await _attributeRepository.Insert(new Models.Attribute()
+                        {
+                            Name = vm.Key
+                        });
+
+                        await _attributeRepository.SaveChanges();
+
+                        vm.AttributeID = currentAttribute.ID;
+                    }
+                }
+
+                await _itemRepository.Insert(new Item()
+                {
+                    Description = request.Description,
+                    Name = request.Name,
+                    Price = request.Price,
+                    SKU = request.SKU,
+                    SubCategoryID = request.CategoryID,
+                    Pictures = pictureURLs.Select(x => new ItemPicture() { URL = x }).ToList(),
+                    Attributes = request.Attributes
+                        ?.Select(x => new AttributeValue() { AttributeID = x.AttributeID, Value = x.Value })
+                        ?.ToList()
+                });
+
+                await _itemRepository.SaveChanges();
+
+                transaction.Commit();
+            }
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
         [HttpGet("export/{categoryId}")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Export(int categoryId)
         {
             var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
-            items = items.Where(i => i.ItemCategory.ID == categoryId);
+            items = items.Where(i => i.Category.ID == categoryId);
             if (!items.Any())
             {
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items for this category was found."));
@@ -106,8 +172,6 @@ namespace eshopAPI.Controllers.Admin
         }
 
         [HttpGet("exportAll")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ExportAll()
         {
             
@@ -117,22 +181,48 @@ namespace eshopAPI.Controllers.Admin
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items was found."));
             }
             return await PerformExport(items);
+                
         }
         
         
         [HttpGet("export/subcategory/{subcategoryId}")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ExportSubcategory(int subcategoryId)
         {
             var items = await _itemRepository.GetAllItemsForFirstPageAsQueryable();
-            items = items.Where(i => i.ItemCategory.SubCategory.ID == subcategoryId);
+            items = items.Where(i => i.SubCategory != null && i.SubCategory.ID == subcategoryId);
             if (!items.Any())
             {
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.NotFound, "No items for this subcategory was found."));
             }
 
             return await PerformExport(items);
+        }
+
+        [HttpGet("export/file/{fileName}")]
+        public async Task<IActionResult> DownloadExportedFile(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.BadRequest, "Incorrect file name"));
+            }
+            
+            var exportFileDirectory = !string.IsNullOrEmpty(_configuration["ExportedFilesDirectory"]) ? Path.Combine(_configuration["ExportedFilesDirectory"], fileName) : Path.Combine(_hostingEnvironment.ContentRootPath, "ExportedFiles", fileName);
+            byte[] bytes;
+            using (var fileStream = new FileStream(exportFileDirectory, FileMode.Open, FileAccess.Read))
+            {
+                bytes = new byte[fileStream.Length];
+                int numBytesToRead = (int)fileStream.Length;
+                int numBytesRead = 0;
+                while (numBytesToRead > 0)
+                {
+                    int n = await fileStream.ReadAsync(bytes, numBytesRead, numBytesToRead);
+                    if (n == 0) break;
+                    numBytesRead += n;
+                    numBytesToRead -= n;
+                }
+            }
+            Response.Headers.Add("content-disposition", $"attachment;filename=\"{fileName}\"");
+            return File(bytes, "application/octet-stream");
         }
 
         [HttpGet("import")]
@@ -265,32 +355,39 @@ namespace eshopAPI.Controllers.Admin
             return validAttributes;
         }
 
+            var subcategories = await _categoryRepository.GetChildrenOfParent(category.ID);
+            long subcategoryId = subcategories.Where(x => x.Name.Equals(item.ItemCategory.SubCategory.Name)).Select(x => x.ID).First();
+
+            if (subcategoryId == 0)
+            {
+                _importErrorLogger.LogError(row, $"Subcategory {item.ItemCategory.SubCategory.Name} does not exist");
+                return false;
+            }
+            return File(bytes, "application/octet-stream", fileName);
+        }
+        
         private string GenerateFileName()
         {
-            return DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss") + "_ItemsExport.xlsx";
+            if (_configuration["ExportFile"] == "CSV")
+            {
+                return DateTime.UtcNow.ToString("yyyy-MM-dd hh-mm-ss") + "_ItemsExport.csv";
+            }
+            return DateTime.UtcNow.ToString("yyyy-MM-dd hh-mm-ss") + "_ItemsExport.xlsx";
         }
 
-        private async Task<FileContentResult> PerformExport(IEnumerable<ItemVM> items)
+        private async Task<IActionResult> PerformExport(IEnumerable<ItemVM> items)
         {
             var fileName = GenerateFileName();
             var exportFileDirectory = !string.IsNullOrEmpty(_configuration["ExportedFilesDirectory"]) ? Path.Combine(_configuration["ExportedFilesDirectory"], fileName) : Path.Combine(_hostingEnvironment.ContentRootPath, "ExportedFiles", fileName);
             await _exportService.Export(items, exportFileDirectory);
-            byte[] bytes;
-            using (var fileStream = new FileStream(exportFileDirectory, FileMode.Open, FileAccess.Read))
-            {
-                bytes = new byte[fileStream.Length];
-                int numBytesToRead = (int)fileStream.Length;
-                int numBytesRead = 0;
-                while (numBytesToRead > 0)
-                {
-                    int n = await fileStream.ReadAsync(bytes, numBytesRead, numBytesToRead);
-                    if (n == 0) break;
-                    numBytesRead += n;
-                    numBytesToRead -= n;
-                }
+           
 
-            }
-            return File(bytes, "application/octet-stream", fileName);
+            var obj = new
+            {
+                urlToFile = $"admin/Items/export/file/{fileName}"
+            };
+            
+            return Ok(obj);
         }
     }
 }
