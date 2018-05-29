@@ -126,21 +126,16 @@ namespace eshopAPI.Controllers.Admin
 
             return await PerformExport(items);
         }
-        
-        private string GenerateFileName()
-        {
-            if (_configuration["ExportFile"] == "CSV")
-            {
-                return DateTime.UtcNow.ToString("yyyy-MM-dd hh-mm-ss") + "_ItemsExport.csv";
-            }
-            return DateTime.UtcNow.ToString("yyyy-MM-dd hh-mm-ss") + "_ItemsExport.xlsx";
-        }
 
-        private async Task<FileContentResult> PerformExport(IEnumerable<ItemVM> items)
+        [HttpGet("export/file/{fileName}")]
+        public async Task<IActionResult> DownloadExportedFile(string fileName)
         {
-            var fileName = GenerateFileName();
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.BadRequest, "Incorrect file name"));
+            }
+            
             var exportFileDirectory = !string.IsNullOrEmpty(_configuration["ExportedFilesDirectory"]) ? Path.Combine(_configuration["ExportedFilesDirectory"], fileName) : Path.Combine(_hostingEnvironment.ContentRootPath, "ExportedFiles", fileName);
-            await _exportService.Export(items, exportFileDirectory);
             byte[] bytes;
             using (var fileStream = new FileStream(exportFileDirectory, FileMode.Open, FileAccess.Read))
             {
@@ -154,12 +149,10 @@ namespace eshopAPI.Controllers.Admin
                     numBytesRead += n;
                     numBytesToRead -= n;
                 }
-
             }
-            return File(bytes, "application/octet-stream", fileName);
+            Response.Headers.Add("content-disposition", $"attachment;filename=\"{fileName}\"");
+            return File(bytes, "application/octet-stream");
         }
-
-
 
         [HttpGet("import")]
         [AllowAnonymous]
@@ -267,6 +260,30 @@ namespace eshopAPI.Controllers.Admin
                 return false;
             }
             return true;
+        }
+        
+        private string GenerateFileName()
+        {
+            if (_configuration["ExportFile"] == "CSV")
+            {
+                return DateTime.UtcNow.ToString("yyyy-MM-dd hh-mm-ss") + "_ItemsExport.csv";
+            }
+            return DateTime.UtcNow.ToString("yyyy-MM-dd hh-mm-ss") + "_ItemsExport.xlsx";
+        }
+
+        private async Task<IActionResult> PerformExport(IEnumerable<ItemVM> items)
+        {
+            var fileName = GenerateFileName();
+            var exportFileDirectory = !string.IsNullOrEmpty(_configuration["ExportedFilesDirectory"]) ? Path.Combine(_configuration["ExportedFilesDirectory"], fileName) : Path.Combine(_hostingEnvironment.ContentRootPath, "ExportedFiles", fileName);
+            await _exportService.Export(items, exportFileDirectory);
+           
+
+            var obj = new
+            {
+                urlToFile = $"admin/Items/export/file/{fileName}"
+            };
+            
+            return Ok(obj);
         }
     }
 }

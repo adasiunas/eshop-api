@@ -18,11 +18,17 @@ namespace eshopAPI.Utils.Export
                 await writter.WriteLineAsync(firstLine);
                 foreach (var item in items)
                 {
+                    item.Description = item.Description.Replace("\r", String.Empty).Replace("\n", String.Empty).Replace(",", String.Empty);
                     var line =
-                        $"\"{item.Name.Replace(@"\n\r", "")}\",\"{item.Price}\",\"{string.Join("|", item.Pictures.Select(p => p.URL)).Replace(@"\n\r", "")}\",\"{item.SKU}\",\"{item.Description.Replace(@"\n\r", "")}\",\"{string.Join("/", item.ItemCategory.Name, item.ItemCategory.SubCategory.Name)}\",\"[{string.Join(",", item.Attributes.Select(a => string.Join(":", a.Name, a.Value))).Replace(@"\n\r", "")}]\"";
+                        $"\"{ClearNewLines(item.Name.Replace(",", String.Empty))}\",\"{item.Price}\",\"{string.Join("|", item.Pictures.Select(p => p.URL))}\",\"{item.SKU}\",\"{ClearNewLines(item.Description.Replace(@",", String.Empty))}\",\"{string.Join("/", item.ItemCategory.Name, item.ItemCategory.SubCategory.Name)}\",\"[{string.Join(",", item.Attributes.Select(a => string.Join(":", a.Name, a.Value)))}]\"";
                     await writter.WriteLineAsync(line);
                 }
             }
+        }
+
+        private string ClearNewLines(string value)
+        {
+            return value.Replace("\r", String.Empty).Replace("\n", String.Empty);
         }
     }
 }
