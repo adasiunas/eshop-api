@@ -17,6 +17,7 @@ namespace eshopAPI.Models
         public IEnumerable<ItemAttributesVM> Attributes { get; set; }
         public ItemCategoryVM Category { get; set; }
         public ItemSubCategoryVM SubCategory { get; set; }
+        public byte[] OptLockVersion { get; set; }
     }
 
     public class ItemCategoryVM
@@ -33,6 +34,19 @@ namespace eshopAPI.Models
 
     public static class ItemExtensions
     {
+        public static Item UpdateItem(this Item initialItem, Item itemToUpdateTo)
+        {
+            initialItem.Attributes = itemToUpdateTo.Attributes;
+            initialItem.Description = itemToUpdateTo.Description;
+            initialItem.ModifiedDate = DateTime.Now;
+            initialItem.Name = itemToUpdateTo.Name;
+            initialItem.Pictures = itemToUpdateTo.Pictures;
+            initialItem.Price = itemToUpdateTo.Price;
+            initialItem.SKU = itemToUpdateTo.SKU;
+            initialItem.CategoryID = itemToUpdateTo.CategoryID;
+            initialItem.SubCategoryID = itemToUpdateTo.SubCategoryID;
+            return initialItem;
+        }
         public static ItemVM GetItemVM(this Item item)
         {
             return new ItemVM
@@ -53,7 +67,8 @@ namespace eshopAPI.Models
                 {
                     Name = item.SubCategory.Name,
                     ID = item.SubCategory.ID
-                }
+                },
+                OptLockVersion = item.Timestamp
             };
         }
     }
