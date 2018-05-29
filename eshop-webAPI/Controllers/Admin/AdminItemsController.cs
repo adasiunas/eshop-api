@@ -27,6 +27,7 @@ namespace eshopAPI.Controllers.Admin
     public class AdminItemsController : ODataController
     {
         private IItemRepository _itemRepository;
+        private IAttributeRepository _attributeRepository;
         private ILogger<ItemsController> _logger;
         private ICategoryRepository _categoryRepository;
         private ImportErrorLogger _importErrorLogger;
@@ -38,7 +39,8 @@ namespace eshopAPI.Controllers.Admin
         public AdminItemsController(
             ILogger<ItemsController> logger,
             IItemRepository itemRepository,
-            ICategoryRepository categoryRepository, 
+            ICategoryRepository categoryRepository,
+            IAttributeRepository attributeRepository,
             IHostingEnvironment hostingEnvironment, 
             IConfiguration configuration, 
             IExportService exportService,
@@ -51,6 +53,7 @@ namespace eshopAPI.Controllers.Admin
             _configuration = configuration;
             _exportService = exportService;
             _importService = importService;
+            _attributeRepository = attributeRepository;
         }
 
         // GET: api/Items
@@ -131,36 +134,6 @@ namespace eshopAPI.Controllers.Admin
 
             return await PerformExport(items);
         }
-        
-        private string GenerateFileName()
-        {
-            return DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss") + "_ItemsExport.xlsx";
-        }
-
-        private async Task<FileContentResult> PerformExport(IEnumerable<ItemVM> items)
-        {
-            var fileName = GenerateFileName();
-            var exportFileDirectory = !string.IsNullOrEmpty(_configuration["ExportedFilesDirectory"]) ? Path.Combine(_configuration["ExportedFilesDirectory"], fileName) : Path.Combine(_hostingEnvironment.ContentRootPath, "ExportedFiles", fileName);
-            await _exportService.Export(items, exportFileDirectory);
-            byte[] bytes;
-            using (var fileStream = new FileStream(exportFileDirectory, FileMode.Open, FileAccess.Read))
-            {
-                bytes = new byte[fileStream.Length];
-                int numBytesToRead = (int)fileStream.Length;
-                int numBytesRead = 0;
-                while (numBytesToRead > 0)
-                {
-                    int n = await fileStream.ReadAsync(bytes, numBytesRead, numBytesToRead);
-                    if (n == 0) break;
-                    numBytesRead += n;
-                    numBytesToRead -= n;
-                }
-
-            }
-            return File(bytes, "application/octet-stream", fileName);
-        }
-
-
 
         [HttpGet("import")]
         [AllowAnonymous]
@@ -201,13 +174,11 @@ namespace eshopAPI.Controllers.Admin
             {
                 var item = importedItems.ElementAt(i);
                 var row = i + 2;
-                // long subcategoryId = 1;
 
                 Category category = await _categoryRepository.FindByName(item.ItemCategory.Name);
                 if (category == null)
                 {
                     _importErrorLogger.LogError(row, $"Category {item.ItemCategory.Name} does not exist");
-                    //return false;
                     continue;
                 }
 
@@ -217,27 +188,19 @@ namespace eshopAPI.Controllers.Admin
                 if (subcategoryId == 0)
                 {
                     _importErrorLogger.LogError(row, $"Subcategory {item.ItemCategory.SubCategory.Name} does not exist");
-                    //return false;
                     continue;
                 }
 
-                // subcategoryId must be returned from validation ir retrieved here
-
-                if (isValidItem(skuCodes, item, row))
+                if (IsValidItem(skuCodes, item, row))
                 {
-                    // TODO: validate attributes
-
+                    item.Attributes = await GetValidAttributes(item);
                     var newItem = await CreateItem(item, subcategoryId);
-
-                    if (newItem != null)
-                    {
-                        savedItems.Add(newItem.GetItemVM());
-                        skuCodes.Add(newItem.SKU);
-                    }
+                    savedItems.Add(newItem.GetItemVM());
+                    skuCodes.Add(newItem.SKU);  
                 }
+
+                await _itemRepository.SaveChanges();
             }
-            
-            await _itemRepository.SaveChanges();
 
             return StatusCode((int) HttpStatusCode.OK, new ImportItemsResponse
             {
@@ -255,15 +218,21 @@ namespace eshopAPI.Controllers.Admin
                 Description = item.Description,
                 Price = item.Price,
                 SubCategoryID = subcategoryId,
-                Pictures = item.Pictures.Select(q => new ItemPicture
-                    {
-                        URL = q.URL
-                    })
-                    .ToList()
+                Pictures = item.Pictures?.Select(q => new ItemPicture
+                {
+                    URL = q.URL
+                })
+                .ToList(),
+                Attributes = item.Attributes?.Select(q => new AttributeValue
+                {
+                    AttributeID = q.AttributeID,
+                    Value = q.Value
+                })
+                .ToList()
             });
         }
 
-        private bool isValidItem(List<string> skuCodes, ItemVM item, int row)
+        private bool IsValidItem(List<string> skuCodes, ItemVM item, int row)
         {
             if (skuCodes.Contains(item.SKU))
             {
@@ -273,6 +242,56 @@ namespace eshopAPI.Controllers.Admin
 
             
             return true;
+        }
+
+        private async Task<List<ItemAttributesVM>> GetValidAttributes(ItemVM item)
+        {
+            List<ItemAttributesVM> validAttributes = new List<ItemAttributesVM>();
+            // var attributes = await _attributeRepository.GetAll();
+
+            foreach (ItemAttributesVM atr in item.Attributes)
+            {
+                var savedAtr = await _attributeRepository.FindByName(atr.Name);
+                if (savedAtr != null)
+                {
+                    validAttributes.Add(new ItemAttributesVM
+                    {
+                        Name = atr.Name,
+                        Value = atr.Value,
+                        AttributeID = savedAtr.ID
+                    });
+                }
+            }
+
+            return validAttributes;
+        }
+
+        private string GenerateFileName()
+        {
+            return DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss") + "_ItemsExport.xlsx";
+        }
+
+        private async Task<FileContentResult> PerformExport(IEnumerable<ItemVM> items)
+        {
+            var fileName = GenerateFileName();
+            var exportFileDirectory = !string.IsNullOrEmpty(_configuration["ExportedFilesDirectory"]) ? Path.Combine(_configuration["ExportedFilesDirectory"], fileName) : Path.Combine(_hostingEnvironment.ContentRootPath, "ExportedFiles", fileName);
+            await _exportService.Export(items, exportFileDirectory);
+            byte[] bytes;
+            using (var fileStream = new FileStream(exportFileDirectory, FileMode.Open, FileAccess.Read))
+            {
+                bytes = new byte[fileStream.Length];
+                int numBytesToRead = (int)fileStream.Length;
+                int numBytesRead = 0;
+                while (numBytesToRead > 0)
+                {
+                    int n = await fileStream.ReadAsync(bytes, numBytesRead, numBytesToRead);
+                    if (n == 0) break;
+                    numBytesRead += n;
+                    numBytesToRead -= n;
+                }
+
+            }
+            return File(bytes, "application/octet-stream", fileName);
         }
     }
 }
