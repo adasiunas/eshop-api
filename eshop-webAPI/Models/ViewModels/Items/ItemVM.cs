@@ -1,4 +1,5 @@
 ﻿using eshopAPI.Models.ViewModels;
+using eshopAPI.Models.ViewModels.Admin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace eshopAPI.Models
         public IEnumerable<ItemAttributesVM> Attributes { get; set; }
         public ItemCategoryVM Category { get; set; }
         public ItemSubCategoryVM SubCategory { get; set; }
+        public decimal Discount { get; set; } 
     }
 
     public class ItemCategoryVM
@@ -35,7 +37,7 @@ namespace eshopAPI.Models
     {
         public static ItemVM GetItemVM(this Item item)
         {
-            return new ItemVM
+            var itemVM = new ItemVM
             {
                 ID = item.ID,
                 Name = item.Name,
@@ -55,6 +57,43 @@ namespace eshopAPI.Models
                     ID = item.SubCategory.ID
                 }
             };
+
+            return itemVM;
+        }
+
+        public static decimal GetItemDiscount(this Item item, List<AdminDiscountVM> discounts = null)
+        {
+            var discount = discounts.Where(d => d.ItemId.HasValue && d.ItemId.Value == item.ID).FirstOrDefault();
+            if (discount != null)
+            {
+                if (discount.IsPercentages)
+                {
+                    return Math.Round((100 - discount.Value) * (item.Price / 100), 2);
+                }
+                return item.Price-discount.Value;
+            }
+
+            discount = discounts.Where(d => d.SubCategoryId.HasValue && d.SubCategoryId.Value == item.SubCategoryID && !d.ItemId.HasValue).FirstOrDefault();
+            if (discount != null)
+            {
+                if (discount.IsPercentages)
+                {
+                    return Math.Round((100 - discount.Value) * (item.Price / 100), 2);
+                }
+                return item.Price - discount.Value;
+            }
+
+            discount = discounts.Where(d => d.CategoryId.HasValue && d.CategoryId.Value == item.CategoryID && !d.SubCategoryId.HasValue && !d.ItemId.HasValue).FirstOrDefault();
+            if (discount != null)
+            {
+                if (discount.IsPercentages)
+                {
+                    return Math.Round((100 - discount.Value) * (item.Price / 100), 2);
+                }
+                return item.Price - discount.Value;
+            }
+
+            return 0;
         }
     }
 }

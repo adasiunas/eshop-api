@@ -27,6 +27,7 @@ namespace eshopAPI.Controllers
         private readonly IConfiguration _configuration;
         private readonly IImageCloudService _imageCloudService;
         private readonly IItemRepository _itemRepository;
+        private readonly IDiscountRepository _discountRepository;
         private readonly IPaymentService _paymentService;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IHostingEnvironment _hostingEnvironment;
@@ -36,6 +37,7 @@ namespace eshopAPI.Controllers
             IConfiguration configuration,
             IImageCloudService imageCloudService,
             IItemRepository itemRepository,
+            IDiscountRepository discountRepository,
             IPaymentService paymentService,
             ICategoryRepository categoryRepository, IHostingEnvironment hostingEnvironment)
         {
@@ -43,6 +45,7 @@ namespace eshopAPI.Controllers
             _logger = logger;
             _imageCloudService = imageCloudService;
             _itemRepository = itemRepository;
+            _discountRepository = discountRepository;
             _paymentService = paymentService;
             _categoryRepository = categoryRepository;
             _hostingEnvironment = hostingEnvironment;
@@ -54,7 +57,10 @@ namespace eshopAPI.Controllers
         [AllowAnonymous]
         public async Task<IQueryable<ItemVM>> Get()
         {
-            return await _itemRepository.GetAllItemsForFirstPageAsQueryable();
+            var discounts = (await _discountRepository.GetAllValidDiscounts()).ToList();
+            var items = _itemRepository.GetAllItemsForFirstPageAsQueryable(discounts);
+
+            return await items;
         }
 
         [HttpPost]
