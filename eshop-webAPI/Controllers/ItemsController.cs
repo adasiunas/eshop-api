@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using eshopAPI.Utils;
+using Microsoft.AspNetCore.Hosting;
 
 namespace eshopAPI.Controllers
 {
@@ -28,6 +29,7 @@ namespace eshopAPI.Controllers
         private readonly IItemRepository _itemRepository;
         private readonly IPaymentService _paymentService;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         public ItemsController(
             ILogger<ItemsController> logger,
@@ -35,7 +37,7 @@ namespace eshopAPI.Controllers
             IImageCloudService imageCloudService,
             IItemRepository itemRepository,
             IPaymentService paymentService,
-            ICategoryRepository categoryRepository)
+            ICategoryRepository categoryRepository, IHostingEnvironment hostingEnvironment)
         {
             _configuration = configuration;
             _logger = logger;
@@ -43,6 +45,7 @@ namespace eshopAPI.Controllers
             _itemRepository = itemRepository;
             _paymentService = paymentService;
             _categoryRepository = categoryRepository;
+            _hostingEnvironment = hostingEnvironment;
         }
         
         // GET: api/Items
@@ -69,14 +72,5 @@ namespace eshopAPI.Controllers
             return StatusCode((int) HttpStatusCode.OK, result.ToArray());
         }
 
-        [HttpPost("testPaymentService")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> TestPayment([FromBody] CheckoutRequest request)
-        {
-            var paymentResponse = await _paymentService.ProcessPaymentAsync(request);
-            
-            return StatusCode(paymentResponse.ResponseCode, paymentResponse);
-        }
     }
 }

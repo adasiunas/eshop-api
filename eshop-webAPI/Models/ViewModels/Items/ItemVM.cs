@@ -15,14 +15,14 @@ namespace eshopAPI.Models
         public string Description { get; set; }
         public IEnumerable<ItemPictureVM> Pictures { get; set; }
         public IEnumerable<ItemAttributesVM> Attributes { get; set; }
-        public ItemCategoryVM ItemCategory { get; set; }
+        public ItemCategoryVM Category { get; set; }
+        public ItemSubCategoryVM SubCategory { get; set; }
     }
 
     public class ItemCategoryVM
     {
         public string Name { get; set; }
         public long ID { get; set; }
-        public ItemSubCategoryVM SubCategory { get; set; }
     }
 
     public class ItemSubCategoryVM
@@ -41,18 +41,18 @@ namespace eshopAPI.Models
                 Name = item.Name,
                 SKU = item.SKU,
                 Description = item.Description,
-                Pictures = item.Pictures.Select(p => new ItemPictureVM { ID = p.ID, URL = p.URL }),
-                Attributes = item.Attributes.Select(i => new ItemAttributesVM { ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value }),
+                Pictures = item.Pictures?.Select(p => new ItemPictureVM { ID = p.ID, URL = p.URL }),
+                Attributes = item.Attributes?.Select(i => new ItemAttributesVM { ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value }),
                 Price = item.Price,
-                ItemCategory = new ItemCategoryVM
+                Category = new ItemCategoryVM
                 {
                     Name = item.SubCategory.Category.Name,
-                    ID = item.SubCategory.Category.ID,
-                    SubCategory = new ItemSubCategoryVM
-                    {
-                        Name = item.SubCategory.Name,
-                        ID = item.SubCategory.ID
-                    }
+                    ID = item.SubCategory.Category.ID
+                },
+                SubCategory = item.SubCategory == null ? null : new ItemSubCategoryVM
+                {
+                    Name = item.SubCategory.Name,
+                    ID = item.SubCategory.ID
                 }
             };
         }
