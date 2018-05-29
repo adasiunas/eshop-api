@@ -3,6 +3,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Folder Include="logs\log4net\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>

@@ -40,7 +40,7 @@ namespace eshopAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ShopContext>(options => 
+            services.AddDbContext<ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
             services.AddIdentity<ShopUser, IdentityRole>(opt => { opt.SignIn.RequireConfirmedEmail = true;})
@@ -150,10 +150,11 @@ namespace eshopAPI
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "eshop-api V1");
             });
             
-            loggerFactory.AddLog4Net();
+            loggerFactory.AddLog4Net(x => x.StartsWith());
 
             app.UseAuthentication();
             app.UseAntiforgeryMiddleware();
+            app.UseLoggingMiddleware();
             CreateRoles(serviceProvider).Wait();
             app.UseMvc();
 
