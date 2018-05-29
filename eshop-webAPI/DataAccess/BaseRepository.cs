@@ -4,6 +4,7 @@ namespace eshopAPI.DataAccess
 {
     public interface IBaseRepository
     {
+        ShopContext Context { get; }
         Task<int> SaveChanges();
     }
 
@@ -14,7 +15,7 @@ namespace eshopAPI.DataAccess
             Context = context;
         }
 
-        protected ShopContext Context { get; }
+        public ShopContext Context { get; }
 
         public Task<int> SaveChanges()
         {
