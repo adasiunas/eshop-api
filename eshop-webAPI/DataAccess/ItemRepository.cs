@@ -12,9 +12,11 @@ namespace eshopAPI.DataAccess
     public interface IItemRepository : IBaseRepository
     {
         Task<Item> FindByID(long itemID);
+        Task<ItemVM> FindItemVMByID(long itemID);
         Task ArchiveByIDs(List<long> ids);
         Task UnarchiveByIDs(List<long> ids);
         Task<Item> Insert(Item item);
+        Task<Item> Update(Item itemToUpdateFrom, Item itemToUpdateTo);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
         Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
     }
@@ -47,6 +49,7 @@ namespace eshopAPI.DataAccess
         {
             return Context.Items.Where(i => i.ID == itemID)
                 .Include(i => i.Pictures)
+                .Include(i => i.SubCategory)
                 .Include(i => i.Attributes).ThenInclude(a => a.Attribute)
                 .FirstOrDefaultAsync();
         }
@@ -107,6 +110,45 @@ namespace eshopAPI.DataAccess
                 {
                     x.IsDeleted = false;
                 });
+        }
+
+        public Task<ItemVM> FindItemVMByID(long itemID)
+        {
+            return Task.FromResult(Context.Items
+                .Where(x => x.ID == itemID)
+                .Select(i => new ItemVM
+                {
+                    ID = i.ID,
+                    SKU = i.SKU,
+                    Name = i.Name,
+                    Price = i.Price,
+                    Description = i.Description,
+                    Pictures = i.Pictures.Select(p => new ItemPictureVM { ID = p.ID, URL = p.URL }),
+                    Attributes = i.Attributes.Select(a => new ItemAttributesVM
+                    {
+                        ID = a.ID,
+                        AttributeID = a.AttributeID,
+                        Name = a.Attribute.Name,
+                        Value = a.Value
+                    }),
+                    ItemCategory = new ItemCategoryVM
+                    {
+                        Name = i.SubCategory.Category.Name,
+                        ID = i.SubCategory.CategoryID,
+                        SubCategory = new ItemSubCategoryVM
+                        {
+                            ID = i.SubCategoryID,
+                            Name = i.SubCategory.Name
+                        }
+                    },
+                    OptLockVersion = i.Timestamp
+                }).FirstOrDefault());
+        }
+
+        public Task<Item> Update(Item itemToUpdateFrom, Item itemToUpdateTo)
+        {
+            Context.Entry(itemToUpdateFrom).OriginalValues["Timestamp"] = itemToUpdateTo.Timestamp;
+            return Task.FromResult(itemToUpdateFrom.UpdateItem(itemToUpdateTo));
         }
     }
 }

@@ -53,6 +53,8 @@ namespace eshopAPI.DataAccess
         {
             return await Context.AttributeValue
                 .Where(x => x.AttributeID == id)
+                .GroupBy(x => x.Value)
+                .Select(x => x.First())
                 .ToListAsync();
         }
     }
