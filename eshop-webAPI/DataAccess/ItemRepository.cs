@@ -19,6 +19,7 @@ namespace eshopAPI.DataAccess
         Task<Item> Update(Item itemToUpdateFrom, Item itemToUpdateTo);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
         Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
+        Task<IQueryable<string>> GetAllItemsSkuCodes();
     }
 
     public class ItemRepository : BaseRepository, IItemRepository
@@ -83,12 +84,18 @@ namespace eshopAPI.DataAccess
                         ID = i.SubCategory.CategoryID,
                         SubCategory = new ItemSubCategoryVM
                         {
-                            ID = i.SubCategoryID,
+                            ID = i.SubCategoryID.Value,
                             Name = i.SubCategory.Name
                         }
                     }
                 });
             return Task.FromResult(query);
+        }
+
+        public Task<IQueryable<string>> GetAllItemsSkuCodes()
+        {
+            return Task.FromResult(Context.Items
+                .Select(i => i.SKU));
         }
 
         public async Task ArchiveByIDs(List<long> ids)
