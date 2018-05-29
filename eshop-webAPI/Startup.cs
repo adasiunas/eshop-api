@@ -101,13 +101,9 @@ namespace eshopAPI
             services.AddScoped<IImportService, ExcelImportService>();
 
             if (Configuration["ExportFile"] == "CSV")
-            {
                 services.AddScoped<IExportService, CsvExportService>();
-            }
             else
-            {
                 services.AddScoped<IExportService, ExportService>();
-            }
 
             services.AddSingleton(typeof(AntiforgeryMiddleware));
 
