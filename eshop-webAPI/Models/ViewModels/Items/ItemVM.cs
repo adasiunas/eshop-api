@@ -46,8 +46,8 @@ namespace eshopAPI.Models
                 Price = item.Price,
                 Category = new ItemCategoryVM
                 {
-                    Name = item.SubCategory.Category.Name,
-                    ID = item.SubCategory.Category.ID
+                    Name = item.Category.Name,
+                    ID = item.Category.ID
                 },
                 SubCategory = item.SubCategory == null ? null : new ItemSubCategoryVM
                 {
