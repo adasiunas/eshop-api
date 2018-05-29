@@ -13,7 +13,12 @@ namespace eshopAPI.Models.ViewModels.Admin
         public string To { get; set; }
         public bool IsPercentages { get; set; }
 
-
         public string ItemName { get; set; }
+        public long? ItemId { get; set; }
+        public string CategoryName { get; set; }
+        public long? CategoryId { get; set; }
+        public string SubCategoryName { get; set; }
+        public long? SubCategoryId { get; set; }
+
     }
 }
