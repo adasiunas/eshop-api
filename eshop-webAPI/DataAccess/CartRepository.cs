@@ -8,11 +8,9 @@ namespace eshopAPI.DataAccess
 {
     public interface ICartRepository : IBaseRepository
     {
-        Task<Cart> FindByID(long cartID);
         Task<Cart> FindByUser(string email);
         Task<Cart> FindByUserWithoutItemsData(string email);
-        Task Insert(Cart cart);
-        Task Update(Cart cart);
+        Task<Cart> Insert(Cart cart);
         Task RemoveCartItem(CartItem item);
         Task ClearCart(Cart cart);
     }
@@ -23,18 +21,12 @@ namespace eshopAPI.DataAccess
         {
         }
 
-        public Task<Cart> FindByID(long cartID)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<Cart> FindByUser(string email)
         {
             return Context.Carts.Include(c => c.User)
                 .Include(c => c.Items).ThenInclude(i => i.Item).ThenInclude(p => p.Pictures)
                 .Include(c => c.Items).ThenInclude(i => i.Item).ThenInclude(a => a.Attributes).ThenInclude(a => a.Attribute)
-                .Where(c => c.User.NormalizedEmail
-                    .Equals(email.Normalize()))
+                .Where(c => c.User.NormalizedEmail.Equals(email.Normalize()))
                 .FirstOrDefaultAsync();
         }
 
@@ -45,9 +37,9 @@ namespace eshopAPI.DataAccess
                 .FirstOrDefaultAsync();
         }
 
-        public Task Insert(Cart cart)
+        public Task<Cart> Insert(Cart cart)
         {
-            return Context.Carts.AddAsync(cart);
+            return Task.FromResult(Context.Carts.Add(cart).Entity);
         }
 
         public Task RemoveCartItem(CartItem item)
@@ -65,11 +57,6 @@ namespace eshopAPI.DataAccess
             }
             Context.Carts.Remove(cart);
             return Task.CompletedTask;
-        }
-
-        public Task Update(Cart cart)
-        {
-            throw new NotImplementedException();
         }
     }
 }
