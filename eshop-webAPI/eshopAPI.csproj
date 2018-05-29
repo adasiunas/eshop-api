@@ -3,6 +3,16 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Migrations\20180528203409_AddDiscount.cs" />
+    <Compile Remove="Migrations\20180528203409_AddDiscount.Designer.cs" />
+    <Compile Remove="Migrations\20180528203523_AddDiscount.cs" />
+    <Compile Remove="Migrations\20180528203523_AddDiscount.Designer.cs" />
+    <Compile Remove="Migrations\20180528203651_AddDiscount.cs" />
+    <Compile Remove="Migrations\20180528203651_AddDiscount.Designer.cs" />
+    <Compile Remove="Migrations\20180528221422_FixDiscountTableName.cs" />
+    <Compile Remove="Migrations\20180528221422_FixDiscountTableName.Designer.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,8 @@
 using eshopAPI.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,9 +12,10 @@ namespace eshopAPI.DataAccess
     public interface IItemRepository : IBaseRepository
     {
         Task<Item> FindByID(long itemID);
+        Task ArchiveByIDs(List<long> ids);
+        Task UnarchiveByIDs(List<long> ids);
         Task<Item> Insert(Item item);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
-        Task Update(Item item);
         Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable();
     }
 
@@ -34,7 +37,8 @@ namespace eshopAPI.DataAccess
                     ID = x.ID,
                     Description = x.Description,
                     Price = x.Price,
-                    SKU = x.SKU
+                    SKU = x.SKU,
+                    IsDeleted = x.IsDeleted
                 });
             return Task.FromResult(query);
         }
@@ -47,15 +51,11 @@ namespace eshopAPI.DataAccess
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<Item> Insert(Item item)
+        public Task<Item> Insert(Item item)
         {
-            return (await Context.Items.AddAsync(item)).Entity;
+            return Task.FromResult(Context.Items.Add(item).Entity);
         }
-
-        public Task Update(Item item)
-        {
-            throw new NotImplementedException();
-        }
+        
         public Task<IQueryable<ItemVM>> GetAllItemsForFirstPageAsQueryable()
         {
             var query = Context.Items
@@ -88,5 +88,25 @@ namespace eshopAPI.DataAccess
             return Task.FromResult(query);
         }
 
+        public async Task ArchiveByIDs(List<long> ids)
+        {
+            await Context.Items
+                .Where(x => ids.Contains(x.ID))
+                .ForEachAsync(x =>
+                {
+                    x.IsDeleted = true;
+                    x.DeleteDate = DateTime.Now;
+                });
+        }
+
+        public async Task UnarchiveByIDs(List<long> ids)
+        {
+            await Context.Items
+                .Where(x => ids.Contains(x.ID))
+                .ForEachAsync(x =>
+                {
+                    x.IsDeleted = false;
+                });
+        }
     }
 }

@@ -30,20 +30,20 @@ namespace eshopAPI.DataAccess
         {
             return  Context.Orders
                 .Where(o => o.ID == orderID)
-                .Include(o => o.Items)
-                    .ThenInclude(item => item.Item).FirstOrDefaultAsync();
+                .Include(o => o.Items).ThenInclude(item => item.Item)
+                .FirstOrDefaultAsync();
         }
 
         public Task<Order> FindByOrderNumber(long orderNumber)
         {
             return Context.Orders.Where(o => o.OrderNumber == orderNumber)
-                .Include(o => o.Items)
-                    .ThenInclude(item => item.Item).FirstOrDefaultAsync();
+                .Include(o => o.Items).ThenInclude(item => item.Item)
+                .FirstOrDefaultAsync();
         }
 
-        public async Task<Order> Insert(Order order)
+        public Task<Order> Insert(Order order)
         {
-            return (await Context.Orders.AddAsync(order)).Entity;
+            return Task.FromResult(Context.Orders.Add(order).Entity);
         }
         public Task<IQueryable<AdminOrderVM>> GetAllAdminOrdersAsQueryable()
         {
@@ -63,7 +63,7 @@ namespace eshopAPI.DataAccess
 
         public Task<IQueryable<OrderVM>> GetAllOrdersAsQueryable(string email)
         {
-            var query = Context.Orders
+            var query = Context.Orders.Where(o => o.User.NormalizedEmail == email.Normalize())
                 .Select(o =>
                     new OrderVM
                     {
@@ -82,8 +82,6 @@ namespace eshopAPI.DataAccess
                         }),
                         DeliveryAddress = o.DeliveryAddress
                     });
-
-            var tt = query.ToList();
             return Task.FromResult(query);
         }
     }

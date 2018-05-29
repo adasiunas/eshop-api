@@ -51,9 +51,7 @@ namespace eshopAPI.DataAccess
             return Context.Users.Where(u =>
                 u.NormalizedEmail.Equals(email.Normalize())).Include(user => user.Address).FirstOrDefaultAsync();
         }
-
-
-
+        
         public Task<IQueryable<UserVM>> GetAllUsersAsQueryable()
         {
             var query =
