@@ -28,10 +28,9 @@ namespace eshopAPI.DataAccess
                 {
                     Name = x.Name,
                     Value = x.Value,
-                    To = x.To,
-                    CategoryName = x.Category.Name,
-                    SubCategoryName = x.SubCategory.Name,
-
+                    To = x.To.ToShortDateString(),
+                    ItemName = x.Item.Name,
+                    IsPercentages = x.IsPercentages
                 });
 
             return Task.FromResult(query);
