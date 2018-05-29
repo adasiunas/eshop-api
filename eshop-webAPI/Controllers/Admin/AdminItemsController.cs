@@ -119,11 +119,11 @@ namespace eshopAPI.Controllers.Admin
                 }
             }
 
-            List<string> pictureURLs = buildPictureUrlList(request.PictureURLs, request.PictureFiles);
+            List<string> pictureURLs = BuildPictureUrlList(request.PictureURLs, request.PictureFiles);
 
             using (var transaction = await _attributeRepository.Context.Database.BeginTransactionAsync())
             {
-                createNewAttributes(request.Attributes);
+                CreateNewAttributes(request.Attributes);
 
                 Item modifiedItem = new Item()
                 {
@@ -198,11 +198,11 @@ namespace eshopAPI.Controllers.Admin
                 }
             }
             
-            List<string> pictureURLs = buildPictureUrlList(request.PictureURLs, request.PictureFiles);
+            List<string> pictureURLs = BuildPictureUrlList(request.PictureURLs, request.PictureFiles);
 
             using (var transaction = await _attributeRepository.Context.Database.BeginTransactionAsync())
             {
-                createNewAttributes(request.Attributes);
+                CreateNewAttributes(request.Attributes);
 
                 await _itemRepository.Insert(new Item()
                 {
@@ -424,7 +424,7 @@ namespace eshopAPI.Controllers.Admin
             return Ok(obj);
         }
 
-        private List<string> buildPictureUrlList(List<string> pictureUrls, List<IFormFile> pictureFiles)
+        private List<string> BuildPictureUrlList(List<string> pictureUrls, List<IFormFile> pictureFiles)
         {
             List<string> tempList = new List<string>();
 
@@ -444,7 +444,7 @@ namespace eshopAPI.Controllers.Admin
             return tempList;
         }
 
-        private async void createNewAttributes(List<AdminAttributeVM> attributes)
+        private async void CreateNewAttributes(List<AdminAttributeVM> attributes)
         {
             if (attributes == null)
                 return;
