@@ -80,7 +80,7 @@ namespace eshopAPI.DataAccess
                         ID = i.SubCategory.CategoryID,
                         SubCategory = new ItemSubCategoryVM
                         {
-                            ID = i.SubCategoryID,
+                            ID = i.SubCategoryID.Value,
                             Name = i.SubCategory.Name
                         }
                     }
