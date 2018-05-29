@@ -12,14 +12,14 @@ using System;
 namespace eshopAPI.Migrations
 {
     [DbContext(typeof(ShopContext))]
-    partial class ShopContextModelSnapshot : ModelSnapshot
+    [Migration("20180528194741_DropOrderGuid")]
+    partial class DropOrderGuid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "2.0.2-rtm-10011")
-                .HasAnnotation("Relational:Sequence:shared.OrderNumbers", "'OrderNumbers', 'shared', '100000', '1', '', '', 'Int32', 'False'")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("eshopAPI.Models.Address", b =>
@@ -198,9 +198,6 @@ namespace eshopAPI.Migrations
 
                     b.Property<string>("DeliveryAddress")
                         .IsRequired();
-
-                    b.Property<int>("OrderNumber")
-                        .HasDefaultValueSql("NEXT VALUE FOR shared.OrderNumbers");
 
                     b.Property<int>("Status");
 

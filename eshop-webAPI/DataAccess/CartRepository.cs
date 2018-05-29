@@ -8,11 +8,11 @@ namespace eshopAPI.DataAccess
 {
     public interface ICartRepository : IBaseRepository
     {
-        Task<Cart> FindByID(long cartID);
         Task<Cart> FindByUser(string email);
-        Task Insert(Cart cart);
-        Task Update(Cart cart);
+        Task<Cart> FindByUserWithoutItemsData(string email);
+        Task<Cart> Insert(Cart cart);
         Task RemoveCartItem(CartItem item);
+        Task ClearCart(Cart cart);
     }
 
     public class CartRepository : BaseRepository, ICartRepository
@@ -21,25 +21,25 @@ namespace eshopAPI.DataAccess
         {
         }
 
-        public Task<Cart> FindByID(long cartID)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<Cart> FindByUser(string email)
         {
-
             return Context.Carts.Include(c => c.User)
                 .Include(c => c.Items).ThenInclude(i => i.Item).ThenInclude(p => p.Pictures)
                 .Include(c => c.Items).ThenInclude(i => i.Item).ThenInclude(a => a.Attributes).ThenInclude(a => a.Attribute)
-                .Where(c => c.User.NormalizedEmail
-                    .Equals(email.Normalize()))
+                .Where(c => c.User.NormalizedEmail.Equals(email.Normalize()))
                 .FirstOrDefaultAsync();
         }
 
-        public Task Insert(Cart cart)
+        public Task<Cart> FindByUserWithoutItemsData(string email)
         {
-            return Context.Carts.AddAsync(cart);
+            return Context.Carts.Include(c => c.Items)
+                .Where(c => c.User.NormalizedEmail.Equals(email.Normalize()))
+                .FirstOrDefaultAsync();
+        }
+
+        public Task<Cart> Insert(Cart cart)
+        {
+            return Task.FromResult(Context.Carts.Add(cart).Entity);
         }
 
         public Task RemoveCartItem(CartItem item)
@@ -49,9 +49,14 @@ namespace eshopAPI.DataAccess
             return Task.CompletedTask;
         }
 
-        public Task Update(Cart cart)
+        public Task ClearCart(Cart cart)
         {
-            throw new NotImplementedException();
+            foreach (var cartItem in cart.Items)
+            {
+                RemoveCartItem(cartItem);
+            }
+            Context.Carts.Remove(cart);
+            return Task.CompletedTask;
         }
     }
 }
