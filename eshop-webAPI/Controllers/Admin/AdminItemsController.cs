@@ -81,16 +81,19 @@ namespace eshopAPI.Controllers.Admin
 
             using (var transaction = await _attributeRepository.Context.Database.BeginTransactionAsync())
             {
-                foreach (AdminAttributeVM vm in request.Attributes.Where(x => x.AttributeID < 0).ToList())
+                if (request.Attributes != null)
                 {
-                    Models.Attribute currentAttribute = await _attributeRepository.Insert(new Models.Attribute()
+                    foreach (AdminAttributeVM vm in request.Attributes.Where(x => x.AttributeID < 0).ToList())
                     {
-                        Name = vm.Key
-                    });
+                        Models.Attribute currentAttribute = await _attributeRepository.Insert(new Models.Attribute()
+                        {
+                            Name = vm.Key
+                        });
 
-                    await _attributeRepository.SaveChanges();
+                        await _attributeRepository.SaveChanges();
 
-                    vm.AttributeID = currentAttribute.ID;
+                        vm.AttributeID = currentAttribute.ID;
+                    }
                 }
 
                 await _itemRepository.Insert(new Item()
