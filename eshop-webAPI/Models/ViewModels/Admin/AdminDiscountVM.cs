@@ -10,10 +10,10 @@ namespace eshopAPI.Models.ViewModels.Admin
         public long ID { get; set; } // Primary key
         public string Name { get; set; }
         public int Value { get; set; }
-        public DateTime From { get; set; }
-        public DateTime To { get; set; }
+        public string To { get; set; }
+        public bool IsPercentages { get; set; }
 
-        public string CategoryName { get; set; }
-        public string SubCategoryName { get; set; }
+
+        public string ItemName { get; set; }
     }
 }
