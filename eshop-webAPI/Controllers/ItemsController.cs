@@ -55,10 +55,10 @@ namespace eshopAPI.Controllers
         [EnableQuery]
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IQueryable<ItemVM>> Get()
+        public async Task<IEnumerable<ItemVM>> Get()
         {
             var discounts = (await _discountRepository.GetAllValidDiscounts()).ToList();
-            var items = _itemRepository.GetAllItemsForFirstPageAsQueryable(discounts);
+            var items = await _itemRepository.GetAllItemsForFirstPage(discounts);
 
             return await items;
         }
