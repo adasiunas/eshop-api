@@ -10,7 +10,6 @@ namespace eshopAPI.Utils.Import
     public interface IImportService
     {
         ImportErrorLogger ImportErrorLogger { get; set; }
-        // void SetFileName(string name);
         Task<List<ItemVM>> ImportItems(Stream file);
     }
 }

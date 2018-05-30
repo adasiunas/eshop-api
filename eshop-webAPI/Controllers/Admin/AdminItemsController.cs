@@ -297,20 +297,10 @@ namespace eshopAPI.Controllers.Admin
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Import(IFormFile file)
         {
-            //var files = Request.Form.Files;
-            //foreach (var file in files)
-            //{
-            //    var filename = ContentDispositionHeaderValue
-            //                    .Parse(file.ContentDisposition)
-            //                    .FileName
-            //                    .Trim('"');
-            //    filename = hostingEnv.WebRootPath + $@"\{filename}";
-            //    using (FileStream fs = System.IO.File.Create(filename))
-            //    {
-            //        file.CopyTo(fs);
-            //        fs.Flush();
-            //    }
-            //}
+            if (file == null)
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, "No file selected");
+            }
 
             _importErrorLogger = new ImportErrorLogger(_logger);
             _importService.ImportErrorLogger = _importErrorLogger;
@@ -319,11 +309,15 @@ namespace eshopAPI.Controllers.Admin
 
             if (importedItems == null)
             {
-                return NoContent();
+                return StatusCode((int) HttpStatusCode.NoContent);
             }
 
             var savedItems = new List<ItemVM>();
-            var skuCodes = (await _itemRepository.GetAllItemsSkuCodes()).ToList();
+            List<string> skuCodes = (await _itemRepository.GetAllItemsSkuCodes()).ToList();
+            if (skuCodes == null)
+            {
+                skuCodes = new List<string>();
+            }
 
             for (int i = 0; i < importedItems.Count(); i++)
             {
@@ -353,9 +347,9 @@ namespace eshopAPI.Controllers.Admin
                     savedItems.Add(newItem.GetItemVM());
                     skuCodes.Add(newItem.SKU);  
                 }
-
-                await _itemRepository.SaveChanges();
             }
+
+            await _itemRepository.SaveChanges();
 
             return StatusCode((int) HttpStatusCode.OK, new ImportItemsResponse
             {
