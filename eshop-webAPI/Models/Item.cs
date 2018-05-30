@@ -33,7 +33,6 @@ namespace eshopAPI.Models
 
         public long? SubCategoryID { get; set; }
         public SubCategory SubCategory { get; set; }
-
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
