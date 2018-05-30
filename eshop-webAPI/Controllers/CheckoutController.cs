@@ -36,6 +36,7 @@ namespace eshopAPI.Controllers
         }
         
         [HttpPost]
+        [Transaction]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
         {
             Cart cart = await _cartRepository.FindByUser(User.Identity.Name);
