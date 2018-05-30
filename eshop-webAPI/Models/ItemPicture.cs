@@ -13,5 +13,6 @@ namespace eshopAPI.Models
         [Required]
         [MaxLength(length: 500)]
         public string URL { get; set; }
+        public long ItemID { get; set; }
     }
 }
