@@ -39,7 +39,7 @@ namespace eshopAPI.Services
                 {
                     return Math.Round((100 - discount.Value) * (price / 100), 2);
                 }
-                return price - discount.Value;
+                return (price - discount.Value) > 0 ? (price - discount.Value) : 0;
             }
 
             discount = discounts.Where(d => d.SubCategoryID.HasValue && d.SubCategoryID.Value == subCategoryId).FirstOrDefault();
@@ -49,7 +49,7 @@ namespace eshopAPI.Services
                 {
                     return Math.Round((100 - discount.Value) * (price / 100), 2);
                 }
-                return price - discount.Value;
+                return (price - discount.Value) > 0 ? (price - discount.Value) : 0;
             }
 
             discount = discounts.Where(d => d.CategoryID.HasValue && d.CategoryID.Value == categoryId).FirstOrDefault();
@@ -59,7 +59,7 @@ namespace eshopAPI.Services
                 {
                     return Math.Round((100 - discount.Value) * (price / 100), 2);
                 }
-                return price - discount.Value;
+                return (price - discount.Value) > 0 ? (price - discount.Value) : 0;
             }
 
             return 0;
