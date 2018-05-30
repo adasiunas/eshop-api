@@ -123,7 +123,7 @@ namespace eshopAPI.Controllers.Admin
 
             using (var transaction = await _attributeRepository.Context.Database.BeginTransactionAsync())
             {
-                CreateNewAttributes(request.Attributes);
+                await CreateNewAttributes(request.Attributes);
 
                 Item modifiedItem = new Item()
                 {
@@ -202,7 +202,7 @@ namespace eshopAPI.Controllers.Admin
 
             using (var transaction = await _attributeRepository.Context.Database.BeginTransactionAsync())
             {
-                CreateNewAttributes(request.Attributes);
+                await CreateNewAttributes(request.Attributes);
 
                 await _itemRepository.Insert(new Item()
                 {
@@ -444,7 +444,7 @@ namespace eshopAPI.Controllers.Admin
             return tempList;
         }
 
-        private async void CreateNewAttributes(List<AdminAttributeVM> attributes)
+        private async Task CreateNewAttributes(List<AdminAttributeVM> attributes)
         {
             if (attributes == null)
                 return;
