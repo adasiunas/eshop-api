@@ -31,6 +31,7 @@ namespace eshopAPI.DataAccess
             var query = Context.Discounts
                 .Select(x => new AdminDiscountVM()
                 {
+                    ID = x.ID,
                     Name = x.Name,
                     Value = x.Value,
                     To = x.To.ToShortDateString(),
