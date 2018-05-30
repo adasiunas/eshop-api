@@ -37,7 +37,7 @@ namespace eshopAPI.Controllers
 
         [Transaction]
         [HttpPost]
-        public async Task<IActionResult> Post(DiscountRequest request)
+        public async Task<IActionResult> Post([FromBody]DiscountRequest request)
         {
             if (request.ItemID.HasValue && (await _discountRepository.GetDiscountForItem(request.ItemID.Value)) != null)
             {
@@ -54,7 +54,8 @@ namespace eshopAPI.Controllers
             if ((request.ItemID.HasValue && request.SubCategoryID.HasValue && request.CategoryID.HasValue) ||
                 (request.ItemID.HasValue && request.CategoryID.HasValue) ||
                 (request.ItemID.HasValue && request.SubCategoryID.HasValue) ||
-                (request.SubCategoryID.HasValue && request.CategoryID.HasValue))
+                (request.SubCategoryID.HasValue && request.CategoryID.HasValue) ||
+                (!request.ItemID.HasValue && !request.SubCategoryID.HasValue && !request.CategoryID.HasValue))
             {
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.BadRequest, "Only one: Category or SubCategory or Item can have discount."));
             }
