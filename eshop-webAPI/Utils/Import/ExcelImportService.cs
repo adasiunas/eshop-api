@@ -24,15 +24,9 @@ namespace eshopAPI.Utils.Import
         private readonly int attributeKeyColumn = 7;
         private readonly int attributeValueColumn = 8;      
 
-        //public void SetFileName(string fileName)
-        //{
-        //    this.FileName = @"C:\Users\greta\Desktop\" + fileName + ".xlsx";
-        //}
-
         public Task<List<ItemVM>> ImportItems(Stream fileStream)
         {
             var importedItems = new List<ItemVM>();
-            //var fInfo = new FileInfo(FileName);
             try
             {
                 using (var excel = new ExcelPackage(fileStream))
