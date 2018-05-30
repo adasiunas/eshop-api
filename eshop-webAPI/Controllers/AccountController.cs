@@ -112,7 +112,7 @@ namespace eshop_webAPI.Controllers
 
             if (!result.Succeeded)
                 return StatusCode((int) HttpStatusCode.BadRequest,
-                    new ErrorResponse(ErrorReasons.BadRequest, "Failed to log in. Please make sure you have entered correct credentials."));
+                    new ErrorResponse(ErrorReasons.BadRequest, "Invalid email or password."));
 
             string userRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
 
