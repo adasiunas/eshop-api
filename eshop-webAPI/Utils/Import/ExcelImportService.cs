@@ -24,25 +24,21 @@ namespace eshopAPI.Utils.Import
         private readonly int attributeKeyColumn = 7;
         private readonly int attributeValueColumn = 8;      
 
-        public void SetFileName(string fileName)
-        {
-            this.FileName = @"C:\Users\greta\Desktop\" + fileName + ".xlsx";
-        }
+        //public void SetFileName(string fileName)
+        //{
+        //    this.FileName = @"C:\Users\greta\Desktop\" + fileName + ".xlsx";
+        //}
 
-        public Task<IEnumerable<ItemVM>> ImportItems()
-        {
-            return Task.FromResult(ImportRecords());
-        }
-
-        public IEnumerable<ItemVM> ImportRecords()
+        public Task<List<ItemVM>> ImportItems(Stream fileStream)
         {
             var importedItems = new List<ItemVM>();
-            var fInfo = new FileInfo(FileName);
+            //var fInfo = new FileInfo(FileName);
             try
             {
-                using (var excel = new ExcelPackage(fInfo))
+                using (var excel = new ExcelPackage(fileStream))
                 {
-                    var wks = excel.Workbook.Worksheets["items"];
+
+                    var wks = excel.Workbook.Worksheets["Sheet1"];
                     var lastRow = wks.Dimension.End.Row;
                     List<ItemAttributesVM> attributes = new List<ItemAttributesVM>();
 
@@ -86,7 +82,7 @@ namespace eshopAPI.Utils.Import
                 ImportErrorLogger.LogError(e.Message);
             }
 
-            return importedItems;
+            return Task.FromResult(importedItems);
         }
 
         private IEnumerable<ItemPictureVM> PreparePictures(string picturesCell)

@@ -146,7 +146,7 @@ namespace eshopAPI.Controllers.Admin
                 {
                     await _itemRepository.SaveChanges();
                 }
-                catch(DbUpdateConcurrencyException ex)
+                catch(DbUpdateConcurrencyException)
                 {
                     return StatusCode((int)HttpStatusCode.Conflict);
                 }
@@ -292,8 +292,10 @@ namespace eshopAPI.Controllers.Admin
             return File(bytes, "application/octet-stream");
         }
 
-        [HttpGet("import")]
-        public async Task<IActionResult> Import()
+        [HttpPost("import")]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Import(IFormFile file)
         {
             //var files = Request.Form.Files;
             //foreach (var file in files)
@@ -311,10 +313,9 @@ namespace eshopAPI.Controllers.Admin
             //}
 
             _importErrorLogger = new ImportErrorLogger(_logger);
-            _importService.SetFileName("items");
             _importService.ImportErrorLogger = _importErrorLogger;
 
-            var importedItems = await _importService.ImportItems();
+            var importedItems = await _importService.ImportItems(file.OpenReadStream());
 
             if (importedItems == null)
             {
