@@ -60,7 +60,7 @@ namespace eshopAPI.Controllers
             var cartVm = cart.GetCartVM();
             var discounts = await _discountRepository.GetDiscounts();
             _discountService.CalculateDiscountsForItems(cartVm.Items, discounts);
-            return StatusCode((int)HttpStatusCode.OK, cart.GetCartVM());
+            return StatusCode((int)HttpStatusCode.OK, cartVm);
         }
         
         // POST: api/Cart
