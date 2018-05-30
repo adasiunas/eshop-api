@@ -67,13 +67,13 @@ namespace eshopAPI.Services
         await SendMailMessageAsync(mailMessage);
       }
 
-      public async Task SendOrderCreationEmailAsync(string to, string orderId)
+      public async Task SendOrderCreationEmailAsync(string to, string orderNumber)
       {
         var mailMessage = new MailMessage();
         mailMessage.To.Add(to);
         mailMessage.Subject = "Goal diggers shop order";
         mailMessage.IsBodyHtml = true;
-        mailMessage.Body = $"Your order with ID: {orderId} was successfuly created.";
+        mailMessage.Body = $"Your order with number: {orderNumber} was successfuly created.";
         await SendMailMessageAsync(mailMessage);
       }
 
