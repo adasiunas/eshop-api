@@ -101,6 +101,7 @@ namespace eshopAPI
             services.AddScoped<IUserFeedbackRepository, UserFeedbackRepository>();
             services.AddScoped<IImportService, ExcelImportService>();
             services.AddScoped<IDiscountRepository, DiscountRepository>();
+            services.AddScoped<IDiscountService, DiscountService>();
 
 
             if (Configuration["ExportFile"] == "CSV")
