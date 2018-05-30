@@ -30,6 +30,7 @@ namespace eshopAPI.Controllers
         private readonly IDiscountRepository _discountRepository;
         private readonly IPaymentService _paymentService;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IDiscountService _discountService;
         private readonly IHostingEnvironment _hostingEnvironment;
 
         public ItemsController(
@@ -39,7 +40,9 @@ namespace eshopAPI.Controllers
             IItemRepository itemRepository,
             IDiscountRepository discountRepository,
             IPaymentService paymentService,
-            ICategoryRepository categoryRepository, IHostingEnvironment hostingEnvironment)
+            ICategoryRepository categoryRepository,
+            IDiscountService discountService,
+            IHostingEnvironment hostingEnvironment)
         {
             _configuration = configuration;
             _logger = logger;
@@ -48,6 +51,7 @@ namespace eshopAPI.Controllers
             _discountRepository = discountRepository;
             _paymentService = paymentService;
             _categoryRepository = categoryRepository;
+            _discountService = discountService;
             _hostingEnvironment = hostingEnvironment;
         }
         
@@ -57,9 +61,9 @@ namespace eshopAPI.Controllers
         [AllowAnonymous]
         public async Task<IEnumerable<ItemVM>> Get()
         {
-            var discounts = (await _discountRepository.GetAllValidDiscounts()).ToList();
-            var items = await _itemRepository.GetAllItemsForFirstPage(discounts);
-
+            var discounts = await _discountRepository.GetDiscounts();
+            var items = await _itemRepository.GetAllItemsForFirstPage();
+            _discountService.CalculateDiscountsForItems(items, discounts);
             return items;
         }
 

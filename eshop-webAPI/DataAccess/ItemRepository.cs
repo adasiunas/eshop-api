@@ -19,7 +19,7 @@ namespace eshopAPI.DataAccess
         Task<Item> Insert(Item item);
         Task<Item> Update(Item itemToUpdateFrom, Item itemToUpdateTo);
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
-        Task<List<ItemVM>> GetAllItemsForFirstPage(List<AdminDiscountVM> discounts = null);
+        Task<List<ItemVM>> GetAllItemsForFirstPage();
         Task<IQueryable<string>> GetAllItemsSkuCodes();
     }
 
@@ -62,7 +62,7 @@ namespace eshopAPI.DataAccess
             return Task.FromResult(Context.Items.Add(item).Entity);
         }
         
-        public Task<List<ItemVM>> GetAllItemsForFirstPage(List<AdminDiscountVM> discounts = null)
+        public Task<List<ItemVM>> GetAllItemsForFirstPage()
         {
             var query = Context.Items
                 .Select(i => new ItemVM
@@ -91,7 +91,7 @@ namespace eshopAPI.DataAccess
                         Name = i.SubCategory.Name,
                         ID = i.SubCategoryID.Value
                     },
-                    Discount = i.GetItemDiscount(discounts)
+                    Discount = 0
                 });
             return query.ToListAsync();
         }
