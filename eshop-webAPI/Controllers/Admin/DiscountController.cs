@@ -74,7 +74,7 @@ namespace eshopAPI.Controllers
 
         [Transaction]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(long id)
+        public async Task<IActionResult> Delete([FromRoute]long id)
         {
             var discount = await _discountRepository.GetDiscountByID(id);
             if (discount == null)
