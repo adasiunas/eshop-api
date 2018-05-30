@@ -12,7 +12,7 @@ namespace eshopAPI.Validators.Request
     {
         public DiscountValidator()
         {
-            // RuleFor(r => r.Name).NotEmpty();
+            RuleFor(r => r.Name).NotEmpty();
             RuleFor(r => r.Value).NotNull();
             RuleFor(r => r.IsPercentages).NotNull();
         }
