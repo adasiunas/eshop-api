@@ -62,7 +62,7 @@ namespace eshopAPI.DataAccess
             return Task.FromResult(Context.Items.Add(item).Entity);
         }
         
-        public Task<IQueryable<ItemVM>> GetAllItemsForFirstPage(List<AdminDiscountVM> discounts = null)
+        public Task<List<ItemVM>> GetAllItemsForFirstPage(List<AdminDiscountVM> discounts = null)
         {
             var query = Context.Items
                 .Select(i => new ItemVM

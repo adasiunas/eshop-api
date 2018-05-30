@@ -60,7 +60,7 @@ namespace eshopAPI.Controllers
             var discounts = (await _discountRepository.GetAllValidDiscounts()).ToList();
             var items = await _itemRepository.GetAllItemsForFirstPage(discounts);
 
-            return await items;
+            return items;
         }
 
         [HttpPost]
