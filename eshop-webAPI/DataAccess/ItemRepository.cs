@@ -65,6 +65,7 @@ namespace eshopAPI.DataAccess
         public Task<List<ItemVM>> GetAllItemsForFirstPage()
         {
             var query = Context.Items
+                .Where(i => !i.IsDeleted)
                 .Select(i => new ItemVM
                 {
                     ID = i.ID,
@@ -111,6 +112,9 @@ namespace eshopAPI.DataAccess
                     x.IsDeleted = true;
                     x.DeleteDate = DateTime.Now;
                 });
+
+            var cartItems = await Context.CartItems.Where(q => ids.Contains(q.ItemID)).ToListAsync();
+            Context.CartItems.RemoveRange(cartItems);
         }
 
         public async Task UnarchiveByIDs(List<long> ids)
