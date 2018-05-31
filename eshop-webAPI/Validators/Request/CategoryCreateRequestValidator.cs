@@ -13,7 +13,7 @@ namespace eshopAPI.Validators.Request
         {
             RuleFor(r => r.Name)
                 .NotEmpty()
-                .MinimumLength(10)
+                .MinimumLength(3)
                 .MaximumLength(50);
         }
     }

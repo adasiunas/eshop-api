@@ -13,5 +13,6 @@ namespace eshopAPI.Models.ViewModels.Admin
         public decimal TotalPrice { get; set; }
         public string UserEmail { get; set; }
         public string DeliveryAddress { get; set; }
+        public virtual IEnumerable<OrderItemVM> Items { get; set; }
     }
 }
