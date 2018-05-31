@@ -10,10 +10,8 @@ namespace eshopAPI.DataAccess
     {
         Task<List<Attribute>> FindAttributeNamesByText(string text);
         Task<List<AttributeValue>> FindAttributeValuesById(int id);
-        Task<Attribute> FindByID(long attributeID);
         Task<Attribute> FindByName(string name);
         Task<Attribute> Insert(Attribute attribute);
-        Task Update(Attribute attribute);
         Task<List<Attribute>> GetAll();
     }
 
@@ -23,41 +21,31 @@ namespace eshopAPI.DataAccess
         {
         }
 
-        public Task<Attribute> FindByID(long attributeID)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public Task<Attribute> FindByName(string name)
         {
-            return  Task.FromResult(Context.Attributes.Where(a => a.Name.Equals(name)).First());
+            return Context.Attributes.Where(a => a.Name.Equals(name)).FirstOrDefaultAsync();
         }
 
         public Task<List<Attribute>> GetAll()
         {
-            return Task.FromResult(Context.Attributes.ToList());
+            return Context.Attributes.ToListAsync();
         }
 
-        public async Task<List<Attribute>> FindAttributeNamesByText(string text)
+        public Task<List<Attribute>> FindAttributeNamesByText(string text)
         {
-            return await Context.Attributes
+            return Context.Attributes
                 .Where(x => x.Name.Contains(text))
                 .ToListAsync();
         }
 
-        public async Task<Attribute> Insert(Attribute attribute)
+        public Task<Attribute> Insert(Attribute attribute)
         {
-            return (await Context.Attributes.AddAsync(attribute)).Entity;
+            return Task.FromResult(Context.Attributes.Add(attribute).Entity);
         }
 
-        public Task Update(Attribute attribute)
+        public Task<List<AttributeValue>> FindAttributeValuesById(int id)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public async Task<List<AttributeValue>> FindAttributeValuesById(int id)
-        {
-            return await Context.AttributeValue
+            return Context.AttributeValue
                 .Where(x => x.AttributeID == id)
                 .GroupBy(x => x.Value)
                 .Select(x => x.First())

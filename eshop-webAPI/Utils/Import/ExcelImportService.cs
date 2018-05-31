@@ -24,15 +24,9 @@ namespace eshopAPI.Utils.Import
         private readonly int attributeKeyColumn = 7;
         private readonly int attributeValueColumn = 8;      
 
-        //public void SetFileName(string fileName)
-        //{
-        //    this.FileName = @"C:\Users\greta\Desktop\" + fileName + ".xlsx";
-        //}
-
         public Task<List<ItemVM>> ImportItems(Stream fileStream)
         {
             var importedItems = new List<ItemVM>();
-            //var fInfo = new FileInfo(FileName);
             try
             {
                 using (var excel = new ExcelPackage(fileStream))
@@ -60,11 +54,14 @@ namespace eshopAPI.Utils.Import
                             continue;
                         }
 
+                        Decimal price;
+                        bool isDecimal = Decimal.TryParse(GetCellValueFromPossiblyMergedCell(wks, i, priceColumn), out price);
+
                         var importedRecord = new ItemVM
                         {
                             SKU = sku,
                             Name = GetCellValueFromPossiblyMergedCell(wks, i, nameColumn),
-                            Price = Convert.ToDecimal(GetCellValueFromPossiblyMergedCell(wks, i, priceColumn)),
+                            Price = isDecimal ? price : -1,
                             Description = GetCellValueFromPossiblyMergedCell(wks, i, descriptionColumn),
                             Pictures = PreparePictures(GetCellValueFromPossiblyMergedCell(wks, i, PicturesColumn)),
                             Attributes = attributes,
@@ -72,7 +69,11 @@ namespace eshopAPI.Utils.Import
                             SubCategory = PrepareSubCategory(GetCellValueFromPossiblyMergedCell(wks, i, categoriesColumn))
                         };
 
-                        importedItems.Add(importedRecord);
+                        if (AreRequiredCellsValid(importedRecord, i))
+                        {
+                            importedItems.Add(importedRecord);
+                        }
+
                         attributes = new List<ItemAttributesVM>();
                     }
                 }
@@ -83,6 +84,49 @@ namespace eshopAPI.Utils.Import
             }
 
             return Task.FromResult(importedItems);
+        }
+
+        private bool AreRequiredCellsValid(ItemVM newItem, int row)
+        {
+            bool isValid = true;
+
+            if (string.IsNullOrWhiteSpace(newItem.SKU))
+            {
+                ImportErrorLogger.LogError(row, $"SKU code not provided");
+                isValid = false;
+            }
+
+            if (newItem.SKU.Length > 10)
+            {
+                ImportErrorLogger.LogError(row, $"SKU code cannot exceed 10 characters");
+                isValid = false;
+            }
+
+            if (string.IsNullOrWhiteSpace(newItem.Name))
+            {
+                ImportErrorLogger.LogError(row, $"Item title not provided");
+                isValid = false;
+            }
+
+            if(string.IsNullOrWhiteSpace(newItem.Description))
+            {
+                ImportErrorLogger.LogError(row, $"Item description not provided");
+                isValid = false;
+            }
+
+            if(newItem.Category == null)
+            {
+                ImportErrorLogger.LogError(row, $"Item category not provided");
+                isValid = false;
+            }
+
+            if(newItem.Price == -1)
+            {
+                ImportErrorLogger.LogError(row, $"Item price not provided or not correct ");
+                isValid = false;
+            }
+
+            return isValid;
         }
 
         private IEnumerable<ItemPictureVM> PreparePictures(string picturesCell)
@@ -99,6 +143,11 @@ namespace eshopAPI.Utils.Import
         {
             string[] categories = categoriesCell.Split("/");
 
+            if (categories.Length == 0)
+            {
+                return null;
+            }
+
             return new ItemCategoryVM
                 {
                     Name = categories[0]
@@ -108,6 +157,11 @@ namespace eshopAPI.Utils.Import
         private ItemSubCategoryVM PrepareSubCategory(string categoriesCell)
         {
             string[] categories = categoriesCell.Split("/");
+
+            if (categories.Length != 2)
+            {
+                return null;
+            }
 
             return new ItemSubCategoryVM
             {
