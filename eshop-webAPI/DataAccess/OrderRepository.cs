@@ -66,6 +66,7 @@ namespace eshopAPI.DataAccess
                         Name = i.Item.Name,
                         SKU = i.Item.SKU
                     }),
+                    CreateDate = o.CreateDate.ToShortDateString()
                 });
 
             return Task.FromResult(query);
