@@ -26,7 +26,7 @@ namespace eshopAPI.Services
         {
             foreach (var item in items)
             {
-                item.Discount = Calculate(discounts, item.Price, item.ID, item.CategoryID, item.SubCategoryID);
+                item.Discount = Calculate(discounts, item.Price, item.ItemID, item.CategoryID, item.SubCategoryID);
             }
         }
 

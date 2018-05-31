@@ -158,7 +158,7 @@ namespace eshopAPI.Utils.Import
         {
             string[] categories = categoriesCell.Split("/");
 
-            if (categories.Length != 2)
+            if (categories.Length != 2 || string.IsNullOrEmpty(categories[1]))
             {
                 return null;
             }

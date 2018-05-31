@@ -100,7 +100,7 @@ namespace eshopAPI.Controllers.Admin
                     new ErrorResponse(ErrorReasons.NotFound, "Item with such ID was not found"));
             }
 
-            if(await _itemRepository.SkuExists(request.SKU))
+            if(request.SKU != item.SKU && await _itemRepository.SkuExists(request.SKU))
             {
                 return StatusCode((int)HttpStatusCode.BadRequest,
                     new ErrorResponse(ErrorReasons.BadRequest, "Item with this SKU already exists!"));

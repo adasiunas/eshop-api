@@ -30,6 +30,7 @@ namespace eshopAPI.DataAccess
         {
             return  Context.Orders
                 .Where(o => o.ID == orderID)
+                .Include(o => o.User)
                 .Include(o => o.Items).ThenInclude(item => item.Item)
                 .FirstOrDefaultAsync();
         }
@@ -66,6 +67,7 @@ namespace eshopAPI.DataAccess
                         Name = i.Item.Name,
                         SKU = i.Item.SKU
                     }),
+                    CreateDate = o.CreateDate.ToShortDateString()
                 });
 
             return Task.FromResult(query);
