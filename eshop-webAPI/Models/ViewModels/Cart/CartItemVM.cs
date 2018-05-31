@@ -14,6 +14,9 @@ namespace eshopAPI.Models
         public decimal Price { get; set; }
         public virtual ICollection<ItemAttributesVM> Attributes { get; set; }
         public int Count { get; set; }
+        public decimal Discount { get; set; }
+        public long CategoryID { get; set; }
+        public long? SubCategoryID { get; set; }
     }
 
     public static class CartItemVMExtensions
@@ -33,7 +36,10 @@ namespace eshopAPI.Models
                     {
                         ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value
                     })
-                    .Take(2).ToList()
+                    .Take(2).ToList(),
+                CategoryID = item.Item.CategoryID,
+                SubCategoryID = item.Item.SubCategoryID,
+                Discount = 0
             };
         }
     }
