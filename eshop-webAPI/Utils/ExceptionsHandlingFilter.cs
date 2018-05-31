@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
+using Newtonsoft.Json.Serialization;
 
 namespace eshopAPI.Utils
 {
@@ -27,7 +29,10 @@ namespace eshopAPI.Utils
             else
                 error = new ErrorResponse(exception.Source, exception.Message);
 
-            var result = JsonConvert.SerializeObject(error);
+            var result = JsonConvert.SerializeObject(error, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
             context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.HttpContext.Response.ContentType = "application/json";
             return context.HttpContext.Response.WriteAsync(result);
