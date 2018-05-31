@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using eshopAPI.Utils.Import;
 using eshopAPI.Models.ViewModels.Admin;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace eshopAPI
 {
@@ -45,7 +46,7 @@ namespace eshopAPI
             services.AddDbContext<ShopContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("EshopConnection")));
 
-            services.AddIdentity<ShopUser, IdentityRole>(opt => { opt.SignIn.RequireConfirmedEmail = true;})
+            services.AddIdentity<ShopUser, IdentityRole>(opt => { opt.SignIn.RequireConfirmedEmail = true; })
                 .AddEntityFrameworkStores<ShopContext>()
                 .AddDefaultTokenProviders();
 
@@ -82,6 +83,9 @@ namespace eshopAPI
             {
                 c.SwaggerDoc("v1", new Info { Title = "eshop-api", Version = "v1" });
             });
+
+            services.Configure<SecurityStampValidatorOptions>(o =>
+                o.ValidationInterval = TimeSpan.FromSeconds(0));
 
             // register services for DI
             // AddTransient - creates new services for every injection

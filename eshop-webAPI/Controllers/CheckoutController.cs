@@ -71,7 +71,7 @@ namespace eshopAPI.Controllers
                 {
                     Count = i.Count,
                     Price = i.Discount == 0 ? i.Price : i.Discount,
-                    ItemID = i.ID
+                    ItemID = i.ItemID
                 }).ToList(),
                 DeliveryAddress = JsonConvert.SerializeObject(request.Address),
                 Status = OrderStatus.Accepted
