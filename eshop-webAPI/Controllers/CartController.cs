@@ -8,6 +8,7 @@ using eshopAPI.DataAccess;
 using eshopAPI.Models;
 using eshopAPI.Models.ViewModels;
 using eshopAPI.Requests.Cart;
+using eshopAPI.Services;
 using eshopAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -27,13 +28,23 @@ namespace eshopAPI.Controllers
         private readonly IShopUserRepository _userRepository;
         private readonly IItemRepository _itemRepository;
         private readonly ILogger<CartController> _logger;
+        private readonly IDiscountRepository _discountRepository;
+        private readonly IDiscountService _discountService;
 
-        public CartController(ICartRepository cartRepository, IShopUserRepository userRepository, IItemRepository itemRepository, ILogger<CartController> logger)
+        public CartController(
+            ICartRepository cartRepository,
+            IShopUserRepository userRepository,
+            IItemRepository itemRepository,
+            ILogger<CartController> logger,
+            IDiscountRepository discountRepository,
+            IDiscountService discountService)
         {
             _cartRepository = cartRepository;
             _userRepository = userRepository;
             _itemRepository = itemRepository;
             _logger = logger;
+            _discountRepository = discountRepository;
+            _discountService = discountService;
         }
 
         // GET: api/Cart
@@ -46,7 +57,10 @@ namespace eshopAPI.Controllers
                 return StatusCode((int)HttpStatusCode.NotFound,
                     new ErrorResponse(ErrorReasons.NotFound, "Cart not found."));
             }
-            return StatusCode((int)HttpStatusCode.OK, cart.GetCartVM());
+            var cartVm = cart.GetCartVM();
+            var discounts = await _discountRepository.GetDiscounts();
+            _discountService.CalculateDiscountsForItems(cartVm.Items, discounts);
+            return StatusCode((int)HttpStatusCode.OK, cartVm);
         }
         
         // POST: api/Cart

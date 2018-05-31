@@ -3,17 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace eshopAPI.Models.ViewModels
+namespace eshopAPI.Models
 {
     public class CartItemVM
     {
         public long ID { get; set; }
+        public long ItemID { get; set; }
         public string SKU { get; set; }
         public string Name { get; set; }
         public string MainPicture { get; set; }
         public decimal Price { get; set; }
-        public IEnumerable<ItemAttributesVM> Attributes { get; set; }
+        public virtual ICollection<ItemAttributesVM> Attributes { get; set; }
         public int Count { get; set; }
+        public decimal Discount { get; set; }
+        public long CategoryID { get; set; }
+        public long? SubCategoryID { get; set; }
     }
 
     public static class CartItemVMExtensions
@@ -23,6 +27,7 @@ namespace eshopAPI.Models.ViewModels
             return new CartItemVM
             {
                 ID = item.ID,
+                ItemID = item.Item.ID,
                 SKU = item.Item.SKU,
                 Name = item.Item.Name,
                 MainPicture = item.Item.Pictures.FirstOrDefault()?.URL,
@@ -33,7 +38,10 @@ namespace eshopAPI.Models.ViewModels
                     {
                         ID = i.ID, AttributeID = i.AttributeID, Name = i.Attribute.Name, Value = i.Value
                     })
-                    .Take(2).ToList()
+                    .Take(2).ToList(),
+                CategoryID = item.Item.CategoryID,
+                SubCategoryID = item.Item.SubCategoryID,
+                Discount = 0
             };
         }
     }

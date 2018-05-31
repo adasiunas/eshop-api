@@ -48,6 +48,7 @@ namespace eshopAPI.DataAccess
         public Task<IQueryable<AdminOrderVM>> GetAllAdminOrdersAsQueryable()
         {
             var query = Context.Orders
+                .Include(x => x.Items)
                 .Select(o => new AdminOrderVM()
                 {
                     ID = o.ID,
@@ -55,7 +56,16 @@ namespace eshopAPI.DataAccess
                     Status = o.Status.GetDescription(),
                     TotalPrice = o.Items.Select(i => i.Price * i.Count).Sum(),
                     UserEmail = o.User.NormalizedEmail,
-                    DeliveryAddress = o.DeliveryAddress
+                    DeliveryAddress = o.DeliveryAddress,
+                    Items = o.Items.Select(i => new OrderItemVM
+                    {
+                        ID = i.ID,
+                        ItemID = i.ItemID,
+                        Price = i.Price,
+                        Count = i.Count,
+                        Name = i.Item.Name,
+                        SKU = i.Item.SKU
+                    }),
                 });
 
             return Task.FromResult(query);

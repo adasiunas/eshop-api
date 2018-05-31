@@ -32,6 +32,7 @@ namespace eshopAPI.Controllers.Admin
     public class AdminItemsController : ODataController
     {
         private IItemRepository _itemRepository;
+        private IAttributeRepository _attributeRepository;
         private ILogger<ItemsController> _logger;
         private ICategoryRepository _categoryRepository;
         private ImportErrorLogger _importErrorLogger;
@@ -40,18 +41,17 @@ namespace eshopAPI.Controllers.Admin
         private readonly IExportService _exportService;
         private readonly IImportService _importService;
         private IImageCloudService _imageCloudService;
-        private IAttributeRepository _attributeRepository;
-        private ShopContext _shopContext;
+        private readonly ShopContext _shopContext;
 
         public AdminItemsController(
             ILogger<ItemsController> logger,
-            IItemRepository itemRepository, 
+            IItemRepository itemRepository,
+            ICategoryRepository categoryRepository,
+            IAttributeRepository attributeRepository,
             IHostingEnvironment hostingEnvironment, 
             IConfiguration configuration, 
             IExportService exportService,
             IImportService importService,
-            ICategoryRepository categoryRepository,
-            IAttributeRepository attributeRepository,
             IImageCloudService imageCloudService,
             ShopContext shopContext)
         {
@@ -146,7 +146,7 @@ namespace eshopAPI.Controllers.Admin
                 {
                     await _itemRepository.SaveChanges();
                 }
-                catch(DbUpdateConcurrencyException ex)
+                catch(DbUpdateConcurrencyException)
                 {
                     return StatusCode((int)HttpStatusCode.Conflict);
                 }
@@ -292,62 +292,69 @@ namespace eshopAPI.Controllers.Admin
             return File(bytes, "application/octet-stream");
         }
 
-        [HttpGet("import")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Import()
+        [HttpPost("import")]
+        public async Task<IActionResult> Import(IFormFile file)
         {
-            //var files = Request.Form.Files;
-            //foreach (var file in files)
-            //{
-            //    var filename = ContentDispositionHeaderValue
-            //                    .Parse(file.ContentDisposition)
-            //                    .FileName
-            //                    .Trim('"');
-            //    filename = hostingEnv.WebRootPath + $@"\{filename}";
-            //    using (FileStream fs = System.IO.File.Create(filename))
-            //    {
-            //        file.CopyTo(fs);
-            //        fs.Flush();
-            //    }
-            //}
+            if (file == null)
+            {
+                _logger.LogInformation("Items import error: file not provided");
+                return StatusCode((int)HttpStatusCode.BadRequest, "No file selected");
+            }
 
             _importErrorLogger = new ImportErrorLogger(_logger);
-            _importService.SetFileName("items");
             _importService.ImportErrorLogger = _importErrorLogger;
 
-            var importedItems = await _importService.ImportItems();
+            var importedItems = await _importService.ImportItems(file.OpenReadStream());
 
             if (importedItems == null)
             {
-                return NoContent();
+                return StatusCode((int) HttpStatusCode.NoContent);
             }
 
             var savedItems = new List<ItemVM>();
-            var skuCodes = (await _itemRepository.GetAllItemsSkuCodes()).ToList();
+            List<string> skuCodes = (await _itemRepository.GetAllItemsSkuCodes()).ToList();
+            if (skuCodes == null)
+            {
+                skuCodes = new List<string>();
+            }
 
             for (int i = 0; i < importedItems.Count(); i++)
             {
                 var item = importedItems.ElementAt(i);
                 var row = i + 2;
-                long subcategoryId = 1;
 
-                // subcategoryId must be returned from validation ir retrieved here
-
-                if (await isValidItem(skuCodes, item, row))
+                Category category = await _categoryRepository.FindByName(item.Category.Name);
+                if (category == null)
                 {
-                    // TODO: validate attributes
+                    _importErrorLogger.LogError(row, $"Category {item.Category.Name} does not exist");
+                    continue;
+                }
 
-                    var newItem = await CreateItem(item, subcategoryId);
+                var subcategories = await _categoryRepository.GetChildrenOfParent(category.ID);
 
-                    if (newItem != null)
+                long? subcategoryId = null;
+
+                if (item.SubCategory != null)
+                {
+                    subcategoryId = subcategories.Where(x => x.Name.Equals(item.SubCategory.Name)).Select(x => x.ID).FirstOrDefault();
+
+                    if (subcategoryId == 0)
                     {
-                        savedItems.Add(newItem.GetItemVM());
-                        skuCodes.Add(newItem.SKU);
+                        _importErrorLogger.LogError(row, $"Subcategory {item.SubCategory.Name} does not exist");
+                        continue;
                     }
                 }
+                
+
+                if (IsValidItem(skuCodes, item, row))
+                {
+                    item.Attributes = await GetValidAttributes(item);
+                    var newItem = await CreateItem(item, subcategoryId, category.ID);
+                    savedItems.Add(newItem.GetItemVM());
+                    skuCodes.Add(newItem.SKU);  
+                }
             }
-            
+
             await _itemRepository.SaveChanges();
 
             return StatusCode((int) HttpStatusCode.OK, new ImportItemsResponse
@@ -357,7 +364,7 @@ namespace eshopAPI.Controllers.Admin
             });
         }
 
-        private async Task<Item> CreateItem(ItemVM item, long subcategoryId)
+        private async Task<Item> CreateItem(ItemVM item, long? subcategoryId, long categoryID)
         {
             return await _itemRepository.Insert(new Item
             {
@@ -366,15 +373,22 @@ namespace eshopAPI.Controllers.Admin
                 Description = item.Description,
                 Price = item.Price,
                 SubCategoryID = subcategoryId,
-                Pictures = item.Pictures.Select(q => new ItemPicture
-                    {
-                        URL = q.URL
-                    })
-                    .ToList()
+                CategoryID = categoryID,
+                Pictures = item.Pictures?.Select(q => new ItemPicture
+                {
+                    URL = q.URL
+                })
+                .ToList(),
+                Attributes = item.Attributes?.Select(q => new AttributeValue
+                {
+                    AttributeID = q.AttributeID,
+                    Value = q.Value
+                })
+                .ToList()
             });
         }
 
-        private async Task<bool> isValidItem(List<string> skuCodes, ItemVM item, int row)
+        private bool IsValidItem(List<string> skuCodes, ItemVM item, int row)
         {
             if (skuCodes.Contains(item.SKU))
             {
@@ -382,22 +396,30 @@ namespace eshopAPI.Controllers.Admin
                 return false;
             }
 
-            Category category = await _categoryRepository.FindByName(item.Category.Name);
-            if (category == null)
-            {
-                _importErrorLogger.LogError(row, $"Category {item.Category.Name} does not exist");
-                return false;
-            }
-
-            var subcategories = await _categoryRepository.GetChildrenOfParent(category.ID);
-            long subcategoryId = subcategories.Where(x => x.Name.Equals(item.SubCategory.Name)).Select(x => x.ID).First();
-
-            if (subcategoryId == 0)
-            {
-                _importErrorLogger.LogError(row, $"Subcategory {item.SubCategory.Name} does not exist");
-                return false;
-            }
+            
             return true;
+        }
+
+        private async Task<List<ItemAttributesVM>> GetValidAttributes(ItemVM item)
+        {
+            List<ItemAttributesVM> validAttributes = new List<ItemAttributesVM>();
+            // var attributes = await _attributeRepository.GetAll();
+
+            foreach (ItemAttributesVM atr in item.Attributes)
+            {
+                var savedAtr = await _attributeRepository.FindByName(atr.Name);
+                if (savedAtr != null)
+                {
+                    validAttributes.Add(new ItemAttributesVM
+                    {
+                        Name = atr.Name,
+                        Value = atr.Value,
+                        AttributeID = savedAtr.ID
+                    });
+                }
+            }
+
+            return validAttributes;
         }
         
         private string GenerateFileName()

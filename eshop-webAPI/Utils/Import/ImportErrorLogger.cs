@@ -25,7 +25,7 @@ namespace eshopAPI.Utils.Import
 
         public void LogError(int? row, string error)
         {
-            _logger.LogInformation(error);
+            _logger.LogInformation("File import error: " + error);
             errors.Add(new ImportError
             {
                 Row = row,

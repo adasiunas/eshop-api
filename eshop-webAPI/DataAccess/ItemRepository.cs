@@ -1,5 +1,6 @@
 ﻿using eshopAPI.Models;
 using eshopAPI.Models.ViewModels;
+using eshopAPI.Models.ViewModels.Admin;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
@@ -89,7 +90,8 @@ namespace eshopAPI.DataAccess
                     {
                         Name = i.SubCategory.Name,
                         ID = i.SubCategoryID.Value
-                    }
+                    },
+                    Discount = 0
                 });
             return query.ToListAsync();
         }
