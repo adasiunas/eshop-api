@@ -21,6 +21,7 @@ namespace eshopAPI.DataAccess
         Task<IQueryable<AdminItemVM>> GetAllAdminItemVMAsQueryable();
         Task<List<ItemVM>> GetAllItemsForFirstPage();
         Task<IQueryable<string>> GetAllItemsSkuCodes();
+        Task<bool> SkuExists(string SKU);
     }
 
     public class ItemRepository : BaseRepository, IItemRepository
@@ -140,6 +141,13 @@ namespace eshopAPI.DataAccess
         {
             Context.Entry(itemToUpdateFrom).OriginalValues["Timestamp"] = itemToUpdateTo.Timestamp;
             return Task.FromResult(itemToUpdateFrom.UpdateItem(itemToUpdateTo));
+        }
+
+        public async Task<bool> SkuExists(string SKU)
+        {
+            IQueryable<string> skus = await GetAllItemsSkuCodes();
+
+            return skus.FirstOrDefault(x => x.Equals(SKU)) != null;
         }
     }
 }
