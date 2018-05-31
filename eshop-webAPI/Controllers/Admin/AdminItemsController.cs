@@ -298,7 +298,7 @@ namespace eshopAPI.Controllers.Admin
             if (file == null)
             {
                 _logger.LogInformation("Items import error: file not provided");
-                return StatusCode((int)HttpStatusCode.BadRequest, "No file selected");
+                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.BadRequest, "No file selected"));
             }
 
             _importErrorLogger = new ImportErrorLogger(_logger);
