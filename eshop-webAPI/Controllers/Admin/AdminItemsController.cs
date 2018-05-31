@@ -299,6 +299,7 @@ namespace eshopAPI.Controllers.Admin
         {
             if (file == null)
             {
+                _logger.LogInformation("Items import error: file not provided");
                 return StatusCode((int)HttpStatusCode.BadRequest, "No file selected");
             }
 
@@ -332,13 +333,20 @@ namespace eshopAPI.Controllers.Admin
                 }
 
                 var subcategories = await _categoryRepository.GetChildrenOfParent(category.ID);
-                long subcategoryId = subcategories.Where(x => x.Name.Equals(item.SubCategory.Name)).Select(x => x.ID).First();
 
-                if (subcategoryId == 0)
+                long? subcategoryId = null;
+
+                if (item.SubCategory != null)
                 {
-                    _importErrorLogger.LogError(row, $"Subcategory {item.SubCategory.Name} does not exist");
-                    continue;
+                    subcategoryId = subcategories.Where(x => x.Name.Equals(item.SubCategory.Name)).Select(x => x.ID).FirstOrDefault();
+
+                    if (subcategoryId == 0)
+                    {
+                        _importErrorLogger.LogError(row, $"Subcategory {item.SubCategory.Name} does not exist");
+                        continue;
+                    }
                 }
+                
 
                 if (IsValidItem(skuCodes, item, row))
                 {
@@ -358,7 +366,7 @@ namespace eshopAPI.Controllers.Admin
             });
         }
 
-        private async Task<Item> CreateItem(ItemVM item, long subcategoryId, long categoryID)
+        private async Task<Item> CreateItem(ItemVM item, long? subcategoryId, long categoryID)
         {
             return await _itemRepository.Insert(new Item
             {
