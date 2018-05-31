@@ -243,7 +243,7 @@ namespace eshopAPI.Services
                           <td align='left' style='padding: 0 56px 28px 56px;' valign='top'>
                             <div style='font-family: ""lato"", ""Helvetica Neue"", Helvetica, Arial, sans-serif; line-height: 28px;font-size: 18px; color: #333;'>
 
-                          "+ message + @"
+                          "+ message + @" 
                           </div>
                           </td>
                         </tr>
@@ -275,7 +275,10 @@ namespace eshopAPI.Services
                         <tr>
                           <td align='center' style='padding: 30px 56px 28px 56px;' valign='middle'>
 <span style='font-family: ""lato"", ""Helvetica Neue"", Helvetica, Arial, sans-serif; line-height: 28px;font-size: 16px; color: #A7ADB5; vertical-align: middle;'>If this email doesn't make any sense, please <a href=""mailto:" + From + @""">let us know</a>!</span>
-
+  
+                          </td>
+                          <td>
+                              <span style='font-family: ""lato"", ""Helvetica Neue"", Helvetica, Arial, sans-serif; line-height: 28px;font-size: 16px; color: #A7ADB5; vertical-align: middle;'>If confirmation button is not working please click <a href="""+ link +@""">here</a></span>
                           </td>
                         </tr>
                         <tr>

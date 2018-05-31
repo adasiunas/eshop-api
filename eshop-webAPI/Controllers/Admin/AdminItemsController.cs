@@ -304,7 +304,7 @@ namespace eshopAPI.Controllers.Admin
             if (file == null)
             {
                 _logger.LogInformation("Items import error: file not provided");
-                return StatusCode((int)HttpStatusCode.BadRequest, "No file selected");
+                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.BadRequest, "No file selected"));
             }
 
             _importErrorLogger = new ImportErrorLogger(_logger);
@@ -354,7 +354,7 @@ namespace eshopAPI.Controllers.Admin
 
                 if (IsValidItem(skuCodes, item, row))
                 {
-                    item.Attributes = await GetValidAttributes(item);
+                    item.Attributes = await ImportAttributes(item);
                     var newItem = await CreateItem(item, subcategoryId, category.ID);
                     savedItems.Add(newItem.GetItemVM());
                     skuCodes.Add(newItem.SKU);  
@@ -406,17 +406,34 @@ namespace eshopAPI.Controllers.Admin
             return true;
         }
 
-        private async Task<List<ItemAttributesVM>> GetValidAttributes(ItemVM item)
+        private async Task<List<ItemAttributesVM>> ImportAttributes(ItemVM item)
         {
-            List<ItemAttributesVM> validAttributes = new List<ItemAttributesVM>();
-            // var attributes = await _attributeRepository.GetAll();
+            List<ItemAttributesVM> attributes = new List<ItemAttributesVM>();
 
             foreach (ItemAttributesVM atr in item.Attributes)
             {
                 var savedAtr = await _attributeRepository.FindByName(atr.Name);
-                if (savedAtr != null)
+
+                if (savedAtr == null)
                 {
-                    validAttributes.Add(new ItemAttributesVM
+                    var newAttribute = await _attributeRepository.Insert(new Models.Attribute
+                    {
+                        Name = atr.Name
+                    });
+
+                    if (await _attributeRepository.SaveChanges() == 1)
+                    {
+                        attributes.Add(new ItemAttributesVM
+                        {
+                            Name = newAttribute.Name,
+                            Value = atr.Value,
+                            AttributeID = newAttribute.ID
+                        });
+                    }                    
+                }
+                else
+                {
+                    attributes.Add(new ItemAttributesVM
                     {
                         Name = atr.Name,
                         Value = atr.Value,
@@ -425,7 +442,7 @@ namespace eshopAPI.Controllers.Admin
                 }
             }
 
-            return validAttributes;
+            return attributes;
         }
         
         private string GenerateFileName()
