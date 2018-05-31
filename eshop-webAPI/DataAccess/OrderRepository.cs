@@ -30,6 +30,7 @@ namespace eshopAPI.DataAccess
         {
             return  Context.Orders
                 .Where(o => o.ID == orderID)
+                .Include(o => o.User)
                 .Include(o => o.Items).ThenInclude(item => item.Item)
                 .FirstOrDefaultAsync();
         }

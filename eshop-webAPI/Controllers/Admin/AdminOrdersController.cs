@@ -1,5 +1,6 @@
 ﻿using eshopAPI.DataAccess;
 using eshopAPI.Models;
+using eshopAPI.Models.ViewModels;
 using eshopAPI.Models.ViewModels.Admin;
 using eshopAPI.Requests.Order;
 using eshopAPI.Utils;
@@ -46,8 +47,26 @@ namespace eshopAPI.Controllers.Admin
                 return StatusCode((int)HttpStatusCode.NotFound,
                     new ErrorResponse(ErrorReasons.NotFound, "Order was not found"));
             }
-
-            return StatusCode((int)HttpStatusCode.OK, order);
+            var orderVM = new AdminOrderVM
+            {
+                ID = order.ID,
+                OrderNumber = order.OrderNumber,
+                DeliveryAddress = order.DeliveryAddress,
+                CreateDate = order.CreateDate.ToShortDateString(),
+                Status = order.Status.GetDescription(),
+                UserEmail = order.User.Email,
+                Items = order.Items.Select(i => new OrderItemVM
+                {
+                    ID = i.ID,
+                    Count = i.Count,
+                    SKU = i.Item.SKU,
+                    ItemID = i.ItemID,
+                    Name = i.Item.Name,
+                    Price = i.Price
+                }),
+                TotalPrice = order.Items.Sum(i => i.Price)
+            };
+            return StatusCode((int)HttpStatusCode.OK, orderVM);
         }
 
         [HttpPost("changestatus")]
