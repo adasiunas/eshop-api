@@ -293,8 +293,6 @@ namespace eshopAPI.Controllers.Admin
         }
 
         [HttpPost("import")]
-        [AllowAnonymous]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Import(IFormFile file)
         {
             if (file == null)
