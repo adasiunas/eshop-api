@@ -25,8 +25,10 @@ namespace eshopAPI.Utils
             }
             catch(Exception ex)
             {
+                _logger.LogCritical("Exception was caught: " + ex.Message);
                 _logger.LogCritical("Exeption was caught invoking: " + next.Target.ToString());
                 _logger.LogCritical("Stack trace:\n" + ex.StackTrace);
+                throw;
             }
         }
     }

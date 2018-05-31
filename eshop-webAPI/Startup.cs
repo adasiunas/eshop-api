@@ -95,11 +95,27 @@ namespace eshopAPI
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAttributeRepository, AttributeRepository>();
             services.AddScoped<IShopUserRepository, ShopUserRepository>();
-            services.AddScoped<IImageCloudService, ImageCloudService>();
+            services.AddScoped<IImageCloudService>(provider =>
+            {
+                IImageCloudService cloudService = new ImageCloudService(provider.GetRequiredService<ILogger<IImageCloudService>>(), Configuration);
+                foreach(string decoratorType in Configuration.GetSection("ImageCloudDecorators").GetChildren().Select(x => x.Value).ToArray())
+                {
+                    switch (decoratorType)
+                    {
+                        case "LOCAL":
+                            cloudService = new ImageLocalStorageDecorator(cloudService, provider.GetRequiredService<IHostingEnvironment>());
+                            break;
+                    }
+                }
+                return cloudService;
+            });
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddScoped<IUserFeedbackRepository, UserFeedbackRepository>();
             services.AddScoped<IImportService, ExcelImportService>();
+            services.AddScoped<IDiscountRepository, DiscountRepository>();
+            services.AddScoped<IDiscountService, DiscountService>();
+
 
             if (Configuration["ExportFile"] == "CSV")
                 services.AddScoped<IExportService, CsvExportService>();
@@ -176,6 +192,7 @@ namespace eshopAPI
             builder.EntitySet<AdminOrderVM>("AdminOrders").EntityType.HasKey(e => e.ID);
             builder.EntitySet<OrderVM>("Orders").EntityType.HasKey(e => e.ID);
             builder.EntitySet<UserFeedbackVM>("AdminFeedback").EntityType.HasKey(e => e.ID);
+            builder.EntitySet<AdminDiscountVM>("Discount").EntityType.HasKey(e => e.ID);
             app.UseMvc(routeBuilder =>
             {
                 routeBuilder.MapODataServiceRoute("api/odata", "api/odata", builder.GetEdmModel());
