@@ -39,6 +39,11 @@ namespace eshopAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]DiscountRequest request)
         {
+            int onlyOneTarget = (request.ItemID.HasValue ? 1 : 0) + (request.CategoryID.HasValue ? 1 : 0) + (request.SubCategoryID.HasValue ? 1 : 0);
+            if (onlyOneTarget != 1)
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.BadRequest, "Only one: Category or SubCategory or Item can have discount."));
+            }
             if (request.ItemID.HasValue && (await _discountRepository.GetDiscountForItem(request.ItemID.Value)) != null)
             {
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.BadRequest, "Item already has a discount."));
@@ -51,14 +56,7 @@ namespace eshopAPI.Controllers
             {
                 return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.BadRequest, "SubCategory already has a discount."));
             }
-            if ((request.ItemID.HasValue && request.SubCategoryID.HasValue && request.CategoryID.HasValue) ||
-                (request.ItemID.HasValue && request.CategoryID.HasValue) ||
-                (request.ItemID.HasValue && request.SubCategoryID.HasValue) ||
-                (request.SubCategoryID.HasValue && request.CategoryID.HasValue) ||
-                (!request.ItemID.HasValue && !request.SubCategoryID.HasValue && !request.CategoryID.HasValue))
-            {
-                return StatusCode((int)HttpStatusCode.BadRequest, new ErrorResponse(ErrorReasons.BadRequest, "Only one: Category or SubCategory or Item can have discount."));
-            }
+
             await _discountRepository.InsertDiscount(new Discount
             {
                 Name = request.Name,
@@ -79,7 +77,7 @@ namespace eshopAPI.Controllers
             var discount = await _discountRepository.GetDiscountByID(id);
             if (discount == null)
             {
-                return StatusCode((int)HttpStatusCode.NoContent);
+                return StatusCode((int)HttpStatusCode.NotFound, new ErrorResponse(ErrorReasons.BadRequest, "Discount does not exist."));
             }
             await _discountRepository.RemoveDiscount(discount);
             return StatusCode((int)HttpStatusCode.NoContent);
