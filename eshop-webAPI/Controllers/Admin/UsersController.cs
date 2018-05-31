@@ -72,6 +72,7 @@ namespace eshopAPI.Controllers.Admin
             await _userManager.RemoveFromRolesAsync(user, roles);
 
             await _userManager.AddToRoleAsync(user, request.Role);
+            await _userManager.UpdateSecurityStampAsync(user);
 
             _logger.LogInformation($"Role succesfully changed");
             return StatusCode((int) HttpStatusCode.NoContent);
