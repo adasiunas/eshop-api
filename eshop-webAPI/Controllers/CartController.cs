@@ -175,6 +175,11 @@ namespace eshopAPI.Controllers
                 _logger.LogError("Item with ID - " + itemRequest.ItemID + " was not found.");
                 return false;
             }
+            if (item.IsDeleted)
+            {
+                _logger.LogError("Item is archived - " + itemRequest.ItemID);
+                return false;
+            }
 
             CartItem existingItem = cart.Items.Where(i => i.ItemID == item.ID).FirstOrDefault();
             if (existingItem == null)
