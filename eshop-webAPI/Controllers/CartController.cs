@@ -96,7 +96,7 @@ namespace eshopAPI.Controllers
             }
 
             return StatusCode((int)HttpStatusCode.NotFound,
-                new ErrorResponse(ErrorReasons.NotFound, "Item you want to add to cart does not exist."));
+                new ErrorResponse(ErrorReasons.NotFound, "This item is no loger available"));
         }
 
         // PUT: api/Cart/updatecartitems
@@ -173,6 +173,11 @@ namespace eshopAPI.Controllers
             if (item == null)
             {
                 _logger.LogError("Item with ID - " + itemRequest.ItemID + " was not found.");
+                return false;
+            }
+            if (item.IsDeleted)
+            {
+                _logger.LogError("Item is archived - " + itemRequest.ItemID);
                 return false;
             }
 

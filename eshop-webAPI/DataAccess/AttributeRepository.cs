@@ -23,7 +23,7 @@ namespace eshopAPI.DataAccess
 
         public Task<Attribute> FindByName(string name)
         {
-            return Context.Attributes.Where(a => a.Name.Equals(name)).FirstOrDefaultAsync();
+            return Context.Attributes.Where(a => a.Name.ToLower().Equals(name.ToLower())).FirstOrDefaultAsync();
         }
 
         public Task<List<Attribute>> GetAll()
