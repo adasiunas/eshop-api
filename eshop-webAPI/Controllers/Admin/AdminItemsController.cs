@@ -100,6 +100,12 @@ namespace eshopAPI.Controllers.Admin
                     new ErrorResponse(ErrorReasons.NotFound, "Item with such ID was not found"));
             }
 
+            if(await _itemRepository.SkuExists(request.SKU))
+            {
+                return StatusCode((int)HttpStatusCode.BadRequest,
+                    new ErrorResponse(ErrorReasons.BadRequest, "Item with this SKU already exists!"));
+            }
+
             Category category = await _categoryRepository.FindByID(request.CategoryID);
             if (category == null)
             {
