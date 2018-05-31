@@ -1,4 +1,5 @@
 ﻿using eshopAPI.Models.ViewModels;
+using eshopAPI.Models.ViewModels.Admin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace eshopAPI.Models
         public ItemCategoryVM Category { get; set; }
         public ItemSubCategoryVM SubCategory { get; set; }
         public byte[] OptLockVersion { get; set; }
+        public decimal Discount { get; set; }
     }
 
     public class ItemCategoryVM
@@ -49,7 +51,7 @@ namespace eshopAPI.Models
         }
         public static ItemVM GetItemVM(this Item item)
         {
-            return new ItemVM
+            var itemVM = new ItemVM
             {
                 ID = item.ID,
                 Name = item.Name,
@@ -70,6 +72,8 @@ namespace eshopAPI.Models
                 },
                 OptLockVersion = item.Timestamp
             };
+
+            return itemVM;
         }
     }
 }
