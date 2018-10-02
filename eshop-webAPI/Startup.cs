@@ -33,9 +33,14 @@ namespace eshopAPI
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IHostingEnvironment env)
         {
-            Configuration = configuration;
+            var builder = new ConfigurationBuilder()
+              .SetBasePath(env.ContentRootPath)
+              .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+              .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+
+            Configuration = builder.Build();
         }
 
         public IConfiguration Configuration { get; }
@@ -152,6 +157,9 @@ namespace eshopAPI
             })
             .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
 
+            services.AddMvc()
+                .AddJsonOptions(x => x.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -172,6 +180,7 @@ namespace eshopAPI
                 }).WithExposedHeaders("X-CSRF-COOKIE")
                 .AllowAnyMethod().AllowAnyHeader().AllowCredentials()
             );
+
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
@@ -184,7 +193,6 @@ namespace eshopAPI
             app.UseAuthentication();
             app.UseAntiforgeryMiddleware();
             app.UseLoggingMiddleware();
-            CreateRoles(serviceProvider).Wait();
             app.UseMvc();
 
             var builder = new ODataConventionModelBuilder();
@@ -206,45 +214,5 @@ namespace eshopAPI
             });
         }
 
-        private async Task CreateRoles(IServiceProvider serviceProvider)
-        {
-            //initializing custom roles 
-            var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var UserManager = serviceProvider.GetRequiredService<UserManager<ShopUser>>();
-            string[] roleNames = { UserRole.Admin.ToString(), UserRole.User.ToString(), UserRole.Blocked.ToString() };
-            IdentityResult roleResult;
-
-            foreach (var roleName in roleNames)
-            {
-                var roleExist = await RoleManager.RoleExistsAsync(roleName);
-                if (!roleExist)
-                {
-                    //create the roles and seed them to the database: Question 1
-                    roleResult = await RoleManager.CreateAsync(new IdentityRole(roleName));
-                }
-            }
-
-            //Here you could create a super user who will maintain the web app
-            var poweruser = new ShopUser
-            {
-                UserName = Configuration["AdminUsername"],
-                Email = Configuration["AdminUsername"],
-            };
-            //Ensure you have these values in your appsettings.json file
-            string userPWD = Configuration["AdminUserPass"];
-            var _user = await UserManager.FindByNameAsync(Configuration["AdminUsername"]);
-
-            if (_user == null)
-            {
-                var createPowerUser = await UserManager.CreateAsync(poweruser, userPWD);
-                var confirmToken = await UserManager.GenerateEmailConfirmationTokenAsync(poweruser);
-                await UserManager.ConfirmEmailAsync(poweruser, confirmToken);
-                if (createPowerUser.Succeeded)
-                {
-                    //here we tie the new user to the role
-                    await UserManager.AddToRoleAsync(poweruser, UserRole.Admin.ToString());
-                }
-            }
-        }
     }
 }

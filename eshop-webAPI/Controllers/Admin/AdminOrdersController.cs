@@ -50,7 +50,7 @@ namespace eshopAPI.Controllers.Admin
             var orderVM = new AdminOrderVM
             {
                 ID = order.ID,
-                OrderNumber = order.OrderNumber,
+                OrderNumber = order.OrderNumber.ToString(),
                 DeliveryAddress = order.DeliveryAddress,
                 CreateDate = order.CreateDate.ToShortDateString(),
                 Status = order.Status.GetDescription(),

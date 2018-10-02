@@ -19,10 +19,9 @@ namespace eshopAPI.Models
         [Required]
         public ShopUser User { get; set; }
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public DateTime CreateDate { get; set; }
+        public DateTime CreateDate { get; set; } = DateTime.UtcNow;
         [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public OrderStatus Status { get; set; }
+        public OrderStatus Status { get; set; } = OrderStatus.Accepted;
         [Required]
         public virtual ICollection<OrderItem> Items { get; set; }
         [Required]

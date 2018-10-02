@@ -53,7 +53,7 @@ namespace eshopAPI.DataAccess
                 .Select(o => new AdminOrderVM()
                 {
                     ID = o.ID,
-                    OrderNumber = o.OrderNumber,
+                    OrderNumber = o.OrderNumber.ToString(),
                     Status = o.Status.GetDescription(),
                     TotalPrice = o.Items.Select(i => i.Price * i.Count).Sum(),
                     UserEmail = o.User.NormalizedEmail,
