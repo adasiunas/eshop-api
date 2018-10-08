@@ -12,19 +12,19 @@ namespace eshopAPI.DataAccess
         {
         }
 
-        public DbSet<Address> Addresses { get; set; }
-        public DbSet<Cart> Carts { get; set; }
-        public DbSet<CartItem> CartItems { get; set; }
-        public DbSet<Item> Items { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<SubCategory> SubCategories { get; set; }
-        public DbSet<Attribute> Attributes { get; set; }
-        public DbSet<AttributeValue> AttributeValue { get; set; }
-        public DbSet<ItemPicture> ItemPictures { get; set; }
-        public DbSet<UserFeedbackEntry> UserFeedbacks { get; set; }
-        public DbSet<Discount> Discounts { get; set; }
+        public virtual DbSet<Address> Addresses { get; set; }
+        public virtual DbSet<Cart> Carts { get; set; }
+        public virtual DbSet<CartItem> CartItems { get; set; }
+        public virtual DbSet<Item> Items { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<OrderItem> OrderItems { get; set; }
+        public virtual DbSet<Category> Categories { get; set; }
+        public virtual DbSet<SubCategory> SubCategories { get; set; }
+        public virtual DbSet<Attribute> Attributes { get; set; }
+        public virtual DbSet<AttributeValue> AttributeValue { get; set; }
+        public virtual DbSet<ItemPicture> ItemPictures { get; set; }
+        public virtual DbSet<UserFeedbackEntry> UserFeedbacks { get; set; }
+        public virtual DbSet<Discount> Discounts { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
