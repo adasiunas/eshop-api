@@ -66,14 +66,15 @@ namespace eshopAPI.Tests.Builders
                 Description = rnd.RandomString(20),
                 Price = rnd.Next(),
                 Attributes = new List<AttributeValue>(),
-                CategoryID = rnd.Next(),
-                SubCategoryID = rnd.Next(),
                 Pictures = new List<ItemPicture>()
             };
-            int attributesCnt = rnd.Next(5);
+            AddCategory();
+            AddSubCategory();
+
+            int attributesCnt = rnd.Next(1, 5);
             AddAttributes(attributesCnt);
 
-            int picturesCnt = rnd.Next(5);
+            int picturesCnt = rnd.Next(1, 5);
             AddPictures(picturesCnt);
 
             return this;
@@ -101,6 +102,21 @@ namespace eshopAPI.Tests.Builders
                 };
                 _item.Pictures.Add(picture);
             }
+            return this;
+        }
+
+        public ItemBuilder AddCategory()
+        {
+            _item.Category = new CategoryBuilder().Build();
+            _item.CategoryID = _item.Category.ID;
+            return this;
+        }
+
+        public ItemBuilder AddSubCategory()
+        {
+            _item.SubCategory = new SubCategoryBuilder().Build();
+            _item.SubCategoryID = _item.SubCategory.ID;
+            _item.Category.SubCategories.Add(_item.SubCategory);
             return this;
         }
 

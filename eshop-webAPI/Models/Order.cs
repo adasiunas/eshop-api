@@ -37,7 +37,8 @@ namespace eshopAPI.Models
         [Description("Sent")]
         Sent,
         [Description("Delivered")]
-        Delivered
+        Delivered,
+        Other
     }
 
     public static class EnumExtensions

@@ -12,6 +12,13 @@ namespace eshopAPI.Tests.Models.OrderTests
         {
             OrderStatus status = OrderStatus.Accepted;
             Assert.Equal("Accepted", status.GetDescription()); 
-        } 
+        }
+
+        [Fact]
+        public void NonExistentDescription()
+        {
+            OrderStatus status = OrderStatus.Other;
+            Assert.Equal("Other", status.GetDescription());
+        }
     }
 }
