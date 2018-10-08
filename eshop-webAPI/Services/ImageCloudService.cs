@@ -20,6 +20,7 @@ namespace eshopAPI.Services
         private readonly Account _account;
         private readonly Cloudinary _cloudinary;
 
+
         public ImageCloudService(ILogger<IImageCloudService> logger, IConfiguration configuration)
         {
             _logger = logger;
@@ -41,7 +42,7 @@ namespace eshopAPI.Services
                 {
                     File = new FileDescription(new Random().ToString(), image)    
                 };
-                var result = _cloudinary.Upload(uploadParam);
+                var result = CloudinaryUpload(uploadParam);
                 
                 if (result.Error != null)
                 {
@@ -55,6 +56,12 @@ namespace eshopAPI.Services
             }
 
             return imagesUrls;
+        }
+
+        // Added indirection, so that Cloudinary.Upload could be mocked
+        protected virtual RawUploadResult CloudinaryUpload(RawUploadParams param)
+        {
+            return _cloudinary.Upload(param);
         }
     }
 }
