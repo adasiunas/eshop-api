@@ -11,10 +11,8 @@ namespace eshopAPI.DataAccess
     {
         Task<SubCategory> FindSubCategoryByID(long categoryId);
         Task<Category> FindByID(long categoryID);
-        Task<List<Category>> GetAllParentCategories();
         Task<List<SubCategory>> GetChildrenOfParent(long parentId);
         Task<Category> FindByName(string name);
-        Task<List<SubCategory>> GetChildrenOfParent(int parentId);
         Task<Category> InsertCategory(Category category);
         Task<SubCategory> InsertSubcategory(SubCategory subCategory);
         Task<List<Category>> GetCategoriesWithSubcategories();
@@ -38,37 +36,20 @@ namespace eshopAPI.DataAccess
             return Context.Categories.FirstOrDefaultAsync(x => x.Name.Equals(name));
         }
 
-        public async Task<List<SubCategory>> GetChildrenOfParent(int parentId)
-        {
-            var categoryList = (await Context.Categories
-                .Where(x => x.ID == parentId)
-                .Include(x => x.SubCategories)
-                .ThenInclude(x => x.Items)
-                .FirstOrDefaultAsync())?.SubCategories;
-
-            return categoryList.ToList();
-        }
-
-
-        public Task<SubCategory> FindSubCategoryByID(long categoryId)
-        {
-            return Context.SubCategories.Include(sc => sc.Category).FirstOrDefaultAsync(x => x.ID == categoryId);
-        }
-
-        public Task<List<Category>> GetAllParentCategories()
-        {
-            return Context.Categories.Include(x => x.SubCategories).ToListAsync();
-        }
-
         public async Task<List<SubCategory>> GetChildrenOfParent(long parentId)
         {
             var categoryList = (await Context.Categories
                 .Where(x => x.ID == parentId)
                 .Include(x => x.SubCategories)
                 .ThenInclude(x => x.Items)
-                .FirstOrDefaultAsync())?.SubCategories;
+                .FirstOrDefaultAsync())?.SubCategories?.ToList();
 
-            return categoryList.ToList();
+            return categoryList;
+        }
+
+        public Task<SubCategory> FindSubCategoryByID(long categoryId)
+        {
+            return Context.SubCategories.Include(sc => sc.Category).FirstOrDefaultAsync(x => x.ID == categoryId);
         }
 
         public Task<List<Category>> GetCategoriesWithSubcategories()

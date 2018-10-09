@@ -36,6 +36,7 @@ namespace eshopAPI.Tests.Builders
         {
             _item = WithDefaultValues();
         }
+
         public Item WithDefaultValues()
         {
             var attributeValues = new List<AttributeValue>();
