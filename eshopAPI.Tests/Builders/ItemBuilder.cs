@@ -10,7 +10,7 @@ namespace eshopAPI.Tests.Builders
     public class ItemBuilder
     {
         Item _item;
-        int _id = 1;
+        static int _id = 1;
         public long ID { get
             {
                 return _id++;
@@ -60,7 +60,7 @@ namespace eshopAPI.Tests.Builders
             Random rnd = new Random();
             _item = new Item
             {
-                ID = rnd.Next(),
+                ID = ID,
                 Name = rnd.RandomString(10),
                 SKU = rnd.RandomString(3),
                 Description = rnd.RandomString(20),
@@ -89,17 +89,13 @@ namespace eshopAPI.Tests.Builders
             }
             return this;
         }
+
         public ItemBuilder AddPictures(int count)
         {
             Random rng = new Random();
             for (int i = 0; i < count; i++)
             {
-                ItemPicture picture = new ItemPicture
-                {
-                    ID = i,
-                    ItemID = _item.ID,
-                    URL = rng.RandomString(30)
-                };
+                ItemPicture picture = new ItemPictureBuilder().Build();
                 _item.Pictures.Add(picture);
             }
             return this;

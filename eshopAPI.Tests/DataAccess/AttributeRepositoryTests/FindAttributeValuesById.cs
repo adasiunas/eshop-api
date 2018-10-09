@@ -34,7 +34,10 @@ namespace eshopAPI.Tests.DataAccess.AttributeRepositoryTests
             ShopContext dbContext = new ShopContext(_options);
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
-            SeedData(dbContext);
+            using (ShopContext context = new ShopContext(_options))
+            {
+                SeedData(context);
+            }
             return new AttributeRepository(dbContext);
         }
 

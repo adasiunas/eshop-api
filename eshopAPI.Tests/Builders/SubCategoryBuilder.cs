@@ -9,7 +9,8 @@ namespace eshopAPI.Tests.Builders
     {
         private SubCategory _subCategory;
 
-        public long ID { get; set; } = 1;
+        static int _id = 1;
+        public long ID { get { return _id++; } }
         public string Name { get; set; } = "SubCatName";
 
         public SubCategoryBuilder()

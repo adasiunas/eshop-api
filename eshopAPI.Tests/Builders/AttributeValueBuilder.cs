@@ -5,8 +5,9 @@ namespace eshopAPI.Tests.Builders
     class AttributeValueBuilder
     {
         AttributeValue _attributeValue;
-        public long ID { get; set; } = 1;
-        public long AttributeID { get; set; } = 2;
+        static int _id = 1;
+        public long ID { get { return _id++; } }
+        public long AttributeID { get; set; } = 1;
         public Attribute Attribute { get; set; }
         public string Value { get; set; } = "abc";
         public string Name { get; set; } = "def";
