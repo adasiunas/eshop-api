@@ -55,6 +55,12 @@ namespace eshopAPI.Tests.Builders
             return this;
         }
 
+        public CartItemBuilder SetItem(Item item)
+        {
+            _cartItem.Item = item;
+            _cartItem.ItemID = item.ID;
+            return this;
+        }
 
         public CartItem Build()
         {

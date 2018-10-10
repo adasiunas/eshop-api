@@ -15,6 +15,7 @@ namespace eshopAPI.Tests.DataAccess.CategoryRepositoryTests
     public class DeleteSubcategory
     {
         long _firstCategoryId;
+        long _firstSubCategoryId;
         CategoryRepository _repository;
         DbContextOptions<ShopContext> _options;
 
@@ -29,17 +30,17 @@ namespace eshopAPI.Tests.DataAccess.CategoryRepositoryTests
         [Fact]
         public async void Success()
         {
-            SubCategory category = new SubCategory { ID = SubCategoryBuilder.LastId };
+            SubCategory category = new SubCategory { ID = _firstSubCategoryId };
             SubCategory deletedCategory = await _repository.DeleteSubcategory(category);
             await _repository.SaveChanges();
-            SubCategory foundCategory = GetSubcategoryById(SubCategoryBuilder.LastId);
+            SubCategory foundCategory = GetSubcategoryById(_firstCategoryId);
             Assert.Null(foundCategory);
         }
 
         [Fact]
         public async void Failure()
         {
-            SubCategory category = new SubCategory { ID = SubCategoryBuilder.LastId + 1 };
+            SubCategory category = new SubCategory { ID = _firstSubCategoryId - 1 };
 
             await Assert.ThrowsAnyAsync<Exception>(async () =>
             {
@@ -80,6 +81,7 @@ namespace eshopAPI.Tests.DataAccess.CategoryRepositoryTests
                 categoryBuilder.New().SetName("GHI").Build(),
             };
             _firstCategoryId = categories.First().ID;
+            _firstSubCategoryId = categories.First().SubCategories.First().ID;
             context.Categories.AddRange(categories);
             context.SaveChanges();
         }

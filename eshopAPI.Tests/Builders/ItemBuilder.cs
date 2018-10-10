@@ -9,13 +9,9 @@ namespace eshopAPI.Tests.Builders
 {
     public class ItemBuilder
     {
-        Item _item;
-        static int _id = 1;
-        public long ID { get
-            {
-                return _id++;
-            }
-        }
+        public static int LastId { get { return _id - 1; } }
+
+        public long ID { get { return _id++; } }
         public string SKU { get; set; } = "ABC1";
         public string Name { get; set; } = "ItemA";
         public string Description { get; set; } = "Description of this item";
@@ -32,18 +28,27 @@ namespace eshopAPI.Tests.Builders
         public List<AttributeValue> Attributes { get; set; }
         public List<ItemPicture> Pictures { get; set; }
 
+        static int _id = 1;
+
+        Item _item;
+
         public ItemBuilder()
         {
             _item = WithDefaultValues();
         }
 
-        public Item WithDefaultValues()
+        public ItemBuilder New()
+        {
+            _item = WithDefaultValues();
+            return this;
+        }
+
+        Item WithDefaultValues()
         {
             var attributeValues = new List<AttributeValue>();
             var pictures = new List<ItemPicture>();
             _item = new Item
             {
-                ID = ID,
                 Name = Name,
                 SKU = SKU,
                 Description = Description,
@@ -61,7 +66,6 @@ namespace eshopAPI.Tests.Builders
             Random rnd = new Random();
             _item = new Item
             {
-                ID = ID,
                 Name = rnd.RandomString(10),
                 SKU = rnd.RandomString(3),
                 Description = rnd.RandomString(20),
@@ -117,8 +121,22 @@ namespace eshopAPI.Tests.Builders
             return this;
         }
 
+        public ItemBuilder SetSKU(string sku)
+        {
+            _item.SKU = sku;
+            return this;
+        }
+
+        public ItemBuilder SetDeleted(bool deleted = true)
+        {
+            _item.IsDeleted = deleted;
+            _item.DeleteDate = DateTime.UtcNow;
+            return this;
+        }
+
         public Item Build()
         {
+            _item.ID = ID;
             return _item;
         }
     }

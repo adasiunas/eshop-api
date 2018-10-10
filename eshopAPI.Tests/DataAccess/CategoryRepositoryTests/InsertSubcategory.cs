@@ -15,6 +15,7 @@ namespace eshopAPI.Tests.DataAccess.CategoryRepositoryTests
     public class InsertSubcategory
     {
         long _firstCategoryId;
+        long _firstSubCategoryId;
         CategoryRepository _repository;
         DbContextOptions<ShopContext> _options;
 
@@ -40,7 +41,7 @@ namespace eshopAPI.Tests.DataAccess.CategoryRepositoryTests
         {
             SubCategory category = new SubCategory
             {
-                ID = SubCategoryBuilder.LastId
+                ID = _firstSubCategoryId
             };
 
             await Assert.ThrowsAnyAsync<Exception>(async () =>
@@ -72,6 +73,8 @@ namespace eshopAPI.Tests.DataAccess.CategoryRepositoryTests
                 categoryBuilder.New().SetName("GHI").Build(),
             };
             _firstCategoryId = categories.First().ID;
+            _firstSubCategoryId = categories.First().SubCategories.First().ID;
+
             context.Categories.AddRange(categories);
             context.SaveChanges();
         }
