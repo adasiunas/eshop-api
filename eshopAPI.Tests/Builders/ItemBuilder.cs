@@ -1,8 +1,10 @@
-﻿using eshopAPI.Models;
+﻿using Castle.Core.Internal;
+using eshopAPI.Models;
 using eshopAPI.Tests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace eshopAPI.Tests.Builders
@@ -69,9 +71,7 @@ namespace eshopAPI.Tests.Builders
                 Name = rnd.RandomString(10),
                 SKU = rnd.RandomString(3),
                 Description = rnd.RandomString(20),
-                Price = rnd.Next(),
-                Attributes = new List<AttributeValue>(),
-                Pictures = new List<ItemPicture>()
+                Price = rnd.Next()
             };
             AddCategory();
             AddSubCategory();
@@ -87,22 +87,25 @@ namespace eshopAPI.Tests.Builders
 
         public ItemBuilder AddAttributes(int count)
         {
+            List<AttributeValue> attributeValues = new List<AttributeValue>();
             for (int i = 0; i < count; i++)
             {
-                AttributeValue attributeValue = new AttributeValueBuilder().WithDefaultValues();
-                _item.Attributes.Add(attributeValue);
+                AttributeValue attributeValue = new AttributeValueBuilder().Build();
+                attributeValues.Add(attributeValue);
             }
+            _item.Attributes = attributeValues;
             return this;
         }
 
         public ItemBuilder AddPictures(int count)
         {
-            Random rng = new Random();
+            List<ItemPicture> pictures = new List<ItemPicture>();
             for (int i = 0; i < count; i++)
             {
                 ItemPicture picture = new ItemPictureBuilder().Build();
-                _item.Pictures.Add(picture);
+                pictures.Add(picture);
             }
+            _item.Pictures = pictures;
             return this;
         }
 

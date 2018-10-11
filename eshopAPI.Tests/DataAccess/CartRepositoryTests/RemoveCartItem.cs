@@ -15,6 +15,7 @@ namespace eshopAPI.Tests.DataAccess.CartRepositoryTests
     public class RemoveCartItem
     {
         string _email = "test@test.com";
+        long _firstCartItemId;
         CartRepository _repository;
         DbContextOptions<ShopContext> _options;
 
@@ -30,10 +31,10 @@ namespace eshopAPI.Tests.DataAccess.CartRepositoryTests
         [Fact]
         public async void RemoveSuccess()
         {
-            long lastItemId = CartItemBuilder.LastId();
+            long lastItemId = CartItemBuilder.LastId;
             CartItem item = new CartItem
             {
-                ID = lastItemId
+                ID = _firstCartItemId
             };
 
             await _repository.RemoveCartItem(item);
@@ -48,7 +49,7 @@ namespace eshopAPI.Tests.DataAccess.CartRepositoryTests
         {
             CartItem item = new CartItem
             {
-                ID = -1
+                ID = _firstCartItemId - 1
             };
 
             await Assert.ThrowsAnyAsync<Exception>(async () =>
@@ -94,6 +95,8 @@ namespace eshopAPI.Tests.DataAccess.CartRepositoryTests
             {
                 new Cart { ID = 1, User = user, Items = items },
             });
+            _firstCartItemId = items.First().ID;
+
             context.SaveChanges();
         }
     }

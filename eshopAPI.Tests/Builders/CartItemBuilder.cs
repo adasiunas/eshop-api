@@ -9,8 +9,8 @@ namespace eshopAPI.Tests.Builders
 {
     public class CartItemBuilder
     {
-        CartItem _cartItem;
-        static int _id = 1;
+        public static int LastId { get { return _id - 1; } }
+
         public long ID { get
             {
                 return _id++;
@@ -18,22 +18,20 @@ namespace eshopAPI.Tests.Builders
         }
         public int count { get; set; } = 1;
 
+        static int _id = 1;
+
+        CartItem _cartItem;
+
         public CartItemBuilder()
         {
             _cartItem = WithDefaultValues();
         }
 
-        public static int LastId()
-        {
-            return _id - 1;
-        }
-
-        public CartItem WithDefaultValues()
+        CartItem WithDefaultValues()
         {
             Item _item = new ItemBuilder().Build();
             _cartItem = new CartItem
             {
-                ID = ID,
                 Count = count,
                 Item = _item,
                 ItemID = _item.ID
@@ -47,7 +45,6 @@ namespace eshopAPI.Tests.Builders
             Item _item = new ItemBuilder().Random().Build();
             _cartItem = new CartItem
             {
-                ID = ID,
                 Count = rnd.Next(1, 100),
                 Item = _item,
                 ItemID = _item.ID
@@ -64,6 +61,7 @@ namespace eshopAPI.Tests.Builders
 
         public CartItem Build()
         {
+            _cartItem.ID = ID;
             return _cartItem;
         }
     }
