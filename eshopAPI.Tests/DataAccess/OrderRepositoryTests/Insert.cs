@@ -38,8 +38,7 @@ namespace eshopAPI.Tests.DataAccess.OrderRepositoryTests
             ShopUserRepository userRepository = new ShopUserRepository(_repository.Context);
             ShopUser user = await userRepository.GetUserWithEmail("test@test.com");
 
-            Order newOrder = new OrderBuilder().SetUser(user).SetItems(null).Build();
-            newOrder.ID = 0;
+            Order newOrder = new OrderBuilder().SetUser(user).AddItems(1).Build();
             output.WriteLine($"New orderId: {newOrder.ID}");
             Order order = await _repository.Insert(newOrder);
             await _repository.SaveChanges();

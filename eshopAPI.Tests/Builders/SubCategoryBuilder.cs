@@ -33,7 +33,7 @@ namespace eshopAPI.Tests.Builders
             return this;
         }
 
-        public SubCategory WithDefaultValues()
+        SubCategory WithDefaultValues()
         {
             _subCategory = new SubCategory
             {

@@ -2,15 +2,12 @@
 
 namespace eshopAPI.Tests.Builders
 {
-    class AttributeValueBuilder
+    public class AttributeValueBuilder
     {
         public static int LastId { get { return _id - 1; } }
 
         public long ID { get { return _id++; } }
-        public long AttributeID { get; set; } = 1;
-        public Attribute Attribute { get; set; }
         public string Value { get; set; } = "abc";
-        public string Name { get; set; } = "def";
 
         static int _id = 1;
 
@@ -20,24 +17,22 @@ namespace eshopAPI.Tests.Builders
         {
             _attributeValue = WithDefaultValues();
         }
-        private AttributeValue WithDefaultValues()
-        {
-            _attributeValue = new AttributeValue
-            {
-                AttributeID = AttributeID,
-                Value = Value,
-                Attribute = new Attribute
-                {
-                    ID = AttributeID,
-                    Name = Name
-                }
-            };
-            return _attributeValue;
-        }
 
         public AttributeValue Build()
         {
             _attributeValue.ID = ID;
+            return _attributeValue;
+        }
+
+        AttributeValue WithDefaultValues()
+        {
+            Attribute attribute = new AttributeBuilder().Build();
+            _attributeValue = new AttributeValue
+            {
+                Attribute = attribute,
+                AttributeID = attribute.ID,
+                Value = Value,
+            };
             return _attributeValue;
         }
     }
