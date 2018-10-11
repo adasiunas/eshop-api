@@ -95,7 +95,7 @@ namespace eshopAPI.Tests.DataAccess.OrderRepositoryTests
             OrderBuilder builder = new OrderBuilder();
             List<Order> orders = new List<Order>()
             {
-                builder.New().AddItems(2).Build(),
+                builder.Random().AddItems(2).Build(),
                 builder.Random().Build(),
                 builder.Random().Build(),
                 builder.Random().Build()

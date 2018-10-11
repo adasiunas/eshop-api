@@ -14,7 +14,6 @@ namespace eshopAPI.Tests.Builders
         public long ID { get { return _id++; } }
         public OrderStatus Status { get; set; } = OrderStatus.Accepted;
         public string DeliveryAddress { get; set; } = "HouseOfRisingSun";
-        public static ShopUser User = new ShopUserBuilder().Build();
 
         static int _id = 1;
 
@@ -38,7 +37,7 @@ namespace eshopAPI.Tests.Builders
                 DeliveryAddress = DeliveryAddress,
                 Status = OrderStatus.Accepted,
                 CreateDate = DateTime.UtcNow,
-                User = User,
+                User = new ShopUserBuilder().Build(),
                 Items = new List<OrderItem>()
             };
             return _order;
@@ -51,7 +50,7 @@ namespace eshopAPI.Tests.Builders
             {
                 DeliveryAddress = rnd.RandomString(10),
                 CreateDate = DateTime.UtcNow,
-                User = User,
+                User = new ShopUserBuilder().Build(),
                 Items = new List<OrderItem>()
             };
             int itemsCnt = rnd.Next(1, 5);
