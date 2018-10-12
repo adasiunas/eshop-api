@@ -13,14 +13,14 @@ using Xunit;
 
 namespace eshopAPI.Tests.DataAccess.ShopUserRepositoryTests
 {
-    public class GetAllUsersAsQueryable
+    public class GetAllFeedbacksAsQueryable
     {
         string _firstUserId;
         string _userEmail;
         ShopUserRepository _repository;
         DbContextOptions<ShopContext> _options;
 
-        public GetAllUsersAsQueryable()
+        public GetAllFeedbacksAsQueryable()
         {
             _userEmail = "123@abc.xyz";
             _options = new DbContextOptionsBuilder<ShopContext>()
