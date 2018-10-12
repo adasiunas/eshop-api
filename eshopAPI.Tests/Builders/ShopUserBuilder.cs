@@ -40,6 +40,13 @@ namespace eshopAPI.Tests.Builders
             return this;
         }
 
+        public ShopUserBuilder SetEmail(string email)
+        {
+            _user.Email = email;
+            _user.NormalizedEmail = email.Normalize();
+            return this;
+        }
+
         public ShopUser Build()
         {
             _user.Id = Guid.NewGuid().ToString();
