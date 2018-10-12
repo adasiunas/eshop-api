@@ -1,4 +1,5 @@
 ﻿using eshopAPI.Models;
+using eshopAPI.Tests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -34,6 +35,17 @@ namespace eshopAPI.Tests.Builders
             return _user;
         }
 
+        public ShopUserBuilder Random()
+        {
+            Random rnd = new Random();
+            _user = new ShopUser
+            {
+                Name = rnd.RandomString(10),
+            };
+            SetEmail(rnd.RandomString(10));
+            return this;
+        }
+
         public ShopUserBuilder SetName(string name)
         {
             _user.Name = name;
@@ -44,6 +56,12 @@ namespace eshopAPI.Tests.Builders
         {
             _user.Email = email;
             _user.NormalizedEmail = email.Normalize();
+            return this;
+        }
+
+        public ShopUserBuilder AddAddress()
+        {
+            _user.Address = new AddressBuilder().Random().Build();
             return this;
         }
 
