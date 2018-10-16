@@ -19,11 +19,11 @@ using Xunit;
 
 namespace eshopAPI.Tests.Controllers.AccountControllerTests
 {
-    public class Register
+    public class Checkout
     {
         AccountController _controller;
 
-        public Register()
+        public Checkout()
         {
         }
 
