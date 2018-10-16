@@ -88,12 +88,12 @@ namespace eshopAPI.Tests.Controllers.AccountControllerTests
             }
             Assert.Equal((int)HttpStatusCode.OK, objectResult.StatusCode);
         }
-        
+
         Mock<UserManager<ShopUser>> MockUserManager(ShopUser user, bool successfulConfirm)
         {
             var mockUserStore = new Mock<IUserStore<ShopUser>>();
             var mockUserEmailStore = mockUserStore.As<IUserEmailStore<ShopUser>>();
-            
+
             var userManagerMock = new Mock<UserManager<ShopUser>>(mockUserStore.Object, null, null, null, null, null, null, null, null);
 
             userManagerMock.Setup(o => o.FindByIdAsync(It.IsAny<string>()))

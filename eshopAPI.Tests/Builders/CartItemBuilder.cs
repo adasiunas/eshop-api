@@ -59,6 +59,12 @@ namespace eshopAPI.Tests.Builders
             return this;
         }
 
+        public CartItemBuilder SetCount(int count)
+        {
+            _cartItem.Count = count;
+            return this;
+        }
+
         public CartItem Build()
         {
             _cartItem.ID = ID;
