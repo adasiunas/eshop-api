@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <!-- Configurations that affect the Test Framework -->
+  <RunConfiguration>
+    <MaxCpuCount>1</MaxCpuCount>
+    <!-- Path relative to solution directory -->
+    <ResultsDirectory>.\TestResults</ResultsDirectory>
+
+    <!-- x86 or x64 -->
+    <!-- You can also change it from menu Test > Test Settings > Default Processor Architecture -->
+    <TargetPlatform>x86</TargetPlatform>
+
+    <!-- Framework35 | [Framework40] | Framework45 -->
+    <TargetFrameworkVersion>Framework40</TargetFrameworkVersion>
+
+    <!-- Path to Test Adapters -->
+    <TestAdaptersPaths>%SystemDrive%\Temp\foo;%SystemDrive%\Temp\bar</TestAdaptersPaths>
+
+    <!-- TestSessionTimeout is only available with Visual Studio 2017 version 15.5 and higher -->
+    <!-- Specify timeout in milliseconds. A valid value should be greater than 0 -->
+    <TestSessionTimeout>180000</TestSessionTimeout>
+  </RunConfiguration>
+
+  <!-- Configurations for data collectors -->
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0" assemblyQualifiedName="Microsoft.VisualStudio.Coverage.DynamicCoverageDataCollector, Microsoft.VisualStudio.TraceCollector, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <Configuration>
+          <CodeCoverage>
+            <ModulePaths>
+              <Exclude>
+                <ModulePath>.*CPPUnitTestFramework.*</ModulePath>
+              </Exclude>
+            </ModulePaths>
+            
+            <!-- Added to ignore properties getters and setters in code coverage -->
+            <Functions>
+              <Exclude>
+                <Function>.*get_.*</Function>
+                <Function>.*set_.*</Function>
+                <!-- Exclude everthing inside the framework namespaces --> 
+                <Function>^Microsoft.IdentityModel.Clients.ActiveDirectory\..*</Function> 
+                <Function>^Microsoft.IdentityModel.Clients.ActiveDirectory\..*</Function> 
+                <Function>^Microsoft.WindowsAzure.Storage\..*</Function> 
+                <Function>^Moq\..*</Function> 
+                <Function>^eshopAPI.Program\..*</Function> 
+                <Function>^eshopAPI.Startup\..*</Function> 
+                <!-- Exclude parts that will not be unit tested --> 
+                <Function>^eshopAPI.Tests\..*</Function>
+                <Function>^Log4NetLogger\..*</Function> 
+                <Function>^Log4NetProvider\..*</Function> 
+                <Function>^Log4netExtensions\..*</Function> 
+                <Function>^eshopAPI.Services.EmailSender\..*</Function> 
+                <Function>^eshopAPI.Services.PaymentService\..*</Function> 
+                <Function>^eshopAPI.Utils\..*</Function> 
+                <Function>^eshopAPI.Validators\..*</Function>
+                <Function>^eshopAPI.Migrations\..*</Function>
+                <Function>^eshopAPI.Helpers\..*</Function>
+                <!-- Exclude because of scope of testing --> 
+                <Function>^eshopAPI.Controllers.Admin\..*</Function>  
+              </Exclude>
+            </Functions>
+            
+            <!-- We recommend you do not change the following values: -->
+            <UseVerifiableInstrumentation>True</UseVerifiableInstrumentation>
+            <AllowLowIntegrityProcesses>True</AllowLowIntegrityProcesses>
+            <CollectFromChildProcesses>True</CollectFromChildProcesses>
+            <CollectAspDotNet>False</CollectAspDotNet>
+
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+
+      <DataCollector uri="datacollector://microsoft/VideoRecorder/1.0" assemblyQualifiedName="Microsoft.VisualStudio.TestTools.DataCollection.VideoRecorder.VideoRecorderDataCollector, Microsoft.VisualStudio.TestTools.DataCollection.VideoRecorder, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" friendlyName="Screen and Voice Recorder">
+        <!--Video data collector is only available with Visual Studio 2017 version 15.5 and higher -->
+      </DataCollector>
+
+    </DataCollectors>
+  </DataCollectionRunSettings>
+
+  <!-- Parameters used by tests at runtime -->
+  <TestRunParameters>
+    <Parameter name="webAppUrl" value="http://localhost" />
+    <Parameter name="webAppUserName" value="Admin" />
+    <Parameter name="webAppPassword" value="Password" />
+  </TestRunParameters>
+
+  <!-- Adapter Specific sections -->
+
+  <!-- MSTest adapter -->
+  <MSTest>
+    <MapInconclusiveToFailed>True</MapInconclusiveToFailed>
+    <CaptureTraceOutput>false</CaptureTraceOutput>
+    <DeleteDeploymentDirectoryAfterTestRunIsComplete>False</DeleteDeploymentDirectoryAfterTestRunIsComplete>
+    <DeploymentEnabled>False</DeploymentEnabled>
+    <AssemblyResolution>
+      <Directory Path="D:\myfolder\bin\" includeSubDirectories="false"/>
+    </AssemblyResolution>
+  </MSTest>
+
+</RunSettings>

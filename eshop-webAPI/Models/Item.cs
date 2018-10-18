@@ -21,9 +21,9 @@ namespace eshopAPI.Models
         [Required]
         public decimal Price { get; set; }
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public DateTime CreateDate { get; set; }
+        public DateTime CreateDate { get; set; } = DateTime.UtcNow;
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public DateTime ModifiedDate { get; set; }
+        public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
         public DateTime? DeleteDate { get; set; }
         public bool IsDeleted { get; set; }
 

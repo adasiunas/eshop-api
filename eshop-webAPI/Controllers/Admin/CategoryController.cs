@@ -32,7 +32,7 @@ namespace eshopAPI.Controllers.Admin
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Get()
         {
-            var categories = await _categoryRepository.GetAllParentCategories();
+            var categories = await _categoryRepository.GetCategoriesWithSubcategories();
             var categoryVMs = categories.Select(x => new AdminCategoryVM()
             {
                 ID = x.ID,

@@ -264,3 +264,8 @@ __pycache__/
 eshop-webAPI/log4net.config
 ExportedFiles/
 Pictures/
+
+# Ignore appsettings configuration files
+**/appsettings.Development.json
+**/appsettings.Staging.json
+**/appsettings.Production.json
