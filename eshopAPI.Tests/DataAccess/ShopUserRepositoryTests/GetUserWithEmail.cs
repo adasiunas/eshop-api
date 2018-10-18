@@ -44,18 +44,6 @@ namespace eshopAPI.Tests.DataAccess.ShopUserRepositoryTests
             Assert.Null(user);
         }
 
-        ShopUser GetUserByEmail(string email)
-        {
-            ShopUser user;
-            using (ShopContext context = new ShopContext(_options))
-            {
-                user = context.Users
-                    .Where(o => o.Email == email)
-                    .FirstOrDefault();
-            }
-            return user;
-        }
-
         private ShopUserRepository GetShopUserRepository()
         {
             ShopContext dbContext = new ShopContext(_options);

@@ -18,7 +18,7 @@
 
     <!-- TestSessionTimeout is only available with Visual Studio 2017 version 15.5 and higher -->
     <!-- Specify timeout in milliseconds. A valid value should be greater than 0 -->
-    <TestSessionTimeout>120000</TestSessionTimeout>
+    <TestSessionTimeout>180000</TestSessionTimeout>
   </RunConfiguration>
 
   <!-- Configurations for data collectors -->
@@ -38,6 +38,26 @@
               <Exclude>
                 <Function>.*get_.*</Function>
                 <Function>.*set_.*</Function>
+                <!-- Exclude everthing inside the framework namespaces --> 
+                <Function>^Microsoft.IdentityModel.Clients.ActiveDirectory\..*</Function> 
+                <Function>^Microsoft.IdentityModel.Clients.ActiveDirectory\..*</Function> 
+                <Function>^Microsoft.WindowsAzure.Storage\..*</Function> 
+                <Function>^Moq\..*</Function> 
+                <Function>^eshopAPI.Program\..*</Function> 
+                <Function>^eshopAPI.Startup\..*</Function> 
+                <!-- Exclude parts that will not be unit tested --> 
+                <Function>^eshopAPI.Tests\..*</Function>
+                <Function>^Log4NetLogger\..*</Function> 
+                <Function>^Log4NetProvider\..*</Function> 
+                <Function>^Log4netExtensions\..*</Function> 
+                <Function>^eshopAPI.Services.EmailSender\..*</Function> 
+                <Function>^eshopAPI.Services.PaymentService\..*</Function> 
+                <Function>^eshopAPI.Utils\..*</Function> 
+                <Function>^eshopAPI.Validators\..*</Function>
+                <Function>^eshopAPI.Migrations\..*</Function>
+                <Function>^eshopAPI.Helpers\..*</Function>
+                <!-- Exclude because of scope of testing --> 
+                <Function>^eshopAPI.Controllers.Admin\..*</Function>  
               </Exclude>
             </Functions>
             

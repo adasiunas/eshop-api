@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace eshopAPI.Controllers
+namespace eshopAPI.Controllers.Admin
 {
     [Produces("application/json")]
     [Route("api/admin/discount")]
